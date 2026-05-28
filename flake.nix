@@ -28,6 +28,7 @@
               pkgs.unzip
               pkgs.gnutar
               pkgs.zstd
+              pkgs.gdb
             ];
 
             shellHook = ''
