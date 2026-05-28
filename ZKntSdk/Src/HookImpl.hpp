@@ -237,7 +237,8 @@ template<class ReturnType, class... Args> class HookImpl<ReturnType(Args...)> : 
             return;
         }
 
-        // Install the detour.
+        // Create the detour. Enable is deferred to Hooks::EnableAll() so no
+        // detour fires before the owning Hooks object is reachable via SDK.
         void* s_Original = nullptr;
         auto s_Result = MH_CreateHook(m_Target, reinterpret_cast<void*>(p_Detour), &s_Original);
 
@@ -247,19 +248,9 @@ template<class ReturnType, class... Args> class HookImpl<ReturnType(Args...)> : 
             return;
         }
 
-        s_Result = MH_EnableHook(m_Target);
-
-        if (s_Result != MH_OK) {
-            Fail();
-            Logger::Error(
-                "Could install detour for hook '{}' at address {}. Error code: {}.", p_HookName, fmt::ptr(p_Target), static_cast<int>(s_Result)
-            );
-            return;
-        }
-
         this->m_OriginalFunc = s_Original;
 
-        Logger::Debug("Successfully installed detour for hook '{}' at address {}.", p_HookName, fmt::ptr(p_Target));
+        Logger::Debug("Created hook '{}' at address {}.", p_HookName, fmt::ptr(p_Target));
     }
 
     HookImpl(const char* p_HookName, typename Hook<ReturnType(Args...)>::OriginalFunc_t p_Original) : m_Target(nullptr) {

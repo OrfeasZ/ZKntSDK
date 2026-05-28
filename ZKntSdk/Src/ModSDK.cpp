@@ -152,6 +152,8 @@ namespace zknt {
         Logger::Info("SDK starting up.");
 
         m_Hooks = std::make_unique<zknt::Hooks>();
+        m_Hooks->EnableAll();
+
         m_Globals = std::make_unique<zknt::Globals>();
         m_Functions = std::make_unique<zknt::Functions>();
         m_ImGuiRenderer = std::make_unique<zknt::rendering::ImGuiRenderer>();

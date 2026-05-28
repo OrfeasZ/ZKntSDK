@@ -8,6 +8,8 @@ class ZApplicationEngineWin32;
 class ZEngineAppCommon;
 
 namespace zknt {
+    class ModSDK;
+
     class Hooks {
       public:
         Hooks();
@@ -20,5 +22,10 @@ namespace zknt {
         Hook<bool(const ZString& optionName, bool defaultValue)>* GetApplicationOptionBool = nullptr;
         Hook<LRESULT(ZApplicationEngineWin32*, HWND, UINT, WPARAM, LPARAM)>* ZApplicationEngineWin32_MainWindowProc = nullptr;
         Hook<ZString*(ZEngineAppCommon* th, ZString& result)>* ZEngineAppCommon_GetBootScene = nullptr;
+
+      private:
+        void EnableAll();
+
+        friend class ModSDK;
     };
 }

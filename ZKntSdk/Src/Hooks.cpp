@@ -2,6 +2,8 @@
 #include "HookImpl.hpp"
 #include "IModSDK.hpp"
 
+#include <MinHook.h>
+
 #include <Glacier/ZString.h>
 
 std::unordered_set<HookBase*>* HookRegistry::g_Hooks = nullptr;
@@ -27,4 +29,11 @@ zknt::Hooks::Hooks() {
         "\xE8\x00\x00\x00\x00\x48\x8B\x0F\x48\x8D\x05\x00\x00\x00\x00\x4C\x8D\x44\x24\x40", "x????xxxxxx????xxxxx", ZEngineAppCommon_GetBootScene,
         ZString * (ZEngineAppCommon * th, ZString & result)
     );
+}
+
+void zknt::Hooks::EnableAll() {
+    const auto s_Result = MH_EnableHook(MH_ALL_HOOKS);
+    if (s_Result != MH_OK) {
+        Logger::Error("Failed to enable hooks. Error code: {}.", static_cast<int>(s_Result));
+    }
 }
