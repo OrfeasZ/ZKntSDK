@@ -2,6 +2,8 @@
 
 #include "IModSDK.hpp"
 #include "Hooks.hpp"
+#include "Functions.hpp"
+#include "Globals.hpp"
 #include "Rendering/ImGuiRenderer.hpp"
 #include "HostServices.hpp"
 
@@ -53,6 +55,8 @@ namespace zknt {
         // IModSDK (mod-facing) methods.
         ImGuiContext* GetImGuiContext() override;
         ::zknt::Hooks* Hooks() override;
+        ::zknt::Functions* Functions() override;
+        ::zknt::Globals* Globals() override;
         void Log(spdlog::level::level_enum p_Level, std::string_view p_Msg) override;
 
         // SDK-internal methods.
@@ -84,6 +88,8 @@ namespace zknt {
 
         knt::host::HostServices* m_HostServices = nullptr;
         std::unique_ptr<::zknt::Hooks> m_Hooks;
+        std::unique_ptr<::zknt::Functions> m_Functions;
+        std::unique_ptr<::zknt::Globals> m_Globals;
         std::unique_ptr<rendering::ImGuiRenderer> m_ImGuiRenderer;
         std::unique_ptr<ModLoader> m_ModLoader;
         std::unique_ptr<ui::ModSelector> m_ModSelector;

@@ -132,6 +132,9 @@ namespace zknt {
         // deletes them through HookBase); drop the owning unique_ptr to mirror.
         m_Hooks.reset();
 
+        m_Functions.reset();
+        m_Globals.reset();
+
         Trampolines::ClearTrampolines();
 
         FlushLoggers();
@@ -149,6 +152,8 @@ namespace zknt {
         Logger::Info("SDK starting up.");
 
         m_Hooks = std::make_unique<zknt::Hooks>();
+        m_Globals = std::make_unique<zknt::Globals>();
+        m_Functions = std::make_unique<zknt::Functions>();
         m_ImGuiRenderer = std::make_unique<zknt::rendering::ImGuiRenderer>();
 
         if (m_HostServices && m_HostServices->RegisterRenderingCallbacks) {
@@ -190,6 +195,14 @@ namespace zknt {
 
     zknt::Hooks* ModSDK::Hooks() {
         return m_Hooks.get();
+    }
+
+    zknt::Functions* ModSDK::Functions() {
+        return m_Functions.get();
+    }
+
+    zknt::Globals* ModSDK::Globals() {
+        return m_Globals.get();
     }
 
     void ModSDK::Log(spdlog::level::level_enum p_Level, std::string_view p_Msg) {

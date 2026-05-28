@@ -8,6 +8,8 @@ struct ImGuiContext;
 
 namespace zknt {
     class Hooks;
+    class Functions;
+    class Globals;
 
     class IModSDK {
       public:
@@ -16,6 +18,8 @@ namespace zknt {
         virtual ImGuiContext* GetImGuiContext() = 0;
 
         virtual zknt::Hooks* Hooks() = 0;
+        virtual zknt::Functions* Functions() = 0;
+        virtual zknt::Globals* Globals() = 0;
 
         virtual void Log(spdlog::level::level_enum p_Level, std::string_view p_Msg) = 0;
     };
