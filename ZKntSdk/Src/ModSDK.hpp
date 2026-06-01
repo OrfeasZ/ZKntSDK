@@ -12,6 +12,8 @@
 #include <mutex>
 #include <unordered_map>
 
+class ZFreeCameraControlEditorStyleEntity;
+
 namespace zknt {
     class ModLoader;
     class IPluginInterface;
@@ -78,6 +80,11 @@ namespace zknt {
       private:
         // Detours
         DECLARE_DETOUR_WITH_CONTEXT(ModSDK, bool, Engine_Init, void* th, void* a2);
+        DECLARE_DETOUR_WITH_CONTEXT(
+            ModSDK, ZString*, ZFreeCameraControlEntity_GenerateActionBindingString, ZFreeCameraControlEntity* th, ZString& result, int nControllerId
+        );
+
+        void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
 
       private:
         uintptr_t m_ModuleBase;
@@ -97,5 +104,9 @@ namespace zknt {
 
         std::mutex m_UiCallbacksMutex;
         std::unordered_map<void*, UiCallback> m_UiCallbacks;
+
+        TEntityRef<ZCameraEntity> m_pFreeCamera;
+        TEntityRef<ZFreeCameraControlEntity> m_pFreeCameraControl;
+        TEntityRef<ZFreeCameraControlEditorStyleEntity> m_pFreeCameraControlEditorStyle;
     };
 }

@@ -1,0 +1,37 @@
+#pragma once
+
+#include "Reflection.hpp"
+#include "THashMap.hpp"
+#include "ZString.hpp"
+#include "TArray.hpp"
+
+class TypeMapHashingPolicy {
+  public:
+    static uint64_t GetHashCode(const ZString& p_Key) {
+        return Hash::Fnv1a64_Lower(p_Key.c_str(), p_Key.size());
+    }
+};
+
+class ZTypeRegistry {
+  public:
+    virtual int AddRef() = 0;
+    virtual int Release() = 0;
+    virtual ZObjectRef* GetVariantRef(ZObjectRef& result) = 0;
+    virtual void* QueryInterface(STypeID* iid) = 0;
+    virtual ~ZTypeRegistry() = 0;
+
+    STypeID* GetTypeID(const ZString& p_TypeName) const {
+        const auto s_HashMapIterator = m_types.find(p_TypeName);
+
+        if (s_HashMapIterator != m_types.end()) {
+            return s_HashMapIterator->second;
+        }
+
+        return nullptr;
+    }
+
+  public:
+    PAD(0x30);
+    THashMap<ZString, STypeID*, TypeMapHashingPolicy> m_types;
+    TArray<IType*> m_unnamedTypes;
+};

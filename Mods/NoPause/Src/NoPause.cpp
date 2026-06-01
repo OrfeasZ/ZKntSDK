@@ -1,7 +1,7 @@
 #include "NoPause.hpp"
 
 #include <Logging.hpp>
-#include <Glacier/ZString.h>
+#include <Glacier/ZString.hpp>
 
 void NoPause::Init() {
     SDK()->Hooks()->GetApplicationOptionBool->AddDetour(this, &NoPause::GetOption);

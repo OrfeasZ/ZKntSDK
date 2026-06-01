@@ -9,7 +9,9 @@
 
 #include <spdlog/fmt/ostr.h>
 
-#include "Hash.h"
+#include "Hash.hpp"
+
+#undef min
 
 class ZString {
   public:
@@ -201,7 +203,8 @@ class ZString {
         m_pChars = s_Buffer;
     }
 
-  private:
+    // private:
+  public:
     uint32_t m_nLength;
     const char* m_pChars;
 

@@ -6,6 +6,7 @@
 class ZString;
 class ZApplicationEngineWin32;
 class ZEngineAppCommon;
+class ZFreeCameraControlEntity;
 
 namespace zknt {
     class ModSDK;
@@ -22,6 +23,7 @@ namespace zknt {
         Hook<bool(const ZString& optionName, bool defaultValue)>* GetApplicationOptionBool = nullptr;
         Hook<LRESULT(ZApplicationEngineWin32*, HWND, UINT, WPARAM, LPARAM)>* ZApplicationEngineWin32_MainWindowProc = nullptr;
         Hook<ZString*(ZEngineAppCommon* th, ZString& result)>* ZEngineAppCommon_GetBootScene = nullptr;
+        Hook<ZString*(ZFreeCameraControlEntity* th, ZString& result, int nControllerId)>* ZFreeCameraControlEntity_GenerateActionBindingString;
 
       private:
         void EnableAll();

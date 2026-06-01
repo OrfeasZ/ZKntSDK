@@ -3,6 +3,16 @@
 #include "Common.hpp"
 #include <cstdint>
 
+class ZGameSceneflowModule;
+class ZEntityManager;
+class ZResourceContainer;
+class ZMemoryManager;
+class ZCameraManagerMain;
+class ZApplicationEngineWin32;
+class ZResourceManager;
+class ZTypeRegistry;
+class ZGameLoopManager;
+
 namespace zknt {
     class Globals {
       public:
@@ -12,6 +22,14 @@ namespace zknt {
         Globals(const Globals&) = delete;
         Globals& operator=(const Globals&) = delete;
 
-        // SomeType* SomeGlobal = nullptr;
+        ZGameSceneflowModule* GameSceneflowModule = nullptr;
+        ZEntityManager* EntityManager = nullptr;
+        ZResourceContainer** ResourceContainer = nullptr;
+        ZMemoryManager** MemoryManager = nullptr;
+        ZCameraManagerMain* CameraManagerMain = nullptr;
+        ZApplicationEngineWin32** ApplicationEngineWin32 = nullptr;
+        ZResourceManager* ResourceManager = nullptr;
+        ZTypeRegistry** TypeRegistry = nullptr;
+        ZGameLoopManager* GameLoopManager = nullptr;
     };
 }
