@@ -204,6 +204,7 @@ namespace zknt {
 
         Hooks()->Engine_Init->AddDetour(this, &ModSDK::Engine_Init);
         Hooks()->ZFreeCameraControlEntity_GenerateActionBindingString->AddDetour(this, &ModSDK::ZFreeCameraControlEntity_GenerateActionBindingString);
+        Hooks()->ZFreeCameraControlEntity_UpdateMovementFromInput->AddDetour(this, &ModSDK::ZFreeCameraControlEntity_UpdateMovementFromInput);
     }
 
     zknt::Hooks* ModSDK::Hooks() {
@@ -311,29 +312,65 @@ namespace zknt {
     ) {
         ZString* res = p_Hook->CallOriginal(th, result, nControllerId);
 
-        result.m_pChars =
-            "FreeCamControl0={TiltCamera=rel(ms,y);TurnCamera=rel(ms,x);MoveX=+ -hold(kb,right) hold(kb,left) -hold(kb,d) hold(kb,a);MoveY=+ "
-            "-hold(kb,down) hold(kb,up) -hold(kb,s) hold(kb,w);MoveZ=+ -hold(kb,pgdn) hold(kb,pgup) -hold(kb,q) hold(kb,e);"
-            "TiltTurnCameraFixedDegreeModifier= hold(kb, f);RollModifier=| hold(kb,lctrl) hold(kb, rctrl);FovModifier=| hold(kb,lctrl) "
-            "hold(kb, rctrl);SpeedModifier=| hold(kb,lalt) hold(kb, ralt);MoveInWorldSpace= hold(kb,space);ResetRoll= hold(kb, x);ResetFov= hold(kb, "
-            "z);ResetSpeed= hold(kb, "
-            "z);AnalogCamXAxis0=ana(gc0,rightx);AnalogCamYAxis0=ana(gc0,righty);AnalogMoveXAxis0=ana(gc0,leftx);AnalogMoveYAxis0=ana(gc0,lefty);"
-            "MoveInZDirection0=| hold(gc0,right_bumper) hold(gc0,right1);RollModifier0=| hold(gc0,a) "
-            "hold(gc0,cross);RollAxis0=ana(gc0,leftx);ResetRoll0=| hold(gc0, leftstick) hold(gc0, left_thumb);FovModifier0=| hold(gc0,y) "
-            "hold(gc0,triangle);FovAxis0=ana(gc0,lefty);ResetFov0=| hold(gc0, leftstick) hold(gc0, left_thumb);SpeedModifier0=| hold(gc0,b) "
-            "hold(gc0,circle);SpeedTranslationAxis0=ana(gc0,lefty);SpeedRotationAxis0=ana(gc0,leftx);ResetSpeed0=| hold(gc0, leftstick) hold(gc0, "
-            "left_thumb);MoveInWorldSpace0=+ ana(gc0,left_analog_trigger) "
-            "hold(gc0,left2);MoveInWorldSpaceXAxis0=ana(gc0,leftx);MoveInWorldSpaceYAxis0=ana(gc0,lefty);MoveInWorldSpaceZAxis0=ana(gc0,righty);"
-            "ActivateGameControl0=| hold(gc0,left_bumper) hold(gc0,left1);TemporaryCamSpeedMultiplier0=+ ana(gc0,right_analog_trigger) + "
-            "ana(gc0,right2_analog) + hold(kb,lshift) hold(kb,rshift);};";
+        result.m_pChars = "FreeCamControl0={"
+                          "TiltCamera=rel(ms,y);"
+                          "TurnCamera=rel(ms,x);"
+                          "MoveXPositive=| hold(kb,left) hold(kb,a);"
+                          "MoveXNegative=| hold(kb,right) hold(kb,d);"
+                          "MoveYPositive=| hold(kb,up) hold(kb,w);"
+                          "MoveYNegative=| hold(kb,down) hold(kb,s);"
+                          "MoveZPositive=| hold(kb,pgup) hold(kb,e);"
+                          "MoveZNegative=| hold(kb,pgdn) hold(kb,q);"
+                          "TiltTurnCameraFixedDegreeModifier=hold(kb,f);"
+                          "RollModifier=| hold(kb,lctrl) hold(kb,rctrl);"
+                          "FovModifier=| hold(kb,lctrl) hold(kb,rctrl);"
+                          "SpeedModifier=| hold(kb,lalt) hold(kb,ralt);"
+                          "MoveInWorldSpace=hold(kb,space);"
+                          "ResetRoll=hold(kb,x);"
+                          "ResetFov=hold(kb,z);"
+                          "ResetSpeed=hold(kb,z);"
+                          "AnalogCamXAxis0=ana(gc0,rightx);"
+                          "AnalogCamYAxis0=ana(gc0,righty);"
+                          "AnalogMoveXAxis0=ana(gc0,leftx);"
+                          "AnalogMoveYAxis0=ana(gc0,lefty);"
+                          "MoveInZDirection0=| hold(gc0,right_bumper) hold(gc0,right1);"
+                          "RollModifier0=| hold(gc0,a) hold(gc0,cross);"
+                          "RollAxis0=ana(gc0,leftx);"
+                          "ResetRoll0=| hold(gc0,leftstick) hold(gc0,left_thumb);"
+                          "FovModifier0=| hold(gc0,y) hold(gc0,triangle);"
+                          "FovAxis0=ana(gc0,lefty);"
+                          "ResetFov0=| hold(gc0,leftstick) hold(gc0,left_thumb);"
+                          "SpeedModifier0=| hold(gc0,b) hold(gc0,circle);"
+                          "SpeedTranslationAxis0=ana(gc0,lefty);"
+                          "SpeedRotationAxis0=ana(gc0,leftx);"
+                          "ResetSpeed0=| hold(gc0,leftstick) hold(gc0,left_thumb);"
+                          "MoveInWorldSpaceTrigger0=ana(gc0,left_analog_trigger);"
+                          "MoveInWorldSpaceButton0=hold(gc0,left2);"
+                          "MoveInWorldSpaceXAxis0=ana(gc0,leftx);"
+                          "MoveInWorldSpaceYAxis0=ana(gc0,lefty);"
+                          "MoveInWorldSpaceZAxis0=ana(gc0,righty);"
+                          "ActivateGameControl0=| hold(gc0,left_bumper) hold(gc0,left1);"
+                          "TemporaryCamSpeedMultiplierTrigger0=ana(gc0,right_analog_trigger);"
+                          "TemporaryCamSpeedMultiplierTrigger20=ana(gc0,right2_analog);"
+                          "TemporaryCamSpeedMultiplierLeftShift=hold(kb,lshift);"
+                          "TemporaryCamSpeedMultiplierRightShift=hold(kb,rshift);"
+                          "};";
+        ;
 
         result.m_nLength = static_cast<uint32_t>(strlen(result.m_pChars)) | 0x80000000;
 
         return {HookAction::Return(), res};
     }
 
+    DEFINE_DETOUR_WITH_CONTEXT(ModSDK, void, ZFreeCameraControlEntity_UpdateMovementFromInput, ZFreeCameraControlEntity* th) {
+        th->UpdateMovementFromInput();
+        return {HookAction::Return()};
+    }
+
     void ModSDK::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
         if (GetAsyncKeyState('K') & 0x8000) {
+            ZInputAction* ac = reinterpret_cast<ZInputAction*>(0x1434510f0);
+
             constexpr auto s_CameraEntityFactoryId = ResId<"[modules:/zcameraentity.class].entitytype">;
 
             TResourcePtr<IEntityFactory> s_CamerEntityFactory;

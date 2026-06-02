@@ -83,6 +83,7 @@ namespace zknt {
         DECLARE_DETOUR_WITH_CONTEXT(
             ModSDK, ZString*, ZFreeCameraControlEntity_GenerateActionBindingString, ZFreeCameraControlEntity* th, ZString& result, int nControllerId
         );
+        DECLARE_DETOUR_WITH_CONTEXT(ModSDK, void, ZFreeCameraControlEntity_UpdateMovementFromInput, ZFreeCameraControlEntity* th);
 
         void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
 

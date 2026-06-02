@@ -36,6 +36,11 @@ zknt::Hooks::Hooks() {
         "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx????xxxxx", ZFreeCameraControlEntity_GenerateActionBindingString,
         ZString * (ZFreeCameraControlEntity * th, ZString & result, int nControllerId)
     );
+
+    PATTERN_HOOK(
+        "\x40\x53\x56\x57\x48\x81\xEC\x00\x00\x00\x00\x33\xC0", "xxxxxxx????xx", ZFreeCameraControlEntity_UpdateMovementFromInput,
+        void(ZFreeCameraControlEntity * th)
+    );
 }
 
 void zknt::Hooks::EnableAll() {

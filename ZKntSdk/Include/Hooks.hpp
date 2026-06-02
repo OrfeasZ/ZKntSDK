@@ -24,6 +24,7 @@ namespace zknt {
         Hook<LRESULT(ZApplicationEngineWin32*, HWND, UINT, WPARAM, LPARAM)>* ZApplicationEngineWin32_MainWindowProc = nullptr;
         Hook<ZString*(ZEngineAppCommon* th, ZString& result)>* ZEngineAppCommon_GetBootScene = nullptr;
         Hook<ZString*(ZFreeCameraControlEntity* th, ZString& result, int nControllerId)>* ZFreeCameraControlEntity_GenerateActionBindingString;
+        Hook<void(ZFreeCameraControlEntity* th)>* ZFreeCameraControlEntity_UpdateMovementFromInput;
 
       private:
         void EnableAll();
