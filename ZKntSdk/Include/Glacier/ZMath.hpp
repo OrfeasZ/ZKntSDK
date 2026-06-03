@@ -265,7 +265,7 @@ struct alignas(16) float4 {
         return float4(-x, -y, -z, -w);
     }
 
-    static float4 CrossProduct(float4& v1, float4& v2) {
+    static float4 CrossProduct(const float4& v1, const float4& v2) {
         return _mm_sub_ps(
             _mm_mul_ps(_mm_shuffle_ps(v1.m, v1.m, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(v2.m, v2.m, _MM_SHUFFLE(3, 1, 0, 2))),
             _mm_mul_ps(_mm_shuffle_ps(v1.m, v1.m, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(v2.m, v2.m, _MM_SHUFFLE(3, 0, 2, 1)))
