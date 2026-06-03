@@ -50,8 +50,6 @@ class SVector3 {
 
     SVector3(const SVector2& p_Vec) : x(p_Vec.x), y(p_Vec.y), z(0.f) {}
 
-    SVector3(const float4& p_Vec);
-
     SVector3(const DirectX::XMVECTOR p_Vector) {
         DirectX::XMStoreFloat3(reinterpret_cast<DirectX::XMFLOAT3*>(this), p_Vector);
     }
@@ -213,6 +211,10 @@ struct alignas(16) float4 {
     float4(const SVector2& p_Vec) : x(p_Vec.x), y(p_Vec.y), z(0.f), w(0.f) {}
 
     float4(const SVector3& p_Vec, float p_W = 0.f) : x(p_Vec.x), y(p_Vec.y), z(p_Vec.z), w(p_W) {}
+
+    operator SVector3() const {
+        return SVector3(x, y, z);
+    }
 
     float4 operator-(const float4& p_Vec) const {
         return _mm_sub_ps(m, p_Vec.m);
