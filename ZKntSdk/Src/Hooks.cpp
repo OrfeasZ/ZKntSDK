@@ -41,6 +41,11 @@ zknt::Hooks::Hooks() {
         "\x40\x53\x56\x57\x48\x81\xEC\x00\x00\x00\x00\x33\xC0", "xxxxxxx????xx", ZFreeCameraControlEntity_UpdateMovementFromInput,
         void(ZFreeCameraControlEntity * th)
     );
+
+    PATTERN_HOOK(
+        "\x48\x8B\xC4\x53\x48\x81\xEC\x00\x00\x00\x00\x48\x8B\xD9\x48\x8B\x49\x40", "xxxxxxx????xxxxxxx", ZFreeCameraControlEntity_UpdateCamera,
+        void(ZFreeCameraControlEntity * th, float dt)
+    );
 }
 
 void zknt::Hooks::EnableAll() {

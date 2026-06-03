@@ -25,21 +25,30 @@ namespace zknt {
         Functions& operator=(const Functions&) = delete;
 
         EngineFunction<ZEntityRef*(ZEntityManager* th, ZEntityRef& result, SEntityCreateInfo& entityCreateInfo)>* ZEntityManager_NewEntity = nullptr;
+
+        EngineFunction<void(ZEntityManager* th, const ZEntityRef& ent)>* ZEntityManager_DeleteEntity = nullptr;
+
         EngineFunction<SEntityCreateInfo*(
             SEntityCreateInfo* th, const ZString& sDebugName, ZResourcePtr& pEntityFactory, const ZEntityRef& transformParent, uint64_t entityId
         )>* SEntityCreateInfo_SEntityCreateInfo = nullptr;
+
         EngineFunction<TEntityRef<ZCameraEntity>*(ZCameraManagerMain* th, TEntityRef<ZCameraEntity>& result)>*
             ZCameraManagerMain_GetActiveMainCamera = nullptr;
+
         EngineFunction<void(const ZSpatialEntity* th)>* ZSpatialEntity_UpdateCachedWorldMat;
+
         EngineFunction<ZCameraEntity*()>* GetCurrentCamera;
+
         EngineFunction<void(
             ZUpdateEventContainer* th, const ZDelegate<void(const SGameUpdateEvent&)>& callback, int32_t nPriority, EUpdateMode eUpdateMode
         )>* ZUpdateEventContainer_AddDelegate;
+
         EngineFunction<void(
             ZUpdateEventContainer* th, const ZDelegate<void(const SGameUpdateEvent&)>& callback, int32_t nPriority, EUpdateMode eUpdateMode
         )>* ZUpdateEventContainer_RemoveDelegate;
 
         EngineFunction<float(ZInputAction* th)>* ZInputAction_Analog;
+
         EngineFunction<bool(ZInputAction* th)>* ZInputAction_Digital;
     };
 }

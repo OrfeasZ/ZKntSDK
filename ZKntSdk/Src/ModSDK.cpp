@@ -10,15 +10,6 @@
 #include "UI/ModSelector.hpp"
 #include "Util/ProcessUtils.hpp"
 #include <Globals.hpp>
-#include <Glacier/ZModule.hpp>
-#include <Glacier/ZResource.hpp>
-#include <Glacier/ZCamera.hpp>
-#include <Glacier/ZRender.hpp>
-#include <Glacier/CompileReflection.hpp>
-#include <Glacier/ZGameLoopManager.hpp>
-
-class ZFreeCameraControlEntity;
-class IEntityFactory : public IComponentInterface {};
 
 extern void SetupLogging(spdlog::level::level_enum p_LogLevel);
 extern void FlushLoggers();

@@ -16,6 +16,7 @@ add_subdirectory(ZKntSdk)
 
 set(MODS
         NoPause
+        FreeCam
         #SkipIntro
 )
 

@@ -7,6 +7,11 @@ zknt::Functions::Functions() {
         ZEntityRef * (ZEntityManager * th, ZEntityRef & result, SEntityCreateInfo & entityCreateInfo)
     );
 
+    PATTERN_FUNCTION(
+        "\x48\x89\x5C\x24\x08\x57\x48\x83\xEC\x00\x48\x8B\xDA\x48\x8B\xF9\xE8\x00\x00\x00\x00\x33\xD2\x4C\x8D\x8C\x24\x80\x00\x00\x00",
+        "xxxxxxxxx?xxxxxxx????xxxxxxxxxx", ZEntityManager_DeleteEntity, void(ZEntityManager * th, const ZEntityRef& result)
+    );
+
     PATTERN_RELATIVE_FUNCTION(
         "\xE8\x00\x00\x00\x00\x4C\x8D\x44\x24\x70\x48\x8D\x54\x24\x58", "x????xxxxxxxxxx", SEntityCreateInfo_SEntityCreateInfo,
         SEntityCreateInfo * (SEntityCreateInfo * th, const ZString& sDebugName, ZResourcePtr&, const ZEntityRef& transformParent, uint64_t entityId)
@@ -17,7 +22,7 @@ zknt::Functions::Functions() {
         ZCameraManagerMain_GetActiveMainCamera, TEntityRef<ZCameraEntity> * (ZCameraManagerMain * th, TEntityRef<ZCameraEntity> & result)
     );
 
-    PATTERN_FUNCTION(
+    PATTERN_RELATIVE_FUNCTION(
         "\xE8\x00\x00\x00\x00\xC5\xFA\x7E\x53\x64\xC5\xFA\x10\x4B\x6C\xC5\xFA\x10\x05\x00\x00\x00\x00\x48\x8B\x5C\x24\x40",
         "x????xxxxxxxxxxxxxx????xxxxx", ZSpatialEntity_UpdateCachedWorldMat, void(const ZSpatialEntity* th)
     );
@@ -54,6 +59,7 @@ zknt::Functions::Functions() {
 
 zknt::Functions::~Functions() {
     delete ZEntityManager_NewEntity;
+    delete ZEntityManager_DeleteEntity;
     delete SEntityCreateInfo_SEntityCreateInfo;
     delete ZCameraManagerMain_GetActiveMainCamera;
     delete ZSpatialEntity_UpdateCachedWorldMat;

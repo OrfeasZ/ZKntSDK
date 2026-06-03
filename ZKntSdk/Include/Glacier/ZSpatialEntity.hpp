@@ -3,6 +3,8 @@
 #include "ZEntity.hpp"
 #include "ZMath.hpp"
 
+#include <Functions.hpp>
+
 class ZSpatialEntity : public ZEntityImpl {
   public:
     enum ERoomBehaviour { ROOM_STATIC = 0, ROOM_DYNAMIC = 1, ROOM_STATIC_OUTSIDE_CLIENT = 2 };
