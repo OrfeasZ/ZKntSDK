@@ -2,7 +2,6 @@
 
 #include "Common.hpp"
 #include "EngineFunction.hpp"
-#include "Glacier/ZEntity.hpp"
 #include "Glacier/ZDelegate.hpp"
 #include "Glacier/EUpdateMode.hpp"
 
@@ -14,6 +13,13 @@ class ZSpatialEntity;
 class ZUpdateEventContainer;
 struct SGameUpdateEvent;
 class ZInputAction;
+struct SEntityCreateInfo;
+class ZEntityRef;
+class ZResourcePtr;
+template<typename T> class TEntityRef;
+class ZObjectRef;
+class ZEntityType;
+class ZInputContext;
 
 namespace zknt {
     class Functions {
@@ -35,20 +41,27 @@ namespace zknt {
         EngineFunction<TEntityRef<ZCameraEntity>*(ZCameraManagerMain* th, TEntityRef<ZCameraEntity>& result)>*
             ZCameraManagerMain_GetActiveMainCamera = nullptr;
 
-        EngineFunction<void(const ZSpatialEntity* th)>* ZSpatialEntity_UpdateCachedWorldMat;
+        EngineFunction<void(const ZSpatialEntity* th)>* ZSpatialEntity_UpdateCachedWorldMat = nullptr;
 
-        EngineFunction<ZCameraEntity*()>* GetCurrentCamera;
-
-        EngineFunction<void(
-            ZUpdateEventContainer* th, const ZDelegate<void(const SGameUpdateEvent&)>& callback, int32_t nPriority, EUpdateMode eUpdateMode
-        )>* ZUpdateEventContainer_AddDelegate;
+        EngineFunction<ZCameraEntity*()>* GetCurrentCamera = nullptr;
 
         EngineFunction<void(
             ZUpdateEventContainer* th, const ZDelegate<void(const SGameUpdateEvent&)>& callback, int32_t nPriority, EUpdateMode eUpdateMode
-        )>* ZUpdateEventContainer_RemoveDelegate;
+        )>* ZUpdateEventContainer_AddDelegate = nullptr;
 
-        EngineFunction<float(ZInputAction* th)>* ZInputAction_Analog;
+        EngineFunction<void(
+            ZUpdateEventContainer* th, const ZDelegate<void(const SGameUpdateEvent&)>& callback, int32_t nPriority, EUpdateMode eUpdateMode
+        )>* ZUpdateEventContainer_RemoveDelegate = nullptr;
 
-        EngineFunction<bool(ZInputAction* th)>* ZInputAction_Digital;
+        EngineFunction<float(ZInputAction* th)>* ZInputAction_Analog = nullptr;
+
+        EngineFunction<bool(ZInputAction* th)>* ZInputAction_Digital = nullptr;
+
+        EngineFunction<bool(ZEntityType* entity, uint32_t propertyId, const ZObjectRef& value, bool invokeChangeHandlers)>* SetPropertyValue =
+            nullptr;
+
+        EngineFunction<ZInputContext*()>* GetGlobalInputContext = nullptr;
+
+        EngineFunction<void(const char* binds, ZInputContext* inputContext)>* AddBindings = nullptr;
     };
 }

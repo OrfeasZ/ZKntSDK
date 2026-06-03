@@ -55,6 +55,18 @@ zknt::Functions::Functions() {
         "\x3B\x00\x75\x00\x48\x8B\xCB\xE8\x00\x00\x00\x00\x48\x8B\x03\x48\x85\xC0\x74\x00\x80\x78\x38\x00\x74\x00\xC5\xF8\x57\xC0",
         "xxxxx?xxxx?xxxx?x????xxxxxxxx????xxx?x?xxxx????xxxxxxx?xxx?x?xxxx", ZInputAction_Digital, bool(ZInputAction * th)
     );
+
+    PATTERN_FUNCTION(
+        "\x48\x89\x5C\x24\x18\x48\x89\x6C\x24\x20\x41\x54\x41\x56\x41\x57\x48\x83\xEC\x00\x48\x8B\x29", "xxxxxxxxxxxxxxxxxxx?xxx", SetPropertyValue,
+        bool(ZEntityType * entity, uint32_t propertyId, const ZObjectRef& value, bool invokeChangeHandlers)
+    );
+
+    PATTERN_FUNCTION("\x40\x53\x48\x83\xEC\x00\x33\xDB\x89\x5C\x24\x40", "xxxxx?xxxxxx", GetGlobalInputContext, ZInputContext * ());
+
+    PATTERN_FUNCTION(
+        "\x48\x8B\xC4\x48\x89\x50\x10\x48\x89\x48\x08\x55\x48\x8D\x68\xA1\x48\x81\xEC\x00\x00\x00\x00\x48\x89\x58\xF0", "xxxxxxxxxxxxxxxxxxx????xxxx",
+        AddBindings, void(const char* binds, ZInputContext* inputContext)
+    );
 }
 
 zknt::Functions::~Functions() {
@@ -63,5 +75,11 @@ zknt::Functions::~Functions() {
     delete SEntityCreateInfo_SEntityCreateInfo;
     delete ZCameraManagerMain_GetActiveMainCamera;
     delete ZSpatialEntity_UpdateCachedWorldMat;
+    delete GetCurrentCamera;
     delete ZUpdateEventContainer_AddDelegate;
+    delete ZUpdateEventContainer_RemoveDelegate;
+    delete ZInputAction_Analog;
+    delete ZInputAction_Digital;
+    delete SetPropertyValue;
+    delete GetGlobalInputContext;
 }

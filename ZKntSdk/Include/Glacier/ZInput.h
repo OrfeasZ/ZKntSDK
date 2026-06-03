@@ -2,6 +2,8 @@
 
 #include <IModSDK.hpp>
 
+class ZInputContext;
+
 class ZInputAction {
   public:
     ZInputAction() = default;
@@ -16,7 +18,7 @@ class ZInputAction {
     }
 
   public:
-    void* ptr = nullptr;
-    void* ptr2 = nullptr;
+    void* m_Unk0 = nullptr;
+    ZInputContext* m_InputContext = nullptr;
     const char* m_szName;
 };
