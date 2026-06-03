@@ -11,9 +11,18 @@
 
 #include <string_view>
 #include <array>
+#include <type_traits>
 
 #include "Hash.hpp"
 #include "ZResourceID.hpp"
+
+#if defined(__clang__) || defined(__GNUC__)
+#    define ZHM_PRETTY_FUNCTION __PRETTY_FUNCTION__
+#elif defined(_MSC_VER)
+#    define ZHM_PRETTY_FUNCTION __FUNCSIG__
+#else
+#    error "CompileReflection.hpp: unsupported compiler"
+#endif
 
 namespace detail {
     template<class T> constexpr std::string_view ComputeTypeName();
@@ -25,7 +34,7 @@ namespace detail {
     using TypeNameProber = void;
 
     template<class T> constexpr std::string_view WrappedTypeName() {
-        return __FUNCSIG__;
+        return ZHM_PRETTY_FUNCTION;
     }
 
     constexpr std::size_t WrappedTypeNamePrefixLength() {
@@ -59,7 +68,7 @@ namespace detail {
      * For example "class TArray<struct SomeNamespace::SomeType>" becomes
      * "TArray<SomeNamespace.SomeType>".
      */
-    template<std::size_t N> constexpr auto ComputeZHMTypeName(std::string_view p_TypeName) noexcept {
+    template<std::size_t N> constexpr auto ComputeZHMTypeName(std::string_view p_TypeName, bool p_IsEnum) noexcept {
         constexpr auto s_ClassPrefix = std::string_view("class ");
         constexpr auto s_StructPrefix = std::string_view("struct ");
         constexpr auto s_EnumPrefix = std::string_view("enum ");
@@ -67,8 +76,6 @@ namespace detail {
         auto s_ZHMTypeNameStorage = std::array<char, N>();
 
         std::size_t s_FinalSize = 0;
-
-        bool s_IsEnum = false;
 
         for (std::size_t i = 0; i < N; ++i) {
             if (p_TypeName[i] == 'c' && i + s_ClassPrefix.size() < N && p_TypeName.substr(i, s_ClassPrefix.size()) == s_ClassPrefix) {
@@ -83,11 +90,6 @@ namespace detail {
 
             if (p_TypeName[i] == 'e' && i + s_EnumPrefix.size() < N && p_TypeName.substr(i, s_EnumPrefix.size()) == s_EnumPrefix) {
                 i += s_EnumPrefix.size() - 1;
-
-                if (!s_IsEnum) {
-                    s_IsEnum = true;
-                }
-
                 continue;
             }
 
@@ -100,7 +102,7 @@ namespace detail {
             s_ZHMTypeNameStorage[s_FinalSize++] = p_TypeName[i];
         }
 
-        if (s_IsEnum) {
+        if (p_IsEnum) {
             for (std::size_t i = s_FinalSize; i-- > 0;) {
                 if (s_ZHMTypeNameStorage[i] == '_') {
                     s_ZHMTypeNameStorage[i] = '.';
@@ -112,7 +114,8 @@ namespace detail {
         return ZHMTypeNameData<N>{s_ZHMTypeNameStorage, s_FinalSize};
     }
 
-    template<class T> inline constexpr auto ZHMTypeName_Storage = ComputeZHMTypeName<ComputeTypeName<T>().size()>(ComputeTypeName<T>());
+    template<class T>
+    inline constexpr auto ZHMTypeName_Storage = ComputeZHMTypeName<ComputeTypeName<T>().size()>(ComputeTypeName<T>(), std::is_enum_v<T>);
 
     template<std::size_t N> struct StringLiteral {
         constexpr StringLiteral(const char (&p_Str)[N]) {
