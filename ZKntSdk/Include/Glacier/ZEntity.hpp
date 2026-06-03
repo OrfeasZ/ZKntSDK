@@ -269,6 +269,14 @@ class ZEntityRef {
 
 template<typename T> class TEntityRef {
   public:
+    TEntityRef() = default;
+
+    explicit TEntityRef(ZEntityRef p_Ref) : m_entityRef(p_Ref), m_pInterfaceRef(p_Ref.QueryInterface<T>()) {}
+
+    operator bool() const {
+        return m_entityRef && m_pInterfaceRef != nullptr;
+    }
+
     ZEntityRef m_entityRef;
     T* m_pInterfaceRef = nullptr;
 };
