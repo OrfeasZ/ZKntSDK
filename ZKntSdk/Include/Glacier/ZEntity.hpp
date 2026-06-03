@@ -3,7 +3,10 @@
 #include <Common.hpp>
 #include "ZResource.hpp"
 #include "Reflection.hpp"
-#include "ZTypeRegistry.h"
+#include "ZTypeRegistry.hpp"
+#include "ZObject.hpp"
+#include <IModSDK.hpp>
+#include <Functions.hpp>
 
 class ZEntityRef;
 
@@ -164,7 +167,7 @@ class ZEntityRef {
         return GetEntity();
     }
 
-    template<class T> T* QueryInterface() const {
+    template<typename T> T* QueryInterface() const {
         const auto s_Entity = GetEntity();
 
         if (!s_Entity || !*SDK()->Globals()->TypeRegistry || !s_Entity->GetType()) {
@@ -186,7 +189,7 @@ class ZEntityRef {
         return nullptr;
     }
 
-    template<class T> T* QueryInterface(STypeID* p_TypeID) const {
+    template<typename T> T* QueryInterface(STypeID* p_TypeID) const {
         const auto s_Entity = GetEntity();
 
         if (!s_Entity || !*SDK()->Globals()->TypeRegistry || !s_Entity->GetType()) {
@@ -218,7 +221,7 @@ class ZEntityRef {
         return nullptr;
     }
 
-    template<class T> bool HasInterface() const {
+    template<typename T> bool HasInterface() const {
         const auto s_Entity = GetEntity();
 
         if (!s_Entity || !*SDK()->Globals()->TypeRegistry) {
@@ -260,6 +263,95 @@ class ZEntityRef {
         }
 
         return false;
+    }
+
+    template<typename T> ZVariant<T> GetProperty(const uint32_t nPropertyID) const {
+        ZVariant<T> s_PropertyValue;
+
+        const auto s_Entity = GetEntity();
+
+        if (!s_Entity || !*SDK()->Globals()->MemoryManager) {
+            return s_PropertyValue;
+        }
+
+        const auto s_Type = s_Entity->GetType();
+
+        if (!s_Type || !s_Type->m_pPropertyData) {
+            return s_PropertyValue;
+        }
+
+        for (uint32_t i = 0; i < s_Type->m_pPropertyData->size(); ++i) {
+            const SPropertyData* s_Property = &(*s_Type->m_pPropertyData)[i];
+
+            if (s_Property->m_nPropertyID != nPropertyID) {
+                continue;
+            }
+
+            const auto* s_PropertyInfo = s_Property->GetPropertyInfo();
+            const auto s_PropertyAddress = reinterpret_cast<uintptr_t>(m_pObj) + s_Property->m_nPropertyOffset;
+
+            const uint16_t s_TypeSize = s_PropertyInfo->m_propertyInfo.m_Type->GetTypeInfo()->m_nTypeSize;
+            const uint16_t s_TypeAlignment = s_PropertyInfo->m_propertyInfo.m_Type->GetTypeInfo()->m_nTypeAlignment;
+
+            auto* s_Data = (*SDK()->Globals()->MemoryManager)->m_pNormalAllocator->AllocateAligned(s_TypeSize, s_TypeAlignment);
+
+            if (s_PropertyInfo->m_propertyInfo.m_Flags & EPropertyInfoFlags::E_HAS_GETTER_SETTER) {
+                s_PropertyInfo->m_propertyInfo.m_PropetyGetter(
+                    reinterpret_cast<void*>(s_PropertyAddress), s_Data, s_PropertyInfo->m_propertyInfo.m_nExtraData
+                );
+            }
+            else {
+                s_PropertyInfo->m_propertyInfo.m_Type->GetTypeInfo()->m_pTypeFunctions->placementCopyConstruct(
+                    s_Data, reinterpret_cast<void*>(s_PropertyAddress)
+                );
+            }
+
+            s_PropertyValue.UNSAFE_Assign(s_PropertyInfo->m_propertyInfo.m_Type, s_Data);
+
+            break;
+        }
+
+        return s_PropertyValue;
+    }
+
+    template<typename T> ZVariant<T> GetProperty(const ZString& p_PropertyName) const {
+        return GetProperty<T>(Hash::Crc32(p_PropertyName.c_str(), p_PropertyName.size()));
+    }
+
+    bool SetProperty(uint32_t p_PropertyId, const ZObjectRef& p_Value, bool p_InvokeChangeHandlers = true) {
+        return SDK()->Functions()->SetPropertyValue->Call(*m_pObj, p_PropertyId, p_Value, p_InvokeChangeHandlers);
+    }
+
+    bool SetProperty(const ZString& p_PropertyName, const ZObjectRef& p_Value, bool p_InvokeChangeHandlers = true) {
+        return SetProperty(Hash::Crc32(p_PropertyName.c_str(), p_PropertyName.size()), p_Value, p_InvokeChangeHandlers);
+    }
+
+    template<typename T> bool SetProperty(uint32_t p_PropertyId, const T& p_Value, bool p_InvokeChangeHandlers = true) {
+        return SetProperty(p_PropertyId, ZVariant<T>(p_Value), p_InvokeChangeHandlers);
+    }
+
+    template<typename T> bool SetProperty(const ZString& p_PropertyName, const T& p_Value, bool p_InvokeChangeHandlers = true) {
+        return SetProperty<T>(Hash::Crc32(p_PropertyName.c_str(), p_PropertyName.size()), p_Value, p_InvokeChangeHandlers);
+    }
+
+    template<typename T> bool SetProperty(uint32_t p_PropertyId, const ZVariant<T>& p_Value, bool p_InvokeChangeHandlers = true) {
+        return SetProperty(p_PropertyId, static_cast<const ZObjectRef&>(p_Value), p_InvokeChangeHandlers);
+    }
+
+    template<typename T> bool SetProperty(const ZString& p_PropertyName, const ZVariant<T>& p_Value, bool p_InvokeChangeHandlers = true) {
+        return SetProperty<T>(
+            Hash::Crc32(p_PropertyName.c_str(), p_PropertyName.size()), static_cast<const ZObjectRef&>(p_Value), p_InvokeChangeHandlers
+        );
+    }
+
+    template<typename T> bool SetProperty(uint32_t p_PropertyId, const ZVariantRef<T>& p_Value, bool p_InvokeChangeHandlers = true) {
+        return SetProperty(p_PropertyId, static_cast<const ZObjectRef&>(p_Value), p_InvokeChangeHandlers);
+    }
+
+    template<typename T> bool SetProperty(const ZString& p_PropertyName, const ZVariantRef<T>& p_Value, bool p_InvokeChangeHandlers = true) {
+        return SetProperty<T>(
+            Hash::Crc32(p_PropertyName.c_str(), p_PropertyName.size()), static_cast<const ZObjectRef&>(p_Value), p_InvokeChangeHandlers
+        );
     }
 
     ZEntityType** m_pObj = nullptr; // 0x0
