@@ -12,6 +12,7 @@ class ZApplicationEngineWin32;
 class ZResourceManager;
 class ZTypeRegistry;
 class ZGameLoopManager;
+class ZLocalPlayerData;
 
 namespace zknt {
     class Globals {
@@ -31,5 +32,6 @@ namespace zknt {
         ZResourceManager* ResourceManager = nullptr;
         ZTypeRegistry** TypeRegistry = nullptr;
         ZGameLoopManager* GameLoopManager = nullptr;
+        ZLocalPlayerData* LocalPlayerData = nullptr;
     };
 }
