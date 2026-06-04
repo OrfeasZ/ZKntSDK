@@ -89,9 +89,9 @@ class ZEntityType {
     TArray<SPropertyData>* m_pStreamablePropertyData; // 0x18
     TArray<SInterfaceData>* m_pInterfaceData;         // 0x20
     TArray<SExposedEntityData>* m_pExposedEntityData; // 0x28
-    TArray<SSubsetData>* m_pSubsets;                  // 0x30
-    TArray<SPinData>* m_pInputPins;                   // 0x38
-    TArray<SPinData>* m_pOutputPins;                  // 0x40
+    TArray<SPinData>* m_pInputPins;                   // 0x30
+    TArray<SPinData>* m_pOutputPins;                  // 0x38
+    PAD(0x8);                                         // 0x40
     uint64_t m_nEntityID;                             // 0x48
 };
 
