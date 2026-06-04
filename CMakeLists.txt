@@ -18,7 +18,7 @@ set(MODS
         NoPause
         FreeCam
         #SkipIntro
-        Noclip
+        Cheats
 )
 
 foreach (MOD IN LISTS MODS)

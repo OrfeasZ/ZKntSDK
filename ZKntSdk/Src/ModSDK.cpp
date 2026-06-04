@@ -244,6 +244,8 @@ namespace zknt {
     void ModSDK::OnModLoaded(const std::string& p_Name, IPluginInterface* p_Plugin, bool /*p_LiveLoad*/) const {
         Logger::Info("Mod '{}' loaded.", p_Name);
 
+        p_Plugin->SetupUI();
+
         if (m_EngineInitialized && p_Plugin) {
             p_Plugin->OnEngineInitialized();
         }

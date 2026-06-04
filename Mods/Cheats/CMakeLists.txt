@@ -8,13 +8,13 @@ file(GLOB_RECURSE SRC_FILES
         Src/*.h
 )
 
-add_library(Noclip SHARED ${SRC_FILES})
+add_library(Cheats SHARED ${SRC_FILES})
 
-set_target_properties(Noclip PROPERTIES PREFIX "" OUTPUT_NAME Noclip)
+set_target_properties(Cheats PROPERTIES PREFIX "" OUTPUT_NAME Cheats)
 
-target_include_directories(Noclip PRIVATE
+target_include_directories(Cheats PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/Src
         ${CR_INCLUDE_DIRS}
 )
 
-target_link_libraries(Noclip PRIVATE ZKntSdkInterface imgui::imgui)
+target_link_libraries(Cheats PRIVATE ZKntSdkInterface imgui::imgui)

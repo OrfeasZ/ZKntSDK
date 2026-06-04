@@ -434,6 +434,10 @@ template<typename T> class TInterfaceRef {
         return {};
     }
 
+    operator bool() const {
+        return m_pInterface != nullptr;
+    }
+
     T* m_pInterface = nullptr;
     uint32_t m_EntityIndex = 0;
     uint32_t m_Unk = 0;

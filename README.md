@@ -36,7 +36,7 @@ There are a few sample mods included in this repository that can be used either 
 |-------------------------|--------------------------------------------------------------------------------------------------------|
 | [FreeCam](Mods/FreeCam) | Adds support for an in-game free camera. The free camera can be toggled by pressing `K`.               |
 | [NoPause](Mods/NoPause) | Prevents the game from automatically pausing after losing focus (e.g. when alt-tabbing or minimizing). |
-| [Noclip](Mods/Noclip)   | Adds a noclip mode that allows free player movement through the world without collision.               |
+| [Cheats](Mods/Cheats)   | Adds a few cheats like noclip, infinite ammo, god mode, etc.                                           |
 
 ## Uninstalling
 
