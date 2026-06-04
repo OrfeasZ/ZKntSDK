@@ -368,6 +368,15 @@ class ZEntityRef {
     uint32_t m_Unk = 0;             // 0xC
 };
 
+struct SEntityCreateInfo {
+    ZResourcePtr m_EntityFactory; // 0x0
+    ZString m_Unk;                // 0x8
+    uint64_t m_EntityID;          // 0x18
+    ZString m_EntityName;         // 0x20
+    ZEntityRef m_TransformParent; // 0x30
+    PAD(0x7C);
+};
+
 template<typename T> class TEntityRef {
   public:
     TEntityRef() = default;
@@ -378,17 +387,38 @@ template<typename T> class TEntityRef {
         return m_entityRef && m_pInterfaceRef != nullptr;
     }
 
+    /**
+     * Try to spawn an entity of a given type using the provided runtime resource id.
+     * @param p_Rrid The runtime resource id of the entity factory template to use.
+     */
+    static TEntityRef SpawnEntity(ZRuntimeResourceID p_Rrid) {
+        TResourcePtr<IEntityFactory> s_EntityFactory;
+        SDK()->Globals()->ResourceManager->GetResourcePtr(s_EntityFactory, p_Rrid, 0);
+        if (!s_EntityFactory) {
+            return {};
+        }
+
+        SEntityCreateInfo s_CreationInfo;
+        SDK()->Functions()->SEntityCreateInfo_SEntityCreateInfo->Call(&s_CreationInfo, ZString(), s_EntityFactory, ZEntityRef(), -1);
+
+        TEntityRef s_Ref{};
+
+        SDK()->Functions()->ZEntityManager_NewEntity->Call(SDK()->Globals()->EntityManager, s_Ref.m_entityRef, s_CreationInfo);
+        s_Ref.m_pInterfaceRef = s_Ref.m_entityRef.QueryInterface<T>();
+
+        if (!s_Ref.m_pInterfaceRef) {
+            return {};
+        }
+
+        return std::move(s_Ref);
+    }
+
+    T* operator->() {
+        return m_pInterfaceRef;
+    }
+
     ZEntityRef m_entityRef;
     T* m_pInterfaceRef = nullptr;
-};
-
-struct SEntityCreateInfo {
-    ZResourcePtr m_EntityFactory; // 0x0
-    ZString m_Unk;                // 0x8
-    uint64_t m_EntityID;          // 0x18
-    ZString m_EntityName;         // 0x20
-    ZEntityRef m_TransformParent; // 0x30
-    PAD(0x7C);
 };
 
 template<typename T> class TInterfaceRef {
