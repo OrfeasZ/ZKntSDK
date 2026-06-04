@@ -43,10 +43,16 @@ class ZSpatialEntity : public ZEntityImpl {
         return m_mTransform;
     }
 
-    PAD(0x28);
-    SMatrix43 m_mTransform; // 0x40
-    PAD(0x1C);              // 0x70
-    uint32_t m_UnkFlag0 : 1;
+    PAD(0x8);                              // 0x18
+    ZSpatialEntity* m_pTransformParent;    // 0x20
+    ZSpatialEntity* m_pTransformChildren;  // 0x28
+    ZSpatialEntity* m_pTransformNext;      // 0x30
+    ZSpatialEntity* m_pTransformPrev;      // 0x38
+    SMatrix43 m_mTransform;                // 0x40
+    SVector4 m_vObjectToParentRotation;    // 0x70
+    SVector3 m_vObjectToParentTranslation; // 0x80
+    uint32_t m_UnkFlag0 : 1;               // 0x8C
     uint32_t m_UnkFlag1 : 1;
-    uint32_t m_bWorldTransformDirty : 1; // 0x8C
+    uint32_t m_bWorldTransformDirty : 1;
+    TEntityRef<ZSpatialEntity> m_eidParent; // 0x90
 };
