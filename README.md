@@ -51,7 +51,8 @@ CLion.
 
 If you want the SDK and its mods to be automatically installed to the game's folder during the CMake install action,
 copy `CMakeUserPresets.json-sample_win` or `CMakeUserPresets.json-sample_linux` (based on your current OS) to
-`CMakeUserPresets.json` and change the `GAME_INSTALL_PATH` to point to your game's installation directory.
+`CMakeUserPresets.json` and change the `GAME_INSTALL_PATH` to point to your game's installation directory. Then, use the
+`-Install` presets to build & install the SDK.
 
 #### Windows
 
