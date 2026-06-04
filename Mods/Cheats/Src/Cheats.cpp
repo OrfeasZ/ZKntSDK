@@ -23,22 +23,22 @@ Cheats::~Cheats() {
 }
 
 void Cheats::CleanupSpawnedEntities() {
-    const auto s_Delete = [](auto& p_Ref) {
-        if (p_Ref) {
-            SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, p_Ref.m_entityRef);
+    const auto s_Delete = [](auto* p_Ref) {
+        if (*p_Ref) {
+            SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, p_Ref->m_entityRef);
         }
-        p_Ref = {};
+        *p_Ref = {};
     };
 
-    s_Delete(m_Teleporter);
-    s_Delete(m_TeleportTarget);
-    s_Delete(m_LocalPlayerHumanoidGetter);
-    s_Delete(m_CollisionModifier);
-    s_Delete(m_ImmuneModifier);
-    s_Delete(m_UnkillableModifier);
-    s_Delete(m_InfiniteAmmoModifier);
-    s_Delete(m_ImmuneBoolValue);
-    s_Delete(m_UnkillableBoolValue);
+    s_Delete(&m_Teleporter);
+    s_Delete(&m_TeleportTarget);
+    s_Delete(&m_LocalPlayerHumanoidGetter);
+    s_Delete(&m_CollisionModifier);
+    s_Delete(&m_ImmuneModifier);
+    s_Delete(&m_UnkillableModifier);
+    s_Delete(&m_InfiniteAmmoModifier);
+    s_Delete(&m_ImmuneBoolValue);
+    s_Delete(&m_UnkillableBoolValue);
 }
 
 void Cheats::OnEngineInitialized() {
@@ -80,7 +80,13 @@ bool Cheats::EnsureEntitiesSpawned() {
 
     if (!m_Teleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier || !m_UnkillableModifier
         || !m_InfiniteAmmoModifier || !m_ImmuneBoolValue || !m_UnkillableBoolValue) {
-        Logger::Error("Failed to spawn one or more player modifier entities.");
+        Logger::Error(
+            "Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
+            "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}",
+            static_cast<bool>(m_Teleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
+            static_cast<bool>(m_CollisionModifier), static_cast<bool>(m_ImmuneModifier), static_cast<bool>(m_UnkillableModifier),
+            static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue)
+        );
         CleanupSpawnedEntities();
         return false;
     }
@@ -116,7 +122,14 @@ bool Cheats::EnsureEntitiesSpawned() {
 
     // Make sure the freshly spawned entities pick up the current toggle states.
     m_StateDirty = true;
+
+    Logger::Info("Cheat entities spawned!");
+
     return true;
+}
+
+bool Cheats::AnyCheatEnabled() const {
+    return m_NoclipEnabled || m_DisableCollision || m_GodMode || m_Unkillable || m_InfiniteAmmo;
 }
 
 void Cheats::ApplyPlayerModifiers() {
@@ -168,11 +181,11 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
         m_NoclipWasEnabled = m_NoclipEnabled;
     }
 
-    if (!EnsureEntitiesSpawned()) {
+    if (AnyCheatEnabled() && !EnsureEntitiesSpawned()) {
         return;
     }
 
-    if (m_StateDirty) {
+    if (m_StateDirty && m_Teleporter) {
         ApplyPlayerModifiers();
         m_StateDirty = false;
     }

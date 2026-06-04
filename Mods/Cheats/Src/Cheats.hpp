@@ -27,6 +27,7 @@ class Cheats : public zknt::IPluginInterface {
     void CleanupSpawnedEntities();
     bool EnsureEntitiesSpawned();
     void ApplyPlayerModifiers();
+    bool AnyCheatEnabled() const;
 
     void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
 
