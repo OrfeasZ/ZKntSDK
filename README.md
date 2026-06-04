@@ -62,8 +62,9 @@ copy `CMakeUserPresets.json-sample_win` or `CMakeUserPresets.json-sample_linux` 
 
 #### Linux
 
-The commands below assume you have Nix installed and available. If you do not, have a look at `flake.nix` for what
-dependencies you need.
+1. Clone the repo.
+2. Initialize and update submodules (`git submodules update --init --recursive`).
+3. Get into a shell with the required toolchain, fetch xwin, and build, as seen below.
 
 ```bash
 nix develop
@@ -74,6 +75,9 @@ cmake --build _build/x64-Debug-Cross
 
 Alternatively, after entering the nix develop shell and fetching xwin, you can start CLion from the same shell and
 work on the project there.
+
+The commands above assume you have Nix installed and available. If you do not, have a look at `flake.nix` for what
+dependencies you need.
 
 ## Contributing
 
