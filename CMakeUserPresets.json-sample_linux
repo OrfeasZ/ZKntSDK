@@ -1,0 +1,19 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "x64-Debug-Cross-Install",
+      "inherits": "x64-Debug-Cross",
+      "cacheVariables": {
+        "GAME_INSTALL_PATH": "/home/user/.local/share/Steam/steamapps/common/007 First Light/"
+      }
+    },
+    {
+      "name": "x64-Release-Cross-Install",
+      "inherits": "x64-Release-Cross",
+      "cacheVariables": {
+        "GAME_INSTALL_PATH": "/home/user/.local/share/Steam/steamapps/common/007 First Light/"
+      }
+    }
+  ]
+}
