@@ -57,6 +57,11 @@ zknt::Hooks::Hooks() {
         "\x48\x89\x6C\x24\x18\x56\x48\x83\xEC\x00\x48\x8B\x01\x49\x8B\xE8", "xxxxxxxxx?xxxxxx", SignalInputPin,
         void(ZEntityType**, uint32_t, const ZObjectRef&)
     );
+
+    PATTERN_HOOK(
+        "\x48\x89\x54\x24\x10\x48\x89\x4C\x24\x08\x55\x53\x56\x48\x8D\xAC\x24\x00\x00\x00\x00\x48\x81\xEC\x00\x00\x00\x00\x4C\x8B\x4A\x20", "xxxxxxxxxxxxxxxxx????xxx????xxxx", Check_SSL_Cert,
+        bool(void*, void*)
+    );
 }
 
 void zknt::Hooks::EnableAll() {

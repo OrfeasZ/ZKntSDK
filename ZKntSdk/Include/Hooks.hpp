@@ -31,6 +31,7 @@ namespace zknt {
         Hook<void(ZFreeCameraControlEntity* th, float dt)>* ZFreeCameraControlEntity_UpdateCamera;
         Hook<void(ZEntityType**, uint32_t, const ZObjectRef&)>* SignalOutputPin;
         Hook<void(ZEntityType**, uint32_t, const ZObjectRef&)>* SignalInputPin;
+        Hook<bool(void*, void*)>* Check_SSL_Cert = nullptr;
 
       private:
         void EnableAll();
