@@ -221,6 +221,16 @@ namespace zknt {
         DispatchLog(p_Level, p_Msg);
     }
 
+    bool ModSDK::PatchCode(const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset) {
+        return PatchCodeInternal(p_Pattern, p_Mask, p_NewCode, p_CodeSize, p_TargetOffset, nullptr);
+    }
+
+    bool ModSDK::PatchCodeStoreOriginal(
+        const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
+    ) {
+        return PatchCodeInternal(p_Pattern, p_Mask, p_NewCode, p_CodeSize, p_TargetOffset, p_OriginalCode);
+    }
+
     zknt::IRenderer* ModSDK::GetRenderer() const {
         return m_ImGuiRenderer.get();
     }
@@ -239,6 +249,40 @@ namespace zknt {
 
     zknt::ui::ModSelector* ModSDK::GetUIModSelector() const {
         return m_ModSelector.get();
+    }
+
+    bool ModSDK::PatchCodeInternal(
+        const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
+    ) {
+        if (!p_Pattern || !p_Mask || !p_NewCode || p_CodeSize == 0) {
+            Logger::Error("Invalid parameters provided to PatchCode call.");
+            return false;
+        }
+
+        const auto* s_Pattern = reinterpret_cast<const uint8_t*>(p_Pattern);
+        const auto s_Target = Util::ProcessUtils::SearchPattern(GetModuleBase(), GetSizeOfCode(), s_Pattern, p_Mask);
+
+        if (s_Target == 0) {
+            Logger::Error("Could not find pattern in call to PatchCode. Game might have been updated.");
+            return false;
+        }
+
+        auto* s_TargetPtr = reinterpret_cast<void*>(s_Target + p_TargetOffset);
+
+        if (p_OriginalCode != nullptr) {
+            memcpy(p_OriginalCode, s_TargetPtr, p_CodeSize);
+        }
+
+        Logger::Debug("Patching {} bytes of code at {} with new code from {}.", p_CodeSize, fmt::ptr(s_TargetPtr), p_NewCode);
+
+        DWORD s_OldProtect;
+        VirtualProtect(s_TargetPtr, p_CodeSize, PAGE_EXECUTE_READWRITE, &s_OldProtect);
+
+        memcpy(s_TargetPtr, p_NewCode, p_CodeSize);
+
+        VirtualProtect(s_TargetPtr, p_CodeSize, s_OldProtect, nullptr);
+
+        return true;
     }
 
     void ModSDK::OnModLoaded(const std::string& p_Name, IPluginInterface* p_Plugin, bool /*p_LiveLoad*/) const {

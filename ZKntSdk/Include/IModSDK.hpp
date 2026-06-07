@@ -22,6 +22,40 @@ namespace zknt {
         virtual zknt::Globals* Globals() = 0;
 
         virtual void Log(spdlog::level::level_enum p_Level, std::string_view p_Msg) = 0;
+
+        /**
+         * Search for a pattern in the game's memory and patch it with the given code.
+         * @param p_Pattern A sequence of bytes to
+         * search for in the game's memory.
+         * @param p_Mask A mask to use when searching for the pattern. x = pattern byte, ? = any byte (eg.
+         * xxx????x).
+         * @param p_NewCode A buffer containing the new code to write to the location where the pattern was found.
+         *
+         * @param p_CodeSize The size of the code buffer.
+         * @param p_Offset The offset to add to the address where the pattern was found.
+
+         * @return True if the pattern was found and patched, false otherwise.
+         */
+        virtual bool PatchCode(const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_Offset) = 0;
+
+        /**
+         * Search for a pattern in the game's memory and patch it with the given code, storing the original code in a provided buffer.
+ *
+         * @param p_Pattern A sequence of bytes to search for in the game's memory.
+         * @param p_Mask A mask to use when searching for the
+         * pattern. x = pattern byte, ? = any byte (eg. xxx????x).
+         * @param p_NewCode A buffer containing the new code to write to the
+         * location where the pattern was found.
+         * @param p_CodeSize The size of the code buffer.
+         * @param p_Offset The offset to
+         * add to the address where the pattern was found.
+         * @param p_OriginalCode A buffer to store the original code.
+         * @return
+         * True if the pattern was found and patched, false otherwise.
+         */
+        virtual bool PatchCodeStoreOriginal(
+            const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_Offset, void* p_OriginalCode
+        ) = 0;
     };
 }
 
