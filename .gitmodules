@@ -2,3 +2,6 @@
 	path = External/vcpkg
 	url = https://github.com/microsoft/vcpkg.git
 	shallow = true
+[submodule "External/IconFontCppHeaders"]
+	path = External/IconFontCppHeaders
+	url = https://github.com/juliettef/IconFontCppHeaders.git

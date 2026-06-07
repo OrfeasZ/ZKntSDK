@@ -2,10 +2,13 @@
 
 #include "../ModSDK.hpp"
 #include "Logging.hpp"
+#include "Fonts.hpp"
 
 #include <directx/d3d12.h>
 #include <imgui_impl_dx12.h>
 #include <windowsx.h>
+
+#include <IconsMaterialDesign.h>
 
 namespace zknt::rendering {
     ImGuiRenderer::ImGuiRenderer() {
@@ -15,20 +18,61 @@ namespace zknt::rendering {
         IMGUI_CHECKVERSION();
         m_ImGuiContext = ImGui::CreateContext();
 
-        ImGuiIO& s_Io = ImGui::GetIO();
-        s_Io.IniFilename = nullptr;
-        s_Io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        s_Io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
-        s_Io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
-        s_Io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
-        s_Io.BackendPlatformName = "imgui_impl_zknt_win32";
-        s_Io.BackendRendererName = "imgui_impl_dx12";
+        ImGuiIO& s_ImGuiIO = ImGui::GetIO();
+        s_ImGuiIO.IniFilename = nullptr;
+        s_ImGuiIO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        s_ImGuiIO.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+        s_ImGuiIO.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+        s_ImGuiIO.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+        s_ImGuiIO.BackendPlatformName = "imgui_impl_zknt_win32";
+        s_ImGuiIO.BackendRendererName = "imgui_impl_dx12";
 
-        // Use the default ProggyClean font.
-        m_FontDefault = s_Io.Fonts->AddFontDefault();
-        s_Io.FontDefault = m_FontDefault;
+        // Here we merge the material icon glyphs into each of our other fonts.
+        ImFontConfig s_IconsConfig{};
+        s_IconsConfig.MergeMode = true;
+        s_IconsConfig.GlyphOffset = {0.f, 6.f};
 
-        ImGui::StyleColorsDark();
+        // Unicode ranges used by ImGui font
+        static constexpr ImWchar c_TextRanges[] = {
+            0x0020, 0x00FF, // Basic Latin + Latin-1 Supplement
+            0x2010, 0x2027, // Punctuation
+            0
+        };
+        static constexpr ImWchar c_IconRanges[] = {ICON_MIN_MD, ICON_MAX_16_MD, 0};
+
+        m_FontLight =
+            s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(RobotoLight_compressed_data, RobotoLight_compressed_size, 28.f, nullptr, c_TextRanges);
+        s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(
+            MaterialIconsRegular_compressed_data, MaterialIconsRegular_compressed_size, 28.f, &s_IconsConfig, c_IconRanges
+        );
+
+        m_FontRegular = s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(
+            RobotoRegular_compressed_data, RobotoRegular_compressed_size, 28.f, nullptr, c_TextRanges
+        );
+        s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(
+            MaterialIconsRegular_compressed_data, MaterialIconsRegular_compressed_size, 28.f, &s_IconsConfig, c_IconRanges
+        );
+
+        m_FontMedium =
+            s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(RobotoMedium_compressed_data, RobotoMedium_compressed_size, 28.f, nullptr, c_TextRanges);
+        s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(
+            MaterialIconsRegular_compressed_data, MaterialIconsRegular_compressed_size, 28.f, &s_IconsConfig, c_IconRanges
+        );
+
+        m_FontBold =
+            s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(RobotoBold_compressed_data, RobotoBold_compressed_size, 28.f, nullptr, c_TextRanges);
+        s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(
+            MaterialIconsRegular_compressed_data, MaterialIconsRegular_compressed_size, 28.f, &s_IconsConfig, c_IconRanges
+        );
+
+        m_FontBlack =
+            s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(RobotoBlack_compressed_data, RobotoBlack_compressed_size, 28.f, nullptr, c_TextRanges);
+        s_ImGuiIO.Fonts->AddFontFromMemoryCompressedTTF(
+            MaterialIconsRegular_compressed_data, MaterialIconsRegular_compressed_size, 28.f, &s_IconsConfig, c_IconRanges
+        );
+
+        s_ImGuiIO.FontDefault = m_FontRegular;
+
         SetupStyles();
     }
 
@@ -40,14 +84,31 @@ namespace zknt::rendering {
 
     void ImGuiRenderer::SetupStyles() {
         auto& s_Style = ImGui::GetStyle();
-        s_Style.WindowRounding = 0.f;
+
+        s_Style.ChildRounding = 0.f;
         s_Style.FrameRounding = 0.f;
         s_Style.GrabRounding = 0.f;
         s_Style.PopupRounding = 0.f;
         s_Style.ScrollbarRounding = 0.f;
         s_Style.TabRounding = 0.f;
-        s_Style.ChildRounding = 0.f;
+        s_Style.WindowRounding = 0.f;
         s_Style.WindowBorderSize = 0.f;
+
+        s_Style.WindowPadding = ImVec2(12.f, 12.f);
+        s_Style.FramePadding = ImVec2(6.f, 6.f);
+        s_Style.CellPadding = ImVec2(6.f, 3.f);
+        s_Style.ItemSpacing = ImVec2(10.f, 6.f);
+        s_Style.ItemInnerSpacing = ImVec2(10.f, 10.f);
+        s_Style.TouchExtraPadding = ImVec2(0.f, 0.f);
+        s_Style.IndentSpacing = 10.f;
+        s_Style.ScrollbarSize = 12.f;
+        s_Style.GrabMinSize = 12.f;
+
+        s_Style.WindowBorderSize = 0.f;
+        s_Style.ChildBorderSize = 0.f;
+        s_Style.PopupBorderSize = 0.f;
+        s_Style.FrameBorderSize = 0.f;
+        s_Style.TabBorderSize = 0.f;
 
         // Accent color: #DEBE80 (RGB 222, 190, 128).
         const ImVec4 s_Accent = ImVec4(0.871f, 0.745f, 0.502f, 1.000f);
@@ -83,6 +144,50 @@ namespace zknt::rendering {
         s_Colors[ImGuiCol_NavCursor] = s_Accent;
         s_Colors[ImGuiCol_PlotLinesHovered] = s_Accent;
         s_Colors[ImGuiCol_PlotHistogramHovered] = s_Accent;
+
+        s_Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+        s_Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
+
+        s_Colors[ImGuiCol_WindowBg] = ImVec4(0.12f, 0.13f, 0.15f, 1.00f);
+        s_Colors[ImGuiCol_ChildBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        s_Colors[ImGuiCol_PopupBg] = ImVec4(0.15f, 0.16f, 0.18f, 0.98f);
+
+        s_Colors[ImGuiCol_Border] = ImVec4(0.32f, 0.33f, 0.36f, 0.60f);
+        s_Colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+
+        s_Colors[ImGuiCol_FrameBg] = ImVec4(0.18f, 0.19f, 0.22f, 1.00f);
+        s_Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.25f, 0.26f, 0.30f, 1.00f);
+        s_Colors[ImGuiCol_FrameBgActive] = ImVec4(0.30f, 0.31f, 0.35f, 1.00f);
+
+        s_Colors[ImGuiCol_TitleBg] = ImVec4(0.10f, 0.11f, 0.13f, 1.00f);
+        // s_Colors[ImGuiCol_TitleBgActive] = ImVec4(0.15f, 0.16f, 0.19f, 1.00f);
+        s_Colors[ImGuiCol_TitleBgActive] = s_AccentSoft;
+        s_Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.10f, 0.11f, 0.13f, 0.90f);
+
+        s_Colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.15f, 0.17f, 1.00f);
+
+        s_Colors[ImGuiCol_ScrollbarBg] = ImVec4(0.10f, 0.10f, 0.12f, 1.00f);
+        s_Colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.30f, 0.31f, 0.35f, 1.00f);
+        s_Colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.40f, 0.41f, 0.45f, 1.00f);
+        s_Colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.50f, 0.51f, 0.55f, 1.00f);
+
+        s_Colors[ImGuiCol_TabActive] = s_AccentActive;
+        s_Colors[ImGuiCol_TabUnfocused] = ImVec4(0.18f, 0.19f, 0.22f, 1.00f);
+        s_Colors[ImGuiCol_TabUnfocusedActive] = s_AccentSoft;
+
+        s_Colors[ImGuiCol_PlotLines] = ImVec4(0.75f, 0.75f, 0.75f, 1.00f);
+        s_Colors[ImGuiCol_PlotHistogram] = s_Accent;
+
+        s_Colors[ImGuiCol_TableHeaderBg] = ImVec4(0.18f, 0.19f, 0.22f, 1.00f);
+        s_Colors[ImGuiCol_TableBorderStrong] = ImVec4(0.35f, 0.36f, 0.40f, 1.00f);
+        s_Colors[ImGuiCol_TableBorderLight] = ImVec4(0.25f, 0.26f, 0.29f, 1.00f);
+        s_Colors[ImGuiCol_TableRowBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+        s_Colors[ImGuiCol_TableRowBgAlt] = ImVec4(1.00f, 1.00f, 1.00f, 0.03f);
+
+        s_Colors[ImGuiCol_NavHighlight] = s_Accent;
+        s_Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
+        s_Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.10f, 0.10f, 0.10f, 0.50f);
+        s_Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.60f);
     }
 
     void ImGuiRenderer::SetSwapChain(IDXGISwapChain3* p_SwapChain) {
@@ -282,6 +387,7 @@ namespace zknt::rendering {
         RECT s_Rect{};
         GetClientRect(m_Hwnd, &s_Rect);
         s_Io.DisplaySize = ImVec2(static_cast<float>(s_Rect.right - s_Rect.left), static_cast<float>(s_Rect.bottom - s_Rect.top));
+        s_Io.FontGlobalScale = (s_Io.DisplaySize.y / 1800.f);
         ImGui::GetMainViewport()->PlatformHandleRaw = m_Hwnd;
 
         m_RendererSetup = true;

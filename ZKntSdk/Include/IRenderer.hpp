@@ -21,7 +21,11 @@ namespace zknt {
         virtual ~IRenderer() = default;
 
         virtual bool IsVisible() const = 0;
-        virtual ImFont* GetDefaultFont() const = 0;
         virtual ImGuiContext* GetImGuiContext() const = 0;
+        virtual ImFont* GetLightFont() const = 0;
+        virtual ImFont* GetRegularFont() const = 0;
+        virtual ImFont* GetMediumFont() const = 0;
+        virtual ImFont* GetBoldFont() const = 0;
+        virtual ImFont* GetBlackFont() const = 0;
     };
 }

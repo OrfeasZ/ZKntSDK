@@ -65,7 +65,11 @@ namespace zknt {
 
         // SDK-internal methods.
         IRenderer* GetRenderer() const;
-        ImFont* GetDefaultFont() const;
+        ImFont* GetLightFont() const;
+        ImFont* GetRegularFont() const;
+        ImFont* GetMediumFont() const;
+        ImFont* GetBoldFont() const;
+        ImFont* GetBlackFont() const;
         ModLoader* GetModLoader() const;
         ui::ModSelector* GetUIModSelector() const;
         [[nodiscard]] bool IsEngineInitialized() const {

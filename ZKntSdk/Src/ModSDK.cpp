@@ -239,8 +239,24 @@ namespace zknt {
         return m_ImGuiRenderer ? m_ImGuiRenderer->GetImGuiContext() : nullptr;
     }
 
-    ImFont* ModSDK::GetDefaultFont() const {
-        return m_ImGuiRenderer ? m_ImGuiRenderer->GetDefaultFont() : nullptr;
+    ImFont* ModSDK::GetLightFont() const {
+        return m_ImGuiRenderer ? m_ImGuiRenderer->GetLightFont() : nullptr;
+    }
+
+    ImFont* ModSDK::GetRegularFont() const {
+        return m_ImGuiRenderer ? m_ImGuiRenderer->GetRegularFont() : nullptr;
+    }
+
+    ImFont* ModSDK::GetMediumFont() const {
+        return m_ImGuiRenderer ? m_ImGuiRenderer->GetMediumFont() : nullptr;
+    }
+
+    ImFont* ModSDK::GetBoldFont() const {
+        return m_ImGuiRenderer ? m_ImGuiRenderer->GetBoldFont() : nullptr;
+    }
+
+    ImFont* ModSDK::GetBlackFont() const {
+        return m_ImGuiRenderer ? m_ImGuiRenderer->GetBlackFont() : nullptr;
     }
 
     zknt::ModLoader* ModSDK::GetModLoader() const {

@@ -38,6 +38,7 @@ target_include_directories(ZKntSdk PRIVATE
 
 target_include_directories(ZKntSdk PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/Include
+        ${CMAKE_SOURCE_DIR}/External/IconFontCppHeaders
 )
 
 target_link_libraries(ZKntSdk PRIVATE
@@ -63,3 +64,6 @@ target_link_libraries(ZKntSdkInterface INTERFACE
 target_compile_options(ZKntSdkInterface INTERFACE -Wno-microsoft-cast)
 
 add_dependencies(ZKntSdk DirectInputProxy)
+
+# Install icon header.
+install(FILES "${CMAKE_SOURCE_DIR}/External/IconFontCppHeaders/IconsMaterialDesign.h" DESTINATION include)

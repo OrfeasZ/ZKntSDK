@@ -70,3 +70,6 @@ install(CODE [[
 		file(RENAME "${INSTALL_DIR}/licenses/copyright" "${INSTALL_DIR}/licenses/${LICENSE_DIR}.txt")
 	endforeach()
 ]])
+
+# Install licenses from external projects.
+install(FILES "External/IconFontCppHeaders/licence.txt" DESTINATION licenses RENAME IconFontCppHeaders.txt)

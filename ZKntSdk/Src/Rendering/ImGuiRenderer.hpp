@@ -46,11 +46,29 @@ namespace zknt::rendering {
         bool IsVisible() const override {
             return m_ImguiVisible;
         }
-        ImFont* GetDefaultFont() const override {
-            return m_FontDefault;
-        }
+
         ImGuiContext* GetImGuiContext() const override {
             return m_ImGuiContext;
+        }
+
+        ImFont* GetLightFont() const override {
+            return m_FontLight;
+        }
+
+        ImFont* GetRegularFont() const override {
+            return m_FontRegular;
+        }
+
+        ImFont* GetMediumFont() const override {
+            return m_FontMedium;
+        }
+
+        ImFont* GetBoldFont() const override {
+            return m_FontBold;
+        }
+
+        ImFont* GetBlackFont() const override {
+            return m_FontBlack;
         }
 
       private:
@@ -101,7 +119,12 @@ namespace zknt::rendering {
         std::int64_t m_TicksPerSecond = 0;
 
         ImGuiContext* m_ImGuiContext = nullptr;
-        ImFont* m_FontDefault = nullptr;
+
+        ImFont* m_FontLight = nullptr;
+        ImFont* m_FontRegular = nullptr;
+        ImFont* m_FontMedium = nullptr;
+        ImFont* m_FontBold = nullptr;
+        ImFont* m_FontBlack = nullptr;
 
         std::atomic<bool> m_ImguiHasFocus{false};
         std::atomic<bool> m_ImguiVisible{true};
