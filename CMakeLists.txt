@@ -19,6 +19,7 @@ set(MODS
         FreeCam
         #SkipIntro
         Cheats
+        CertPinBypass
 )
 
 foreach (MOD IN LISTS MODS)
