@@ -58,15 +58,26 @@ namespace zknt {
         ::zknt::Functions* Functions() override;
         ::zknt::Globals* Globals() override;
         void Log(spdlog::level::level_enum p_Level, std::string_view p_Msg) override;
+        bool PatchCode(const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_Offsp_TargetOffsetet) override;
+        bool PatchCodeStoreOriginal(
+            const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
+        ) override;
 
         // SDK-internal methods.
         IRenderer* GetRenderer() const;
-        ImFont* GetDefaultFont() const;
+        ImFont* GetLightFont() const;
+        ImFont* GetRegularFont() const;
+        ImFont* GetMediumFont() const;
+        ImFont* GetBoldFont() const;
+        ImFont* GetBlackFont() const;
         ModLoader* GetModLoader() const;
         ui::ModSelector* GetUIModSelector() const;
         [[nodiscard]] bool IsEngineInitialized() const {
             return m_EngineInitialized;
         }
+        bool PatchCodeInternal(
+            const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
+        );
 
         // SDK-internal UI callback registry.
         using UiCallback = std::function<void(bool p_HasFocus)>;
