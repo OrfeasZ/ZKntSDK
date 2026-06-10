@@ -2,7 +2,7 @@
 
 #include "../ModLoader.hpp"
 #include "../ModSDK.hpp"
-#include "../Util/StringUtils.hpp"
+#include "Util/StringUtils.hpp"
 
 #include <algorithm>
 #include <imgui.h>
