@@ -84,8 +84,10 @@ class ZEntityType {
     TArray<SExposedEntityData>* m_pExposedEntityData; // 0x28
     TArray<SPinData>* m_pInputPins;                   // 0x30
     TArray<SPinData>* m_pOutputPins;                  // 0x38
-    PAD(0x8);                                         // 0x40
+    int64_t m_nOwningEntityOffset;                    // 0x40
     uint64_t m_nEntityID;                             // 0x48
+    uint64_t m_Unk;                                   // 0x50 (TArray*)
+    int64_t m_nLogicalParentEntityOffset;             // 0x58
 };
 
 class IEntity : public IComponentInterface {
