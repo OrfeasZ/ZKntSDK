@@ -11,20 +11,30 @@ class ZCLGetLocalPlayerID : public ZEntityImpl {};
 
 class FreeCam : public zknt::IPluginInterface {
   public:
+    FreeCam();
     ~FreeCam() override;
 
     void Init() override;
     void OnEngineInitialized() override;
 
   private:
+    void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
+
+    void ToggleFreecam();
+    void EnableFreecam();
+    void DisableFreecam();
+
+    bool HasSpawnedEntities() const;
+    void CleanupSpawnedEntities();
+
     DECLARE_PLUGIN_DETOUR(
         FreeCam, ZString*, ZFreeCameraControlEntity_GenerateActionBindingString, ZFreeCameraControlEntity* p_Th, ZString& p_Result, int p_ControllerId
     );
     DECLARE_PLUGIN_DETOUR(FreeCam, void, ZFreeCameraControlEntity_UpdateCamera, ZFreeCameraControlEntity* p_Th, float p_Dt);
 
-    bool HasSpawnedEntities() const;
-    void CleanupSpawnedEntities();
-    void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
+    bool m_FreeCamActive;
+    bool m_ShouldToggle;
+    ZInputAction m_ToggleFreeCamAction;
 
     TEntityRef<ZCameraEntity> m_FreeCamera;
     TEntityRef<ZFreeCameraControlEntity> m_FreeCameraControl;
@@ -33,7 +43,6 @@ class FreeCam : public zknt::IPluginInterface {
     TEntityRef<ZCLGetLocalPlayerID> m_GetLocalPlayer;
     ZEntityRef m_PreviousCameraSource;
     bool m_FrameUpdateRegistered = false;
-    bool m_SpawnKeyHeld = false;
 
     bool m_Initialized = false;
     float m_Yaw = 0.0f;

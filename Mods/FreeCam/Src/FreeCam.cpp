@@ -60,6 +60,8 @@ void FreeCam::CleanupSpawnedEntities() {
     m_Initialized = false;
 }
 
+FreeCam::FreeCam() : m_FreeCamActive(false), m_ShouldToggle(false), m_ToggleFreeCamAction("ToggleFreeCamera") {}
+
 FreeCam::~FreeCam() {
     if (!m_FrameUpdateRegistered) {
         CleanupSpawnedEntities();
@@ -87,6 +89,13 @@ void FreeCam::OnEngineInitialized() {
     const ZMemberDelegate<FreeCam, void(const SGameUpdateEvent&)> s_Delegate(this, &FreeCam::OnFrameUpdate);
     SDK()->Globals()->GameLoopManager->RegisterFrameUpdate(s_Delegate, 1, EUpdateMode::eUpdatePlayMode);
     m_FrameUpdateRegistered = true;
+
+    const char* s_Bindings = "FreeCameraInput={"
+                             "ToggleFreeCamera=tap(kb,k);};";
+
+    ZInputContext* s_InputContext = SDK()->Functions()->GetGlobalInputContext->Call();
+
+    SDK()->Functions()->AddBindings->Call(s_Bindings, s_InputContext);
 }
 
 DEFINE_PLUGIN_DETOUR(
@@ -333,31 +342,28 @@ class IIntValue;
 void FreeCam::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
     static_cast<void>(p_UpdateEvent);
 
-    const bool s_SpawnDown = (GetAsyncKeyState('K') & 0x8000) != 0;
-    if (!s_SpawnDown || m_SpawnKeyHeld) {
-        m_SpawnKeyHeld = s_SpawnDown;
-        return;
+    if (m_ToggleFreeCamAction.Digital()) {
+        ToggleFreecam();
     }
 
-    m_SpawnKeyHeld = true;
+    if (m_ShouldToggle) {
+        m_ShouldToggle = false;
 
-    if (HasSpawnedEntities()) {
-        Logger::Info("Disabling existing free camera.");
-        TEntityRef<IRenderDestinationEntity> s_RenderDest;
-        SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
-
-        if (s_RenderDest && m_PreviousCameraSource) {
-            s_RenderDest->SetSource(m_PreviousCameraSource);
+        if (m_FreeCamActive) {
+            EnableFreecam();
         }
         else {
-            Logger::Warn("No stored previous camera source while toggling off.");
+            DisableFreecam();
         }
-
-        CleanupSpawnedEntities();
-        Logger::Info("Disabled free camera and restored previous camera source.");
-        return;
     }
+}
 
+void FreeCam::ToggleFreecam() {
+    m_FreeCamActive = !m_FreeCamActive;
+    m_ShouldToggle = true;
+}
+
+void FreeCam::EnableFreecam() {
     CleanupSpawnedEntities();
     Logger::Info("Enabling free camera.");
 
@@ -423,6 +429,24 @@ void FreeCam::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
     m_BlockMove.m_entityRef.SignalInputPin("Do");
 
     m_Initialized = false;
+}
+
+void FreeCam::DisableFreecam() {
+    if (HasSpawnedEntities()) {
+        Logger::Info("Disabling existing free camera.");
+        TEntityRef<IRenderDestinationEntity> s_RenderDest;
+        SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
+
+        if (s_RenderDest && m_PreviousCameraSource) {
+            s_RenderDest->SetSource(m_PreviousCameraSource);
+        }
+        else {
+            Logger::Warn("No stored previous camera source while toggling off.");
+        }
+
+        CleanupSpawnedEntities();
+        Logger::Info("Disabled free camera and restored previous camera source.");
+    }
 }
 
 DEFINE_ZKNT_PLUGIN(FreeCam)
