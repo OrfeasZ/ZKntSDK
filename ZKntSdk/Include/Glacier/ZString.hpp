@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "Common.hpp"
+#include <IModSDK.hpp>
 
 #include <spdlog/fmt/ostr.h>
 
@@ -58,9 +59,7 @@ class ZString {
     }
 
     ~ZString() {
-        if (IsAllocated() && m_pChars) {
-            delete[] const_cast<char*>(m_pChars);
-        }
+        SDK()->FreeZString(this);
     }
 
     static ZString AllocateFromCStr(const char* p_Str, uint32_t p_Size) {
@@ -191,17 +190,7 @@ class ZString {
 
   private:
     void Allocate(const char* p_Str, uint32_t p_Size) {
-        // TODO: Use glacier memory management functions.
-        if (p_Size == 0) {
-            m_nLength = 0;
-            m_pChars = "";
-            return;
-        }
-        auto* s_Buffer = new char[p_Size + 1];
-        std::memcpy(s_Buffer, p_Str, p_Size);
-        s_Buffer[p_Size] = '\0';
-        m_nLength = p_Size;
-        m_pChars = s_Buffer;
+        SDK()->AllocateZString(this, p_Str, p_Size);
     }
 
     // private:

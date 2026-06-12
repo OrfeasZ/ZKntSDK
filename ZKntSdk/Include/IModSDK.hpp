@@ -6,6 +6,8 @@
 
 struct ImGuiContext;
 
+class ZString;
+
 namespace zknt {
     class Hooks;
     class Functions;
@@ -40,7 +42,6 @@ namespace zknt {
 
         /**
          * Search for a pattern in the game's memory and patch it with the given code, storing the original code in a provided buffer.
- *
          * @param p_Pattern A sequence of bytes to search for in the game's memory.
          * @param p_Mask A mask to use when searching for the
          * pattern. x = pattern byte, ? = any byte (eg. xxx????x).
@@ -56,6 +57,10 @@ namespace zknt {
         virtual bool PatchCodeStoreOriginal(
             const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_Offset, void* p_OriginalCode
         ) = 0;
+
+        virtual void AllocateZString(ZString* p_Target, const char* p_Str, uint32_t p_Size) = 0;
+
+        virtual void FreeZString(ZString* p_Target) = 0;
     };
 }
 

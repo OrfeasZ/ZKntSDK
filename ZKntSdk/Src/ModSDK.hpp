@@ -62,6 +62,8 @@ namespace zknt {
         bool PatchCodeStoreOriginal(
             const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
         ) override;
+        void AllocateZString(ZString* p_Target, const char* p_Str, uint32_t p_Size) override;
+        void FreeZString(ZString* p_Target) override;
 
         // SDK-internal methods.
         IRenderer* GetRenderer() const;

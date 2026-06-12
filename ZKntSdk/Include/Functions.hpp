@@ -67,5 +67,9 @@ namespace zknt {
         EngineFunction<ZString*(ZString& result, const ZString& sText)>* ZTextListData_DecryptText = nullptr;
 
         EngineFunction<void*(const char* pszName)>* GetGlobalPointer = nullptr;
+
+        EngineFunction<ZString::ZImpl*(const char* buf, size_t size)>* ZStringCollection_Allocate = nullptr;
+
+        EngineFunction<void(ZString::ZImpl* th)>* ZString_ZImpl_Free = nullptr;
     };
 }
