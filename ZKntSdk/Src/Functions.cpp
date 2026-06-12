@@ -67,6 +67,16 @@ zknt::Functions::Functions() {
         "\x48\x8B\xC4\x48\x89\x50\x10\x48\x89\x48\x08\x55\x48\x8D\x68\xA1\x48\x81\xEC\x00\x00\x00\x00\x48\x89\x58\xF0", "xxxxxxxxxxxxxxxxxxx????xxxx",
         AddBindings, void(const char* binds, ZInputContext* inputContext)
     );
+
+    PATTERN_FUNCTION(
+        "\x48\x89\x5C\x24\x10\x48\x89\x6C\x24\x18\x48\x89\x74\x24\x20\x57\x41\x56\x41\x57\x48\x83\xEC\x00\x8B\x3A", "xxxxxxxxxxxxxxxxxxxxxxx?xx",
+        ZTextListData_DecryptText, ZString * (ZString & result, const ZString& sText)
+    );
+
+    PATTERN_FUNCTION(
+        "\x48\x89\x5C\x24\x08\x48\x89\x6C\x24\x10\x48\x89\x74\x24\x18\x57\x48\x83\xEC\x00\x48\x8B\xF1\xE8\x00\x00\x00\x00\x48\x8B\xC8",
+        "xxxxxxxxxxxxxxxxxxx?xxxx????xxx", GetGlobalPointer, void*(const char* pszName)
+    );
 }
 
 zknt::Functions::~Functions() {
@@ -82,4 +92,7 @@ zknt::Functions::~Functions() {
     delete ZInputAction_Digital;
     delete SetPropertyValue;
     delete GetGlobalInputContext;
+    delete AddBindings;
+    delete ZTextListData_DecryptText;
+    delete GetGlobalPointer;
 }

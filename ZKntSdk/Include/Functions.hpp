@@ -63,5 +63,9 @@ namespace zknt {
         EngineFunction<ZInputContext*()>* GetGlobalInputContext = nullptr;
 
         EngineFunction<void(const char* binds, ZInputContext* inputContext)>* AddBindings = nullptr;
+
+        EngineFunction<ZString*(ZString& result, const ZString& sText)>* ZTextListData_DecryptText = nullptr;
+
+        EngineFunction<void*(const char* pszName)>* GetGlobalPointer = nullptr;
     };
 }
