@@ -64,14 +64,14 @@ namespace zknt {
         ) override;
         void AllocateZString(ZString* p_Target, const char* p_Str, uint32_t p_Size) override;
         void FreeZString(ZString* p_Target) override;
+        ImFont* GetImGuiLightFont() override;
+        ImFont* GetImGuiRegularFont() override;
+        ImFont* GetImGuiMediumFont() override;
+        ImFont* GetImGuiBoldFont() override;
+        ImFont* GetImGuiBlackFont() override;
 
         // SDK-internal methods.
         IRenderer* GetRenderer() const;
-        ImFont* GetLightFont() const;
-        ImFont* GetRegularFont() const;
-        ImFont* GetMediumFont() const;
-        ImFont* GetBoldFont() const;
-        ImFont* GetBlackFont() const;
         ModLoader* GetModLoader() const;
         ui::ModSelector* GetUIModSelector() const;
         [[nodiscard]] bool IsEngineInitialized() const {

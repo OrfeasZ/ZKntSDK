@@ -4,6 +4,8 @@
 #include <spdlog/spdlog.h>
 #include <string_view>
 
+#include "imgui.h"
+
 struct ImGuiContext;
 
 class ZString;
@@ -61,6 +63,12 @@ namespace zknt {
         virtual void AllocateZString(ZString* p_Target, const char* p_Str, uint32_t p_Size) = 0;
 
         virtual void FreeZString(ZString* p_Target) = 0;
+
+        virtual ImFont* GetImGuiLightFont() = 0;
+        virtual ImFont* GetImGuiRegularFont() = 0;
+        virtual ImFont* GetImGuiMediumFont() = 0;
+        virtual ImFont* GetImGuiBoldFont() = 0;
+        virtual ImFont* GetImGuiBlackFont() = 0;
     };
 }
 
