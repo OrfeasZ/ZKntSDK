@@ -3,7 +3,13 @@ cmake_minimum_required(VERSION 3.21)
 project(ZKntSdk VERSION 0.1.0 LANGUAGES CXX)
 
 set(GAME_INSTALL_PATH "" CACHE PATH "Path to 007 First Light installation folder.")
-set(CMAKE_CXX_STANDARD 26)
+
+if (MSVC)
+    set(CMAKE_CXX_STANDARD 23)
+else()
+    set(CMAKE_CXX_STANDARD 26)
+endif()
+
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(minhook CONFIG REQUIRED)

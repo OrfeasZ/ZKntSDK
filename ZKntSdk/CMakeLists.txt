@@ -23,7 +23,9 @@ target_compile_definitions(ZKntSdk PRIVATE
         LOADER_EXPORTS
 )
 
-target_compile_options(ZKntSdk PRIVATE -Wno-microsoft-cast)
+if (NOT MSVC)
+    target_compile_options(ZKntSdk PRIVATE -Wno-microsoft-cast)
+endif()
 
 set_target_properties(ZKntSdk PROPERTIES
         PREFIX ""
@@ -62,7 +64,10 @@ target_include_directories(ZKntSdkInterface INTERFACE
 target_link_libraries(ZKntSdkInterface INTERFACE
         spdlog::spdlog_header_only
 )
-target_compile_options(ZKntSdkInterface INTERFACE -Wno-microsoft-cast)
+
+if (NOT MSVC)
+    target_compile_options(ZKntSdkInterface INTERFACE -Wno-microsoft-cast)
+endif()
 
 add_dependencies(ZKntSdk DirectInputProxy)
 
