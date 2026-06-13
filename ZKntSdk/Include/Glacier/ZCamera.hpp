@@ -24,7 +24,15 @@ class ICameraManager : public IComponentInterface {
 
 class ZCameraManagerMain : public ICameraManager, public IReflectSource {};
 
-class ICameraEntity : public IRenderDestinationSource {};
+class ICameraEntity : public IRenderDestinationSource {
+  public:
+    virtual void ICameraEntity_unk5() = 0;
+    virtual void ICameraEntity_unk6() = 0;
+    virtual void ICameraEntity_unk7() = 0;
+    virtual void ICameraEntity_unk8() = 0;
+    virtual void ICameraEntity_unk9() = 0;
+    virtual void SetFovYDeg(float fFovYDeg) = 0;
+};
 
 class ZCameraEntity : public ZRenderableEntity, public ICameraEntity {};
 
@@ -87,13 +95,13 @@ class ZFreeCameraControlEntity : public ZEntityImpl, public IFreeCameraControl {
     bool m_bIsTiltTurnCamFixedDegreeModifierActive;
     int32_t m_nFixedRotationDegree; // 0xB4
 
-    inline static ZInputAction m_aActivateGameControl[2] = {ZInputAction("ActivateGameControl0"), ZInputAction("ActivateGameControl1")};
+    inline static ZInputAction m_ActivateGameControl = ZInputAction("ActivateGameControl");
 
-    inline static ZInputAction m_aAnalogMoveXAxis[2] = {ZInputAction("AnalogMoveXAxis0"), ZInputAction("AnalogMoveXAxis1")};
-    inline static ZInputAction m_aAnalogMoveYAxis[2] = {ZInputAction("AnalogMoveYAxis0"), ZInputAction("AnalogMoveYAxis1")};
+    inline static ZInputAction m_AnalogMoveXAxis = ZInputAction("AnalogMoveXAxis");
+    inline static ZInputAction m_AnalogMoveYAxis = ZInputAction("AnalogMoveYAxis");
 
-    inline static ZInputAction m_aAnalogCamXAxis[2] = {ZInputAction("AnalogCamXAxis0"), ZInputAction("AnalogCamXAxis1")};
-    inline static ZInputAction m_aAnalogCamYAxis[2] = {ZInputAction("AnalogCamYAxis0"), ZInputAction("AnalogCamYAxis1")};
+    inline static ZInputAction m_AnalogCamXAxis = ZInputAction("AnalogCamXAxis");
+    inline static ZInputAction m_AnalogCamYAxis = ZInputAction("AnalogCamYAxis");
 
     inline static ZInputAction m_TiltCamera = ZInputAction("TiltCamera");
     inline static ZInputAction m_TurnCamera = ZInputAction("TurnCamera");
@@ -106,40 +114,36 @@ class ZFreeCameraControlEntity : public ZEntityImpl, public IFreeCameraControl {
     inline static ZInputAction m_MoveZNegative = ZInputAction("MoveZNegative");
 
     inline static ZInputAction m_MoveInWorldSpace = ZInputAction("MoveInWorldSpace");
-    inline static ZInputAction m_aMoveInWorldSpaceTrigger[2] = {ZInputAction("MoveInWorldSpaceTrigger0"), ZInputAction("MoveInWorldSpaceTrigger1")};
-    inline static ZInputAction m_aMoveInWorldSpaceButton[2] = {ZInputAction("MoveInWorldSpaceButton0"), ZInputAction("MoveInWorldSpaceButton1")};
-    inline static ZInputAction m_aMoveInWorldSpaceX[2] = {ZInputAction("MoveInWorldSpaceXAxis0"), ZInputAction("MoveInWorldSpaceXAxis1")};
-    inline static ZInputAction m_aMoveInWorldSpaceY[2] = {ZInputAction("MoveInWorldSpaceYAxis0"), ZInputAction("MoveInWorldSpaceYAxis1")};
-    inline static ZInputAction m_aMoveInWorldSpaceZ[2] = {ZInputAction("MoveInWorldSpaceZAxis0"), ZInputAction("MoveInWorldSpaceZAxis1")};
-    inline static ZInputAction m_aMoveInZDirection[2] = {ZInputAction("MoveInZDirection0"), ZInputAction("MoveInZDirection1")};
+    inline static ZInputAction m_MoveInWorldSpaceTrigger = ZInputAction("MoveInWorldSpaceTrigger");
+    inline static ZInputAction m_MoveInWorldSpaceButton = ZInputAction("MoveInWorldSpaceButton");
+    inline static ZInputAction m_MoveInWorldSpaceXAxis = ZInputAction("MoveInWorldSpaceXAxis");
+    inline static ZInputAction m_MoveInWorldSpaceYAxis = ZInputAction("MoveInWorldSpaceYAxis");
+    inline static ZInputAction m_MoveInWorldSpaceZAxis = ZInputAction("MoveInWorldSpaceZAxis");
+    inline static ZInputAction m_MoveInZDirection = ZInputAction("MoveInZDirection");
 
     inline static ZInputAction m_RollModifier = ZInputAction("RollModifier");
-    inline static ZInputAction m_aRollModifier[2] = {ZInputAction("RollModifier0"), ZInputAction("RollModifier1")};
-    inline static ZInputAction m_aRollAxis[2] = {ZInputAction("RollAxis0"), ZInputAction("RollAxis1")};
+    inline static ZInputAction m_RollModifier2 = ZInputAction("RollModifier2");
+    inline static ZInputAction m_RollAxis = ZInputAction("RollAxis");
     inline static ZInputAction m_ResetRoll = ZInputAction("ResetRoll");
-    inline static ZInputAction m_aResetRoll[2] = {ZInputAction("ResetRoll0"), ZInputAction("ResetRoll1")};
+    inline static ZInputAction m_ResetRoll2 = ZInputAction("ResetRoll2");
 
     inline static ZInputAction m_FovModifier = ZInputAction("FovModifier");
-    inline static ZInputAction m_aFovModifier[2] = {ZInputAction("FovModifier0"), ZInputAction("FovModifier1")};
-    inline static ZInputAction m_aFovAxis[2] = {ZInputAction("FovAxis0"), ZInputAction("FovAxis1")};
+    inline static ZInputAction m_FovModifier2 = ZInputAction("FovModifier2");
+    inline static ZInputAction m_FovAxis = ZInputAction("FovAxis");
     inline static ZInputAction m_ResetFov = ZInputAction("ResetFov");
-    inline static ZInputAction m_aResetFov[2] = {ZInputAction("ResetFov0"), ZInputAction("ResetFov1")};
+    inline static ZInputAction m_ResetFov2 = ZInputAction("ResetFov2");
 
-    inline static ZInputAction m_aSpeedTranslationAxis[2] = {ZInputAction("SpeedTranslationAxis0"), ZInputAction("SpeedTranslationAxis1")};
-    inline static ZInputAction m_aSpeedRotationAxis[2] = {ZInputAction("SpeedRotationAxis0"), ZInputAction("SpeedRotationAxis1")};
+    inline static ZInputAction m_SpeedTranslationAxis = ZInputAction("SpeedTranslationAxis");
+    inline static ZInputAction m_SpeedRotationAxis = ZInputAction("SpeedRotationAxis");
     inline static ZInputAction m_SpeedModifier = ZInputAction("SpeedModifier");
-    inline static ZInputAction m_aSpeedModifier[2] = {ZInputAction("SpeedModifier0"), ZInputAction("SpeedModifier1")};
+    inline static ZInputAction m_SpeedModifier2 = ZInputAction("SpeedModifier2");
     inline static ZInputAction m_ResetSpeed = ZInputAction("ResetSpeed");
-    inline static ZInputAction m_aResetSpeed[2] = {ZInputAction("ResetSpeed0"), ZInputAction("ResetSpeed1")};
+    inline static ZInputAction m_ResetSpeed2 = ZInputAction("ResetSpeed2");
 
     inline static ZInputAction m_TiltTurnCameraFixedDegreeModifier = ZInputAction("TiltTurnCameraFixedDegreeModifier");
 
-    inline static ZInputAction m_aTemporaryCamSpeedMultiplierTrigger[2] = {
-        ZInputAction("TemporaryCamSpeedMultiplierTrigger0"), ZInputAction("TemporaryCamSpeedMultiplierTrigger1")
-    };
-    inline static ZInputAction m_aTemporaryCamSpeedMultiplierTrigger2[2] = {
-        ZInputAction("TemporaryCamSpeedMultiplierTrigger20"), ZInputAction("TemporaryCamSpeedMultiplierTrigger21")
-    };
+    inline static ZInputAction m_TemporaryCamSpeedMultiplierTrigger = ZInputAction("TemporaryCamSpeedMultiplierTrigger");
+    inline static ZInputAction m_TemporaryCamSpeedMultiplierTrigger2 = ZInputAction("TemporaryCamSpeedMultiplierTrigger2");
     inline static ZInputAction m_TemporaryCamSpeedMultiplierLeftShift = ZInputAction("TemporaryCamSpeedMultiplierLeftShift");
     inline static ZInputAction m_TemporaryCamSpeedMultiplierRightShift = ZInputAction("TemporaryCamSpeedMultiplierRightShift");
 };

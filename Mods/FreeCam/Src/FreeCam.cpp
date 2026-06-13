@@ -330,7 +330,7 @@ DEFINE_PLUGIN_DETOUR(
 ) {
     ZString* s_Res = p_Hook->CallOriginal(p_Th, p_Result, p_ControllerId);
 
-    p_Result.m_pChars = "FreeCamControl0={"
+    p_Result.m_pChars = "FreeCamControl={"
                         "TiltCamera=rel(ms,y);"
                         "TurnCamera=rel(ms,x);"
                         "MoveXPositive=| hold(kb,left) hold(kb,a);"
@@ -347,29 +347,29 @@ DEFINE_PLUGIN_DETOUR(
                         "ResetRoll=hold(kb,x);"
                         "ResetFov=hold(kb,z);"
                         "ResetSpeed=hold(kb,z);"
-                        "AnalogCamXAxis0=ana(gc0,rightx);"
-                        "AnalogCamYAxis0=ana(gc0,righty);"
-                        "AnalogMoveXAxis0=ana(gc0,leftx);"
-                        "AnalogMoveYAxis0=ana(gc0,lefty);"
-                        "MoveInZDirection0=| hold(gc0,right_bumper) hold(gc0,right1);"
-                        "RollModifier0=| hold(gc0,a) hold(gc0,cross);"
-                        "RollAxis0=ana(gc0,leftx);"
-                        "ResetRoll0=| hold(gc0,leftstick) hold(gc0,left_thumb);"
-                        "FovModifier0=| hold(gc0,y) hold(gc0,triangle);"
-                        "FovAxis0=ana(gc0,lefty);"
-                        "ResetFov0=| hold(gc0,leftstick) hold(gc0,left_thumb);"
-                        "SpeedModifier0=| hold(gc0,b) hold(gc0,circle);"
-                        "SpeedTranslationAxis0=ana(gc0,lefty);"
-                        "SpeedRotationAxis0=ana(gc0,leftx);"
-                        "ResetSpeed0=| hold(gc0,leftstick) hold(gc0,left_thumb);"
-                        "MoveInWorldSpaceTrigger0=ana(gc0,left_analog_trigger);"
-                        "MoveInWorldSpaceButton0=hold(gc0,left2);"
-                        "MoveInWorldSpaceXAxis0=ana(gc0,leftx);"
-                        "MoveInWorldSpaceYAxis0=ana(gc0,lefty);"
-                        "MoveInWorldSpaceZAxis0=ana(gc0,righty);"
-                        "ActivateGameControl0=| hold(gc0,left_bumper) hold(gc0,left1);"
-                        "TemporaryCamSpeedMultiplierTrigger0=ana(gc0,right_analog_trigger);"
-                        "TemporaryCamSpeedMultiplierTrigger20=ana(gc0,right2_analog);"
+                        "AnalogCamXAxis=ana(gc,rightx);"
+                        "AnalogCamYAxis=ana(gc,righty);"
+                        "AnalogMoveXAxis=ana(gc,leftx);"
+                        "AnalogMoveYAxis=ana(gc,lefty);"
+                        "MoveInZDirection=| hold(gc,right_bumper) hold(gc,right1);"
+                        "RollModifier2=| hold(gc,a) hold(gc,cross);"
+                        "RollAxis=ana(gc,leftx);"
+                        "ResetRoll2=| hold(gc,leftstick) hold(gc,left_thumb);"
+                        "FovModifier2=| hold(gc,y) hold(gc,triangle);"
+                        "FovAxis=ana(gc,lefty);"
+                        "ResetFov2=| hold(gc,leftstick) hold(gc,left_thumb);"
+                        "SpeedModifier2=| hold(gc,b) hold(gc,circle);"
+                        "SpeedTranslationAxis=ana(gc,lefty);"
+                        "SpeedRotationAxis=ana(gc,leftx);"
+                        "ResetSpeed2=| hold(gc,leftstick) hold(gc,left_thumb);"
+                        "MoveInWorldSpaceTrigger=ana(gc,left_analog_trigger);"
+                        "MoveInWorldSpaceButton=hold(gc,left2);"
+                        "MoveInWorldSpaceXAxis=ana(gc,leftx);"
+                        "MoveInWorldSpaceYAxis=ana(gc,lefty);"
+                        "MoveInWorldSpaceZAxis=ana(gc,righty);"
+                        "ActivateGameControl=| hold(gc,left_bumper) hold(gc,left1);"
+                        "TemporaryCamSpeedMultiplierTrigger=ana(gc,right_analog_trigger);"
+                        "TemporaryCamSpeedMultiplierTrigger2=ana(gc,right2_analog);"
                         "TemporaryCamSpeedMultiplierLeftShift=hold(kb,lshift);"
                         "TemporaryCamSpeedMultiplierRightShift=hold(kb,rshift);"
                         "};";
@@ -418,7 +418,7 @@ DEFINE_PLUGIN_DETOUR(FreeCam, void, ZFreeCameraControlEntity_UpdateCamera, ZFree
         m_Initialized = true;
     }
 
-    if (p_Th->ForceGetDigital(p_Th->m_aActivateGameControl[p_Th->m_nControllerId])) {
+    if (p_Th->ForceGetDigital(p_Th->m_ActivateGameControl)) {
         p_Th->m_bIsGameControlActive = true;
         return {HookAction::Return()};
     }
@@ -428,104 +428,116 @@ DEFINE_PLUGIN_DETOUR(FreeCam, void, ZFreeCameraControlEntity_UpdateCamera, ZFree
     const int s_Controller = p_Th->m_nControllerId;
     const float s_MouseYaw = p_Th->m_TurnCamera.Analog();
     const float s_MousePitch = p_Th->m_TiltCamera.Analog();
-    const float s_StickYaw = p_Th->m_aAnalogCamXAxis[s_Controller].Analog();
-    const float s_StickPitch = p_Th->m_aAnalogCamYAxis[s_Controller].Analog();
+    const float s_StickYaw = p_Th->m_AnalogCamXAxis.Analog();
+    const float s_StickPitch = -p_Th->m_AnalogCamYAxis.Analog();
 
     constexpr float c_RollSpeed = 1.5f;
     constexpr float c_SpeedAdjustRate = 2.0f;
     constexpr float c_DegToRad = 0.01745329f;
 
-    float s_MoveRight = p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, p_Th->m_aAnalogMoveXAxis[s_Controller].Analog());
-    float s_MoveForward = p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_aAnalogMoveYAxis[s_Controller].Analog());
-    const float s_MoveUp = p_Th->GetCombinedAxis(p_Th->m_MoveZPositive, p_Th->m_MoveZNegative, 0.0f);
+    float s_MoveRight = p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, -p_Th->m_AnalogMoveXAxis.Analog());
+    float s_MoveForward = p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_AnalogMoveYAxis.Analog());
+    float s_MoveUp = p_Th->GetCombinedAxis(p_Th->m_MoveZPositive, p_Th->m_MoveZNegative, 0.0f);
 
     const float s_TempSpeed = std::max({
-        p_Th->m_aTemporaryCamSpeedMultiplierTrigger[s_Controller].Analog(),
-        p_Th->m_aTemporaryCamSpeedMultiplierTrigger2[s_Controller].Analog(),
+        p_Th->m_TemporaryCamSpeedMultiplierTrigger.Analog(),
+        p_Th->m_TemporaryCamSpeedMultiplierTrigger2.Analog(),
         p_Th->m_TemporaryCamSpeedMultiplierLeftShift.Digital() ? 1.0f : 0.0f,
         p_Th->m_TemporaryCamSpeedMultiplierRightShift.Digital() ? 1.0f : 0.0f,
     });
     const float s_TempMultiplier = s_TempSpeed * 9.0f + 1.0f;
 
-    const bool s_RollFovModifier = p_Th->m_RollModifier.Digital() || p_Th->m_FovModifier.Digital()
-                                   || p_Th->ForceGetDigital(p_Th->m_aRollModifier[s_Controller])
-                                   || p_Th->ForceGetDigital(p_Th->m_aFovModifier[s_Controller]);
+    const bool s_RollModifier = p_Th->ForceGetDigital(p_Th->m_RollModifier2) || p_Th->m_RollModifier.Digital();
+    const bool s_FOVModifier = p_Th->ForceGetDigital(p_Th->m_FovModifier2) || p_Th->m_FovModifier.Digital();
 
-    const bool s_SpeedModifier = p_Th->m_SpeedModifier.Digital() || p_Th->ForceGetDigital(p_Th->m_aSpeedModifier[s_Controller]);
+    const bool s_SpeedModifier = p_Th->m_SpeedModifier.Digital() || p_Th->ForceGetDigital(p_Th->m_SpeedModifier2);
     const bool s_FixedModifier = p_Th->m_TiltTurnCameraFixedDegreeModifier.Digital();
 
-    const bool s_PlanarMove = p_Th->m_MoveInWorldSpace.Digital() || p_Th->m_aMoveInWorldSpaceButton[s_Controller].Digital()
-                              || p_Th->m_aMoveInWorldSpaceTrigger[s_Controller].Analog() > 0.6f;
+    const bool s_PlanarMove =
+        p_Th->m_MoveInWorldSpace.Digital() || p_Th->m_MoveInWorldSpaceButton.Digital() || p_Th->m_MoveInWorldSpaceTrigger.Analog() > 0.6f;
 
-    if (s_RollFovModifier || s_SpeedModifier || s_FixedModifier) {
+    if (s_PlanarMove) {
+        s_MoveRight = p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, -p_Th->m_MoveInWorldSpaceXAxis.Analog());
+
+        s_MoveForward = p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_MoveInWorldSpaceYAxis.Analog());
+
+        s_MoveUp = p_Th->GetCombinedAxis(p_Th->m_MoveZPositive, p_Th->m_MoveZNegative, p_Th->m_MoveInWorldSpaceZAxis.Analog());
+    }
+
+    if (s_RollModifier || s_FOVModifier || s_SpeedModifier || s_FixedModifier) {
         s_MoveRight = 0.0f;
         s_MoveForward = 0.0f;
     }
 
-    if (s_RollFovModifier) {
-        if (p_Th->m_ResetRoll.Digital() || p_Th->ForceGetDigital(p_Th->m_aResetRoll[s_Controller])) {
+    if (s_RollModifier) {
+        if (p_Th->m_ResetRoll.Digital() || p_Th->ForceGetDigital(p_Th->m_ResetRoll2)) {
             m_Roll = 0.0f;
         }
         else {
-            const float s_RollInput = p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, p_Th->m_aRollAxis[s_Controller].Analog());
+            const float s_RollInput = p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, -p_Th->m_RollAxis.Analog());
             m_Roll += s_RollInput * c_RollSpeed * s_Dt;
         }
+    }
 
-        if (p_Th->m_ResetFov.Digital() || p_Th->ForceGetDigital(p_Th->m_aResetFov[s_Controller])) {
+    if (s_FOVModifier) {
+        if (p_Th->m_ResetFov.Digital() || p_Th->ForceGetDigital(p_Th->m_ResetFov2)) {
             p_Th->m_fFov = p_Th->m_fInitialFov;
             p_Th->m_fDeltaFov = 0.0f;
         }
         else {
-            p_Th->m_fDeltaFov = p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_aFovAxis[s_Controller].Analog());
+            p_Th->m_fDeltaFov = p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_FovAxis.Analog());
         }
     }
 
     if (s_SpeedModifier) {
-        if (p_Th->m_ResetSpeed.Digital() || p_Th->ForceGetDigital(p_Th->m_aResetSpeed[s_Controller])) {
+        if (p_Th->m_ResetSpeed.Digital() || p_Th->ForceGetDigital(p_Th->m_ResetSpeed2)) {
             m_TranslationSpeedMul = 1.0f;
             m_RotationSpeedMul = 1.0f;
         }
         else {
-            const float s_TransAdjust =
-                p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_aSpeedTranslationAxis[s_Controller].Analog());
-            const float s_RotAdjust =
-                p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, p_Th->m_aSpeedRotationAxis[s_Controller].Analog());
+            const float s_TransAdjust = p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_SpeedTranslationAxis.Analog());
+            const float s_RotAdjust = p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, p_Th->m_SpeedRotationAxis.Analog());
             m_TranslationSpeedMul = std::clamp(m_TranslationSpeedMul * std::exp(s_TransAdjust * c_SpeedAdjustRate * s_Dt), 0.05f, 200.0f);
             m_RotationSpeedMul = std::clamp(m_RotationSpeedMul * std::exp(s_RotAdjust * c_SpeedAdjustRate * s_Dt), 0.1f, 10.0f);
         }
     }
 
-    if (!s_FixedModifier) {
-        const float s_LookScale = m_RotationSpeedMul;
-        m_Yaw += (s_MouseYaw * c_MouseSensitivity + s_StickYaw * c_StickLookSpeed * s_Dt) * s_LookScale;
-        m_Pitch += (-s_MousePitch * c_MouseSensitivity - s_StickPitch * c_StickLookSpeed * s_Dt) * s_LookScale;
-        p_Th->m_bIsTiltTurnCamFixedDegreeModifierActive = false;
-    }
-    else {
-        const float s_SnapX = p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, p_Th->m_aAnalogMoveXAxis[s_Controller].Analog());
-        const float s_SnapY = p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_aAnalogMoveYAxis[s_Controller].Analog());
-
-        if (std::abs(s_SnapX) > 0.6f || std::abs(s_SnapY) > 0.6f) {
-            if (!p_Th->m_bIsTiltTurnCamFixedDegreeModifierActive) {
-                p_Th->m_bIsTiltTurnCamFixedDegreeModifierActive = true;
-
-                int s_Degrees = p_Th->m_nFixedRotationDegree;
-                if (s_Degrees == 0) {
-                    s_Degrees = 15;
-                }
-                const float s_Step = static_cast<float>(s_Degrees) * c_DegToRad;
-
-                if (std::abs(s_SnapY) > 0.6f) {
-                    m_Pitch += (s_SnapY > 0.0f) ? s_Step : -s_Step;
-                }
-                else {
-                    m_Yaw += (s_SnapX > 0.0f) ? -s_Step : s_Step;
-                }
-            }
-        }
-        else {
+    if (!s_PlanarMove) {
+        if (!s_FixedModifier) {
+            const float s_LookScale = m_RotationSpeedMul * p_Th->m_fFovDependentSpeedMultiplier;
+            m_Yaw += (s_MouseYaw * c_MouseSensitivity + s_StickYaw * c_StickLookSpeed * s_Dt) * s_LookScale;
+            m_Pitch += (-s_MousePitch * c_MouseSensitivity - s_StickPitch * c_StickLookSpeed * s_Dt) * s_LookScale;
             p_Th->m_bIsTiltTurnCamFixedDegreeModifierActive = false;
         }
+        else {
+            const float s_SnapX = p_Th->GetCombinedAxis(p_Th->m_MoveXPositive, p_Th->m_MoveXNegative, -p_Th->m_AnalogMoveXAxis.Analog());
+            const float s_SnapY = p_Th->GetCombinedAxis(p_Th->m_MoveYPositive, p_Th->m_MoveYNegative, p_Th->m_AnalogMoveYAxis.Analog());
+
+            if (std::abs(s_SnapX) > 0.6f || std::abs(s_SnapY) > 0.6f) {
+                if (!p_Th->m_bIsTiltTurnCamFixedDegreeModifierActive) {
+                    p_Th->m_bIsTiltTurnCamFixedDegreeModifierActive = true;
+
+                    int s_Degrees = p_Th->m_nFixedRotationDegree;
+                    if (s_Degrees == 0) {
+                        s_Degrees = 15;
+                    }
+                    const float s_Step = static_cast<float>(s_Degrees) * c_DegToRad;
+
+                    if (std::abs(s_SnapY) > 0.6f) {
+                        m_Pitch += (s_SnapY > 0.0f) ? s_Step : -s_Step;
+                    }
+                    else {
+                        m_Yaw += (s_SnapX > 0.0f) ? -s_Step : s_Step;
+                    }
+                }
+            }
+            else {
+                p_Th->m_bIsTiltTurnCamFixedDegreeModifierActive = false;
+            }
+        }
+    }
+    else {
+        p_Th->m_bIsTiltTurnCamFixedDegreeModifierActive = false;
     }
 
     m_Pitch = std::clamp(m_Pitch, -c_MaxPitch, c_MaxPitch);
@@ -539,9 +551,32 @@ DEFINE_PLUGIN_DETOUR(FreeCam, void, ZFreeCameraControlEntity_UpdateCamera, ZFree
     const SVector3 s_Right = s_WorldUp.Cross(s_Forward).Normalized();
     const SVector3 s_Up = s_Forward.Cross(s_Right).Normalized();
 
-    const SVector3 s_MoveForwardDir = s_PlanarMove ? SVector3(s_Forward.x, s_Forward.y, 0.0f).Normalized() : s_Forward;
-    const float s_Speed = c_BaseMoveSpeed * s_TempMultiplier * m_TranslationSpeedMul * s_Dt;
-    m_Position = m_Position + s_Right * (s_MoveRight * s_Speed) + s_MoveForwardDir * (s_MoveForward * s_Speed) + s_WorldUp * (s_MoveUp * s_Speed);
+    const float s_OldFovMultiplier = p_Th->m_fFovDependentSpeedMultiplier;
+    const float s_NewFov = p_Th->m_fFov + c_BaseMoveSpeed * s_TempMultiplier * m_TranslationSpeedMul * s_OldFovMultiplier * p_Th->m_fDeltaFov * s_Dt;
+
+    p_Th->m_fFov = std::clamp(s_NewFov, 5.0f, 170.0f);
+
+    if (p_Th->m_cameraEntity.m_pInterfaceRef) {
+        p_Th->m_cameraEntity.m_pInterfaceRef->SetFovYDeg(p_Th->m_fFov);
+    }
+
+    float s_FovDependentSpeedMultiplier;
+
+    if (p_Th->m_fFov < p_Th->m_fInitialFov) {
+        const float t = (p_Th->m_fFov - 5.0f) / (p_Th->m_fInitialFov - 5.0f);
+
+        s_FovDependentSpeedMultiplier = t * 0.9f + 0.1f;
+    }
+    else {
+        const float t = (p_Th->m_fFov - p_Th->m_fInitialFov) / (170.0f - p_Th->m_fInitialFov);
+
+        s_FovDependentSpeedMultiplier = t + 1.0f;
+    }
+
+    p_Th->m_fFovDependentSpeedMultiplier = s_FovDependentSpeedMultiplier;
+
+    const float s_Speed = c_BaseMoveSpeed * s_TempMultiplier * m_TranslationSpeedMul * p_Th->m_fFovDependentSpeedMultiplier * s_Dt;
+    m_Position = m_Position + s_Right * (s_MoveRight * s_Speed) + s_Forward * (s_MoveForward * s_Speed) + s_WorldUp * (s_MoveUp * s_Speed);
 
     const float s_CosRoll = std::cos(m_Roll);
     const float s_SinRoll = std::sin(m_Roll);
