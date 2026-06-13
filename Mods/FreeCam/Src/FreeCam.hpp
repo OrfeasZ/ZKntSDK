@@ -16,6 +16,8 @@ class FreeCam : public zknt::IPluginInterface {
 
     void Init() override;
     void OnEngineInitialized() override;
+    void OnDrawMenu() override;
+    void OnDrawUI(bool p_HasFocus) override;
 
   private:
     void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
@@ -34,7 +36,14 @@ class FreeCam : public zknt::IPluginInterface {
 
     bool m_FreeCamActive;
     bool m_ShouldToggle;
+
     ZInputAction m_ToggleFreeCamAction;
+
+    bool m_MenuVisible;
+    bool m_ControlsVisible;
+    std::unordered_map<std::string, std::string> m_PcControls;
+    std::unordered_map<std::string, std::string> m_PcControlsEditorStyle;
+    std::unordered_map<std::string, std::string> m_ControllerControls;
 
     TEntityRef<ZCameraEntity> m_FreeCamera;
     TEntityRef<ZFreeCameraControlEntity> m_FreeCameraControl;

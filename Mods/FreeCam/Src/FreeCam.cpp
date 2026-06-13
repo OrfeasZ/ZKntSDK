@@ -1,5 +1,7 @@
 #include "FreeCam.hpp"
 
+#include "IconsMaterialDesign.h"
+
 #include <Logging.hpp>
 
 #include <Glacier/CompileReflection.hpp>
@@ -8,6 +10,269 @@
 
 #include <algorithm>
 #include <cmath>
+
+class IIntValue;
+
+FreeCam::FreeCam()
+    : m_FreeCamActive(false), m_ShouldToggle(false), m_ToggleFreeCamAction("ToggleFreeCamera"), m_MenuVisible(false), m_ControlsVisible(false) {
+    m_PcControls = {
+        {"K", "Toggle freecam"},
+        {"F3", "Lock camera and enable 47 input"},
+        {"Ctrl + W/S", "Change FOV"},
+        {"Ctrl + A/D", "Roll camera"},
+        {"Ctrl + X", "Reset roll"},
+        {"Alt + W/S", "Change camera speed"},
+        {"Space + Q/E", "Change camera height"},
+        {"Space + W/S", "Move camera on axis"},
+        {"Shift", "Increase camera speed"},
+        {"F9", "Kill NPC"},
+        {"Ctrl + F6", "Teleport Hitman"},
+        {"F8", "Pause/Resume game"},
+    };
+
+    m_PcControlsEditorStyle = {
+        {"P", "Toggle freecam"},
+        {"F3", "Lock camera and enable 47 input"},
+        {"MMB", "Drag camera"},
+        {"Scroll Wheel", "Zoom camera"},
+        {"RMB", "Activate rotate"},
+        {"Alt + MMB or RMB", "Orbit camera"},
+        {"Z + Alt + MMB or RMB", "Orbit camera around selected entity"},
+        {"Z", "Zoom to selected entity (press twice to focus the gizmo)"},
+        {"Alt + Scroll Wheel", "Zoom camera with precision"},
+        {"Shift", "Speed modifier"},
+        {"RMB + Scroll wheel", "Adjust speed"},
+    };
+
+    m_ControllerControls = {
+        {"Y + Left Stick", "Change FOV"},
+        {"A + Left Stick", "Roll camera"},
+        {"Left Stick Press", "Reset roll"},
+        {"B + Left Stick", "Change camera speed"},
+        {"RT", "Temporary speed boost"},
+        {"LB", "Enable game controls"},
+        {"LT + Right Stick", "Move camera vertically"},
+    };
+}
+
+FreeCam::~FreeCam() {
+    if (!m_FrameUpdateRegistered) {
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    const ZMemberDelegate<FreeCam, void(const SGameUpdateEvent&)> s_Delegate(this, &FreeCam::OnFrameUpdate);
+    SDK()->Globals()->GameLoopManager->UnregisterFrameUpdate(s_Delegate, 1, EUpdateMode::eUpdatePlayMode);
+    m_FrameUpdateRegistered = false;
+    CleanupSpawnedEntities();
+}
+
+void FreeCam::Init() {
+    SDK()->Hooks()->ZFreeCameraControlEntity_GenerateActionBindingString->AddDetour(
+        this, &FreeCam::ZFreeCameraControlEntity_GenerateActionBindingString
+    );
+    SDK()->Hooks()->ZFreeCameraControlEntity_UpdateCamera->AddDetour(this, &FreeCam::ZFreeCameraControlEntity_UpdateCamera);
+}
+
+void FreeCam::OnEngineInitialized() {
+    if (m_FrameUpdateRegistered) {
+        return;
+    }
+
+    const ZMemberDelegate<FreeCam, void(const SGameUpdateEvent&)> s_Delegate(this, &FreeCam::OnFrameUpdate);
+    SDK()->Globals()->GameLoopManager->RegisterFrameUpdate(s_Delegate, 1, EUpdateMode::eUpdatePlayMode);
+    m_FrameUpdateRegistered = true;
+
+    const char* s_Bindings = "FreeCameraInput={"
+                             "ToggleFreeCamera=tap(kb,k);};";
+
+    ZInputContext* s_InputContext = SDK()->Functions()->GetGlobalInputContext->Call();
+
+    SDK()->Functions()->AddBindings->Call(s_Bindings, s_InputContext);
+}
+
+void FreeCam::OnDrawMenu() {
+    if (ImGui::Button(ICON_MD_PHOTO_CAMERA " FREECAM")) {
+        m_MenuVisible = !m_MenuVisible;
+    }
+}
+
+void FreeCam::OnDrawUI(bool p_HasFocus) {
+    if (m_MenuVisible) {
+        const auto s_Center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(s_Center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        ImGui::PushFont(SDK()->GetImGuiBlackFont());
+        const auto s_MenuExpanded = ImGui::Begin(ICON_MD_PHOTO_CAMERA " FreeCam", &m_MenuVisible);
+        ImGui::PushFont(SDK()->GetImGuiRegularFont());
+
+        if (s_MenuExpanded) {
+            bool s_FreeCamActive = m_FreeCamActive;
+
+            if (ImGui::Checkbox(ICON_MD_PHOTO_CAMERA " Enable freecam", &s_FreeCamActive)) {
+                ToggleFreecam();
+            }
+
+            if (ImGui::Button(ICON_MD_SPORTS_ESPORTS " Show freecam controls")) {
+                m_ControlsVisible = !m_ControlsVisible;
+            }
+        }
+
+        ImGui::PopFont();
+        ImGui::End();
+        ImGui::PopFont();
+    }
+
+    if (m_ControlsVisible) {
+        ImGui::PushFont(SDK()->GetImGuiBlackFont());
+        const auto s_ControlsExpanded = ImGui::Begin(ICON_MD_PHOTO_CAMERA " FreeCam Controls", &m_ControlsVisible);
+        ImGui::PushFont(SDK()->GetImGuiRegularFont());
+
+        if (s_ControlsExpanded) {
+            ImGui::TextUnformatted("PC Controls");
+
+            ImGui::BeginTable("FreeCamControlsPc", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit);
+
+            for (auto& [s_Key, s_Description] : m_PcControls) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(s_Key.c_str());
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(s_Description.c_str());
+            }
+
+            ImGui::EndTable();
+
+            ImGui::TextUnformatted("Controller Controls");
+
+            ImGui::BeginTable("FreeCamControlsController", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit);
+
+            for (auto& [s_Key, s_Description] : m_ControllerControls) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(s_Key.c_str());
+                ImGui::TableNextColumn();
+                ImGui::TextUnformatted(s_Description.c_str());
+            }
+
+            ImGui::EndTable();
+        }
+
+        ImGui::PopFont();
+        ImGui::End();
+        ImGui::PopFont();
+    }
+}
+
+void FreeCam::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
+    static_cast<void>(p_UpdateEvent);
+
+    if (m_ToggleFreeCamAction.Digital()) {
+        ToggleFreecam();
+    }
+
+    if (m_ShouldToggle) {
+        m_ShouldToggle = false;
+
+        if (m_FreeCamActive) {
+            EnableFreecam();
+        }
+        else {
+            DisableFreecam();
+        }
+    }
+}
+
+void FreeCam::ToggleFreecam() {
+    m_FreeCamActive = !m_FreeCamActive;
+    m_ShouldToggle = true;
+}
+
+void FreeCam::EnableFreecam() {
+    CleanupSpawnedEntities();
+    Logger::Info("Enabling free camera.");
+
+    m_FreeCamera = TEntityRef<ZCameraEntity>::SpawnEntity(ResId<"[modules:/zcameraentity.class].entitytype">);
+    if (!m_FreeCamera) {
+        Logger::Error("Failed to create free camera entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_FreeCameraControl = TEntityRef<ZFreeCameraControlEntity>::SpawnEntity(ResId<"[modules:/zfreecameracontrolentity.class].entitytype">);
+    if (!m_FreeCameraControl) {
+        Logger::Error("Failed to create free camera control entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_BlockMove = TEntityRef<ZCLBlockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayermoveinput.class].entitytype">);
+    if (!m_BlockMove) {
+        Logger::Error("Failed to create block move entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_UnblockMove =
+        TEntityRef<ZCLUnblockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclunblockhumanoidplayermoveinput.class].entitytype">);
+    if (!m_UnblockMove) {
+        Logger::Error("Failed to create unblock move entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_GetLocalPlayer = TEntityRef<ZCLGetLocalPlayerID>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerid.class].entitytype">);
+    if (!m_GetLocalPlayer) {
+        Logger::Error("Failed to create get player entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_FreeCameraControl->SetCameraEntity(m_FreeCamera);
+    m_FreeCameraControl->SetActive(true);
+
+    TEntityRef<IRenderDestinationEntity> s_RenderDest;
+    SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
+    const auto s_CurrentCamera = SDK()->Functions()->GetCurrentCamera->Call();
+    if (!s_CurrentCamera || !s_RenderDest) {
+        Logger::Error("Failed to retrieve active camera or render destination.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_FreeCamera->SetObjectToWorldMatrixFromEditor(s_CurrentCamera->GetObjectToWorldMatrix());
+    m_PreviousCameraSource = s_RenderDest->GetSource();
+    s_RenderDest->SetSource(m_FreeCamera.m_entityRef);
+    Logger::Info("Enabled free camera!");
+
+    // Set up player input (un)blocking entities and block player input.
+    const auto s_IntRef = TInterfaceRef<IIntValue>::FromEntityRef(m_GetLocalPlayer.m_entityRef);
+
+    m_BlockMove.m_entityRef.SetProperty("m_playerID", s_IntRef);
+    m_UnblockMove.m_entityRef.SetProperty("m_playerID", s_IntRef);
+
+    m_BlockMove.m_entityRef.SignalInputPin("Do");
+
+    m_Initialized = false;
+}
+
+void FreeCam::DisableFreecam() {
+    if (HasSpawnedEntities()) {
+        Logger::Info("Disabling existing free camera.");
+        TEntityRef<IRenderDestinationEntity> s_RenderDest;
+        SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
+
+        if (s_RenderDest && m_PreviousCameraSource) {
+            s_RenderDest->SetSource(m_PreviousCameraSource);
+        }
+        else {
+            Logger::Warn("No stored previous camera source while toggling off.");
+        }
+
+        CleanupSpawnedEntities();
+        Logger::Info("Disabled free camera and restored previous camera source.");
+    }
+}
 
 bool FreeCam::HasSpawnedEntities() const {
     return m_FreeCamera && m_FreeCameraControl;
@@ -58,44 +323,6 @@ void FreeCam::CleanupSpawnedEntities() {
     m_GetLocalPlayer = {};
     m_PreviousCameraSource = {};
     m_Initialized = false;
-}
-
-FreeCam::FreeCam() : m_FreeCamActive(false), m_ShouldToggle(false), m_ToggleFreeCamAction("ToggleFreeCamera") {}
-
-FreeCam::~FreeCam() {
-    if (!m_FrameUpdateRegistered) {
-        CleanupSpawnedEntities();
-        return;
-    }
-
-    const ZMemberDelegate<FreeCam, void(const SGameUpdateEvent&)> s_Delegate(this, &FreeCam::OnFrameUpdate);
-    SDK()->Globals()->GameLoopManager->UnregisterFrameUpdate(s_Delegate, 1, EUpdateMode::eUpdatePlayMode);
-    m_FrameUpdateRegistered = false;
-    CleanupSpawnedEntities();
-}
-
-void FreeCam::Init() {
-    SDK()->Hooks()->ZFreeCameraControlEntity_GenerateActionBindingString->AddDetour(
-        this, &FreeCam::ZFreeCameraControlEntity_GenerateActionBindingString
-    );
-    SDK()->Hooks()->ZFreeCameraControlEntity_UpdateCamera->AddDetour(this, &FreeCam::ZFreeCameraControlEntity_UpdateCamera);
-}
-
-void FreeCam::OnEngineInitialized() {
-    if (m_FrameUpdateRegistered) {
-        return;
-    }
-
-    const ZMemberDelegate<FreeCam, void(const SGameUpdateEvent&)> s_Delegate(this, &FreeCam::OnFrameUpdate);
-    SDK()->Globals()->GameLoopManager->RegisterFrameUpdate(s_Delegate, 1, EUpdateMode::eUpdatePlayMode);
-    m_FrameUpdateRegistered = true;
-
-    const char* s_Bindings = "FreeCameraInput={"
-                             "ToggleFreeCamera=tap(kb,k);};";
-
-    ZInputContext* s_InputContext = SDK()->Functions()->GetGlobalInputContext->Call();
-
-    SDK()->Functions()->AddBindings->Call(s_Bindings, s_InputContext);
 }
 
 DEFINE_PLUGIN_DETOUR(
@@ -335,118 +562,6 @@ DEFINE_PLUGIN_DETOUR(FreeCam, void, ZFreeCameraControlEntity_UpdateCamera, ZFree
     m_FreeCamera->m_bWorldTransformDirty = false;
 
     return {HookAction::Return()};
-}
-
-class IIntValue;
-
-void FreeCam::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
-    static_cast<void>(p_UpdateEvent);
-
-    if (m_ToggleFreeCamAction.Digital()) {
-        ToggleFreecam();
-    }
-
-    if (m_ShouldToggle) {
-        m_ShouldToggle = false;
-
-        if (m_FreeCamActive) {
-            EnableFreecam();
-        }
-        else {
-            DisableFreecam();
-        }
-    }
-}
-
-void FreeCam::ToggleFreecam() {
-    m_FreeCamActive = !m_FreeCamActive;
-    m_ShouldToggle = true;
-}
-
-void FreeCam::EnableFreecam() {
-    CleanupSpawnedEntities();
-    Logger::Info("Enabling free camera.");
-
-    m_FreeCamera = TEntityRef<ZCameraEntity>::SpawnEntity(ResId<"[modules:/zcameraentity.class].entitytype">);
-    if (!m_FreeCamera) {
-        Logger::Error("Failed to create free camera entity.");
-        CleanupSpawnedEntities();
-        return;
-    }
-
-    m_FreeCameraControl = TEntityRef<ZFreeCameraControlEntity>::SpawnEntity(ResId<"[modules:/zfreecameracontrolentity.class].entitytype">);
-    if (!m_FreeCameraControl) {
-        Logger::Error("Failed to create free camera control entity.");
-        CleanupSpawnedEntities();
-        return;
-    }
-
-    m_BlockMove = TEntityRef<ZCLBlockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayermoveinput.class].entitytype">);
-    if (!m_BlockMove) {
-        Logger::Error("Failed to create block move entity.");
-        CleanupSpawnedEntities();
-        return;
-    }
-
-    m_UnblockMove =
-        TEntityRef<ZCLUnblockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclunblockhumanoidplayermoveinput.class].entitytype">);
-    if (!m_UnblockMove) {
-        Logger::Error("Failed to create unblock move entity.");
-        CleanupSpawnedEntities();
-        return;
-    }
-
-    m_GetLocalPlayer = TEntityRef<ZCLGetLocalPlayerID>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerid.class].entitytype">);
-    if (!m_GetLocalPlayer) {
-        Logger::Error("Failed to create get player entity.");
-        CleanupSpawnedEntities();
-        return;
-    }
-
-    m_FreeCameraControl->SetCameraEntity(m_FreeCamera);
-    m_FreeCameraControl->SetActive(true);
-
-    TEntityRef<IRenderDestinationEntity> s_RenderDest;
-    SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
-    const auto s_CurrentCamera = SDK()->Functions()->GetCurrentCamera->Call();
-    if (!s_CurrentCamera || !s_RenderDest) {
-        Logger::Error("Failed to retrieve active camera or render destination.");
-        CleanupSpawnedEntities();
-        return;
-    }
-
-    m_FreeCamera->SetObjectToWorldMatrixFromEditor(s_CurrentCamera->GetObjectToWorldMatrix());
-    m_PreviousCameraSource = s_RenderDest->GetSource();
-    s_RenderDest->SetSource(m_FreeCamera.m_entityRef);
-    Logger::Info("Enabled free camera!");
-
-    // Set up player input (un)blocking entities and block player input.
-    const auto s_IntRef = TInterfaceRef<IIntValue>::FromEntityRef(m_GetLocalPlayer.m_entityRef);
-
-    m_BlockMove.m_entityRef.SetProperty("m_playerID", s_IntRef);
-    m_UnblockMove.m_entityRef.SetProperty("m_playerID", s_IntRef);
-
-    m_BlockMove.m_entityRef.SignalInputPin("Do");
-
-    m_Initialized = false;
-}
-
-void FreeCam::DisableFreecam() {
-    if (HasSpawnedEntities()) {
-        Logger::Info("Disabling existing free camera.");
-        TEntityRef<IRenderDestinationEntity> s_RenderDest;
-        SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
-
-        if (s_RenderDest && m_PreviousCameraSource) {
-            s_RenderDest->SetSource(m_PreviousCameraSource);
-        }
-        else {
-            Logger::Warn("No stored previous camera source while toggling off.");
-        }
-
-        CleanupSpawnedEntities();
-        Logger::Info("Disabled free camera and restored previous camera source.");
-    }
 }
 
 DEFINE_ZKNT_PLUGIN(FreeCam)
