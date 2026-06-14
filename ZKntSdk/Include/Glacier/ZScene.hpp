@@ -14,3 +14,8 @@ class ZEntitySceneContext : public IEntitySceneContext {
     TEntityRef<ISceneEntity> m_pScene; // 0x10
     ZString m_SceneResource;           // 0x28
 };
+
+class ZSceneLifecycleListener {
+  public:
+    virtual ~ZSceneLifecycleListener() = 0;
+};

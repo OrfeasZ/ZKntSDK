@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "ZScene.hpp"
+
 class ZGameTime {
   public:
     ZGameTime() = default;
@@ -86,4 +88,10 @@ class ZGameTime {
 
     static constexpr int FractionBits = 20;
     static constexpr float TicksToSeconds = 1.0f / (1 << FractionBits);
+};
+
+class ZGameTimeManager : public IComponentInterface, public ZSceneLifecycleListener {
+  public:
+    PAD(0x80);
+    bool m_bPaused; // 0x90
 };
