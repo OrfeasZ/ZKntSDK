@@ -2,6 +2,7 @@
 
 #include <IPluginInterface.hpp>
 #include <Glacier/ZCamera.hpp>
+#include <Glacier/ZPlayer.hpp>
 
 class FreeCam : public zknt::IPluginInterface {
   public:
@@ -49,8 +50,12 @@ class FreeCam : public zknt::IPluginInterface {
 
     TEntityRef<ZCameraEntity> m_FreeCamera;
     TEntityRef<ZFreeCameraControlEntity> m_FreeCameraControl;
-    TEntityRef<ZCLBlockHumanoidPlayerMoveInput> m_BlockMove;
-    TEntityRef<ZCLUnblockHumanoidPlayerMoveInput> m_UnblockMove;
+    TEntityRef<ZCLBlockHumanoidPlayerMoveInput> m_BlockHumanoidPlayerMoveInput;
+    TEntityRef<ZCLUnblockHumanoidPlayerMoveInput> m_UnblockHumanoidPlayerMoveInput;
+    TEntityRef<ZCLBlockPlayerGadgetInput> m_BlockPlayerGadgetInput;
+    TEntityRef<ZCLUnblockPlayerGadgetInput> m_UnblockPlayerGadgetInput;
+    TEntityRef<ZCLBlockHumanoidPlayerCloseCombatInput> m_BlockHumanoidPlayerCloseCombatInput;
+    TEntityRef<ZCLUnblockHumanoidPlayerCloseCombatInput> m_UnblockHumanoidPlayerCloseCombatInput;
     TEntityRef<ZCLGetLocalPlayerID> m_GetLocalPlayer;
     ZEntityRef m_PreviousCameraSource;
     bool m_FrameUpdateRegistered = false;

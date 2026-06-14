@@ -13,11 +13,19 @@ class ZCLGetLocalPlayerHumanoidCharacterImpl : public ZEntityImpl {
     TEntityRef<ZHumanoidCharacterEntity> m_pCharacter; // 0x18
 };
 
+class ZCLGetLocalPlayerID : public ZEntityImpl {};
+
 class ZCLBlockHumanoidPlayerMoveInput : public ZEntityImpl {};
 
 class ZCLUnblockHumanoidPlayerMoveInput : public ZEntityImpl {};
 
-class ZCLGetLocalPlayerID : public ZEntityImpl {};
+class ZCLBlockPlayerGadgetInput : public ZEntityImpl {};
+
+class ZCLUnblockPlayerGadgetInput : public ZEntityImpl {};
+
+class ZCLBlockHumanoidPlayerCloseCombatInput : public ZEntityImpl {};
+
+class ZCLUnblockHumanoidPlayerCloseCombatInput : public ZEntityImpl {};
 
 class ZLocalPlayerData {
   public:

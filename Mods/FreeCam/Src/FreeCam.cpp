@@ -246,17 +246,50 @@ void FreeCam::EnableFreecam() {
         return;
     }
 
-    m_BlockMove = TEntityRef<ZCLBlockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayermoveinput.class].entitytype">);
-    if (!m_BlockMove) {
-        Logger::Error("Failed to create block move entity.");
+    m_BlockHumanoidPlayerMoveInput =
+        TEntityRef<ZCLBlockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayermoveinput.class].entitytype">);
+    if (!m_BlockHumanoidPlayerMoveInput) {
+        Logger::Error("Failed to create block humanoid player move input entity.");
         CleanupSpawnedEntities();
         return;
     }
 
-    m_UnblockMove =
+    m_UnblockHumanoidPlayerMoveInput =
         TEntityRef<ZCLUnblockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclunblockhumanoidplayermoveinput.class].entitytype">);
-    if (!m_UnblockMove) {
-        Logger::Error("Failed to create unblock move entity.");
+    if (!m_UnblockHumanoidPlayerMoveInput) {
+        Logger::Error("Failed to create unblock humanoid player move input entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_BlockPlayerGadgetInput = TEntityRef<ZCLBlockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclblockplayergadgetinput.class].entitytype">);
+    if (!m_BlockPlayerGadgetInput) {
+        Logger::Error("Failed to create block humanoid player move input entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_UnblockPlayerGadgetInput =
+        TEntityRef<ZCLUnblockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclunblockhumanoidplayermoveinput.class].entitytype">);
+    if (!m_UnblockPlayerGadgetInput) {
+        Logger::Error("Failed to create unblock humanoid player move input entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_BlockHumanoidPlayerCloseCombatInput =
+        TEntityRef<ZCLBlockHumanoidPlayerCloseCombatInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayerclosecombatinput.class].entitytype">);
+    if (!m_BlockHumanoidPlayerCloseCombatInput) {
+        Logger::Error("Failed to create block humanoid player move input entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_UnblockHumanoidPlayerCloseCombatInput = TEntityRef<ZCLUnblockHumanoidPlayerCloseCombatInput>::SpawnEntity(
+        ResId<"[modules:/zclunblockhumanoidplayerclosecombatinput.class].entitytype">
+    );
+    if (!m_UnblockHumanoidPlayerCloseCombatInput) {
+        Logger::Error("Failed to create unblock humanoid player move input entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -288,11 +321,17 @@ void FreeCam::EnableFreecam() {
     // Set up player input (un)blocking entities and block player input.
     const auto s_IntRef = TInterfaceRef<IIntValue>::FromEntityRef(m_GetLocalPlayer.m_entityRef);
 
-    m_BlockMove.m_entityRef.SetProperty("m_playerID", s_IntRef);
-    m_UnblockMove.m_entityRef.SetProperty("m_playerID", s_IntRef);
+    m_BlockHumanoidPlayerMoveInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
+    m_UnblockHumanoidPlayerMoveInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
+    m_BlockPlayerGadgetInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
+    m_UnblockPlayerGadgetInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
+    m_BlockHumanoidPlayerCloseCombatInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
+    m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
 
     if (!m_IsPlayerInputEnabled) {
-        m_BlockMove.m_entityRef.SignalInputPin("Do");
+        m_BlockHumanoidPlayerMoveInput.m_entityRef.SignalInputPin("Do");
+        m_BlockPlayerGadgetInput.m_entityRef.SignalInputPin("Do");
+        m_BlockHumanoidPlayerCloseCombatInput.m_entityRef.SignalInputPin("Do");
     }
 
     m_Initialized = false;
@@ -320,13 +359,29 @@ void FreeCam::TogglePlayerInput() {
     m_IsPlayerInputEnabled = !m_IsPlayerInputEnabled;
 
     if (m_IsPlayerInputEnabled) {
-        if (m_UnblockMove) {
-            m_UnblockMove.m_entityRef.SignalInputPin("Do");
+        if (m_UnblockHumanoidPlayerMoveInput) {
+            m_UnblockHumanoidPlayerMoveInput.m_entityRef.SignalInputPin("Do");
+        }
+
+        if (m_UnblockPlayerGadgetInput) {
+            m_UnblockPlayerGadgetInput.m_entityRef.SignalInputPin("Do");
+        }
+
+        if (m_UnblockHumanoidPlayerCloseCombatInput) {
+            m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef.SignalInputPin("Do");
         }
     }
     else {
-        if (m_BlockMove) {
-            m_BlockMove.m_entityRef.SignalInputPin("Do");
+        if (m_BlockHumanoidPlayerMoveInput) {
+            m_BlockHumanoidPlayerMoveInput.m_entityRef.SignalInputPin("Do");
+        }
+
+        if (m_BlockPlayerGadgetInput) {
+            m_BlockPlayerGadgetInput.m_entityRef.SignalInputPin("Do");
+        }
+
+        if (m_BlockHumanoidPlayerCloseCombatInput) {
+            m_BlockHumanoidPlayerCloseCombatInput.m_entityRef.SignalInputPin("Do");
         }
     }
 }
@@ -357,8 +412,16 @@ void FreeCam::CleanupSpawnedEntities() {
         m_FreeCameraControl->SetActive(false);
     }
 
-    if (m_UnblockMove) {
-        m_UnblockMove.m_entityRef.SignalInputPin("Do");
+    if (m_UnblockHumanoidPlayerMoveInput) {
+        m_UnblockHumanoidPlayerMoveInput.m_entityRef.SignalInputPin("Do");
+    }
+
+    if (m_UnblockPlayerGadgetInput) {
+        m_UnblockPlayerGadgetInput.m_entityRef.SignalInputPin("Do");
+    }
+
+    if (m_UnblockHumanoidPlayerCloseCombatInput) {
+        m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef.SignalInputPin("Do");
     }
 
     if (m_FreeCameraControl) {
@@ -369,12 +432,28 @@ void FreeCam::CleanupSpawnedEntities() {
         SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_FreeCamera.m_entityRef);
     }
 
-    if (m_BlockMove) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_BlockMove.m_entityRef);
+    if (m_BlockHumanoidPlayerMoveInput) {
+        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_BlockHumanoidPlayerMoveInput.m_entityRef);
     }
 
-    if (m_UnblockMove) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_UnblockMove.m_entityRef);
+    if (m_UnblockHumanoidPlayerMoveInput) {
+        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_UnblockHumanoidPlayerMoveInput.m_entityRef);
+    }
+
+    if (m_BlockPlayerGadgetInput) {
+        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_BlockPlayerGadgetInput.m_entityRef);
+    }
+
+    if (m_UnblockPlayerGadgetInput) {
+        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_UnblockPlayerGadgetInput.m_entityRef);
+    }
+
+    if (m_BlockHumanoidPlayerCloseCombatInput) {
+        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_BlockHumanoidPlayerCloseCombatInput.m_entityRef);
+    }
+
+    if (m_UnblockHumanoidPlayerCloseCombatInput) {
+        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef);
     }
 
     if (m_GetLocalPlayer) {
@@ -383,8 +462,12 @@ void FreeCam::CleanupSpawnedEntities() {
 
     m_FreeCameraControl = {};
     m_FreeCamera = {};
-    m_BlockMove = {};
-    m_UnblockMove = {};
+    m_BlockHumanoidPlayerMoveInput = {};
+    m_UnblockHumanoidPlayerMoveInput = {};
+    m_BlockPlayerGadgetInput = {};
+    m_UnblockPlayerGadgetInput = {};
+    m_BlockHumanoidPlayerCloseCombatInput = {};
+    m_UnblockHumanoidPlayerCloseCombatInput = {};
     m_GetLocalPlayer = {};
     m_PreviousCameraSource = {};
     m_Initialized = false;
