@@ -3,12 +3,6 @@
 #include <IPluginInterface.hpp>
 #include <Glacier/ZCamera.hpp>
 
-class ZCLBlockHumanoidPlayerMoveInput : public ZEntityImpl {};
-
-class ZCLUnblockHumanoidPlayerMoveInput : public ZEntityImpl {};
-
-class ZCLGetLocalPlayerID : public ZEntityImpl {};
-
 class FreeCam : public zknt::IPluginInterface {
   public:
     FreeCam();
