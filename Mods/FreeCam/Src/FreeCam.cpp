@@ -264,15 +264,15 @@ void FreeCam::EnableFreecam() {
 
     m_BlockPlayerGadgetInput = TEntityRef<ZCLBlockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclblockplayergadgetinput.class].entitytype">);
     if (!m_BlockPlayerGadgetInput) {
-        Logger::Error("Failed to create block humanoid player move input entity.");
+        Logger::Error("Failed to create block player gadget input entity.");
         CleanupSpawnedEntities();
         return;
     }
 
     m_UnblockPlayerGadgetInput =
-        TEntityRef<ZCLUnblockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclunblockhumanoidplayermoveinput.class].entitytype">);
+        TEntityRef<ZCLUnblockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclunblockplayergadgetinput.class].entitytype">);
     if (!m_UnblockPlayerGadgetInput) {
-        Logger::Error("Failed to create unblock humanoid player move input entity.");
+        Logger::Error("Failed to create unblock player gadget input entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -280,7 +280,7 @@ void FreeCam::EnableFreecam() {
     m_BlockHumanoidPlayerCloseCombatInput =
         TEntityRef<ZCLBlockHumanoidPlayerCloseCombatInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayerclosecombatinput.class].entitytype">);
     if (!m_BlockHumanoidPlayerCloseCombatInput) {
-        Logger::Error("Failed to create block humanoid player move input entity.");
+        Logger::Error("Failed to create block humanoid player close combat input entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -289,7 +289,7 @@ void FreeCam::EnableFreecam() {
         ResId<"[modules:/zclunblockhumanoidplayerclosecombatinput.class].entitytype">
     );
     if (!m_UnblockHumanoidPlayerCloseCombatInput) {
-        Logger::Error("Failed to create unblock humanoid player move input entity.");
+        Logger::Error("Failed to create unblock humanoid player close combat input entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -334,6 +334,10 @@ void FreeCam::EnableFreecam() {
         m_BlockHumanoidPlayerCloseCombatInput.m_entityRef.SignalInputPin("Do");
     }
 
+    if (m_GamePaused) {
+        SDK()->Globals()->GameTimeManager->m_bPaused = true;
+    }
+
     m_Initialized = false;
 }
 
@@ -353,6 +357,8 @@ void FreeCam::DisableFreecam() {
         CleanupSpawnedEntities();
         Logger::Info("Disabled free camera and restored previous camera source.");
     }
+
+    SDK()->Globals()->GameTimeManager->m_bPaused = false;
 }
 
 void FreeCam::TogglePlayerInput() {
