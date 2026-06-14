@@ -121,7 +121,7 @@ void FreeCam::OnDrawUI(bool p_HasFocus) {
         if (s_MenuExpanded) {
             bool s_IsFreeCamActive = m_IsFreeCamActive;
 
-            if (ImGui::Checkbox(ICON_MD_PHOTO_CAMERA " Enable freecam", &s_IsFreeCamActive)) {
+            if (ImGui::Checkbox("Enable freecam", &s_IsFreeCamActive)) {
                 ToggleFreecam();
             }
 
