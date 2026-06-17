@@ -465,7 +465,7 @@ void FreeCam::CleanupSpawnedEntities() {
         m_FreeCameraControl->SetActive(false);
     }
     else if (m_FreeCameraControlEditorStyle) {
-        m_FreeCameraControl->SetActive(false);
+        m_FreeCameraControlEditorStyle->SetActive(false);
     }
 
     if (m_UnblockHumanoidPlayerMoveInput) {
