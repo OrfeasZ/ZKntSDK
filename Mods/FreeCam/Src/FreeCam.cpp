@@ -24,8 +24,8 @@ FreeCam::FreeCam()
     , m_IsEditorStyleFreeCamEnabled(false)
     , m_ToggleFreeCamAction("ToggleFreeCamera")
     , m_ActivatePlayerInputAction("ActivatePlayerInput")
-    , m_TogglePauseGame("TogglePauseGame")
-    , m_TeleportMainCharacterAction("Teleport")
+    , m_TogglePauseGameAction("TogglePauseGame")
+    , m_TeleportPlayerAction("Teleport")
     , m_MenuVisible(false)
     , m_ControlsVisible(false) {
     m_PcControls = {
@@ -237,7 +237,7 @@ void FreeCam::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
     }
 
     if (m_IsFreeCamActive) {
-        if (m_TogglePauseGame.Digital()) {
+        if (m_TogglePauseGameAction.Digital()) {
             m_GamePaused = !m_GamePaused;
             SDK()->Globals()->GameTimeManager->m_bPaused = m_GamePaused;
         }
@@ -247,7 +247,7 @@ void FreeCam::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
             SetFreeCamFrozen(m_IsPlayerInputEnabled);
         }
 
-        if (m_TeleportMainCharacterAction.Digital()) {
+        if (m_TeleportPlayerAction.Digital()) {
             TeleportPlayer();
         }
     }
