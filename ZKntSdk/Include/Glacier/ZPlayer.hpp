@@ -1,7 +1,7 @@
 #pragma
 
 #include "ZEntity.hpp"
-#include "ZCharacter.hpp"
+#include "ZHumanoid.hpp"
 
 class ZCLGetLocalPlayerCharacterImpl : public ZEntityImpl {
   public:
