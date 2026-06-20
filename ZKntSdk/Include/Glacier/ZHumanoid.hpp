@@ -38,3 +38,15 @@ class ZHumanoidCharacterEntity : public ZSpatialEntity,
 
   public:
 };
+
+class ZCLTeleportHumanoidEntity : public ZEntityImpl {};
+
+class ZCLEnableDisableHumanoidCollision : public ZEntityImpl {};
+
+class ZCLEnableDisableHumanoidDefenses : public ZEntityImpl {};
+
+class ZCLSetHumanoidImmuneToDamage : public ZEntityImpl {};
+
+class ZCLSetHumanoidUnkillableByDamage : public ZEntityImpl {};
+
+class ZCLSetHumanoidInfiniteClipAmmo : public ZEntityImpl {};
