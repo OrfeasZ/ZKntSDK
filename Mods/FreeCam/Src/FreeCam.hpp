@@ -23,6 +23,8 @@ class FreeCam : public zknt::IPluginInterface {
     void TogglePlayerInput();
     void SetFreeCamFrozen(bool p_Frozen);
 
+    void TeleportPlayer();
+
     bool HasSpawnedEntities() const;
     void CleanupSpawnedEntities();
 
@@ -54,6 +56,7 @@ class FreeCam : public zknt::IPluginInterface {
     ZInputAction m_ToggleFreeCamAction;
     ZInputAction m_ActivatePlayerInputAction;
     ZInputAction m_TogglePauseGame;
+    ZInputAction m_TeleportMainCharacterAction;
 
     bool m_MenuVisible;
     bool m_ControlsVisible;
@@ -71,6 +74,8 @@ class FreeCam : public zknt::IPluginInterface {
     TEntityRef<ZCLBlockHumanoidPlayerCloseCombatInput> m_BlockHumanoidPlayerCloseCombatInput;
     TEntityRef<ZCLUnblockHumanoidPlayerCloseCombatInput> m_UnblockHumanoidPlayerCloseCombatInput;
     TEntityRef<ZCLGetLocalPlayerID> m_GetLocalPlayer;
+    TEntityRef<ZCLTeleportHumanoidEntity> m_TeleportHumanoidEntity;
+    TEntityRef<ZCLGetLocalPlayerHumanoidCharacter> m_GetLocalPlayerHumanoidCharacter;
     ZEntityRef m_PreviousCameraSource;
     bool m_FrameUpdateRegistered = false;
 
