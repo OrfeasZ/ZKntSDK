@@ -2,15 +2,14 @@
 
 #include <IPluginInterface.hpp>
 #include <Glacier/ZCamera.hpp>
+#include <Glacier/ZValue.hpp>
 
-class IBoolValue {};
 class ZCLTeleportHumanoidEntity : public ZEntityImpl {};
 class ZCLEnableDisableHumanoidCollision : public ZEntityImpl {};
 class ZCLEnableDisableHumanoidDefenses : public ZEntityImpl {};
 class ZCLSetHumanoidImmuneToDamage : public ZEntityImpl {};
 class ZCLSetHumanoidUnkillableByDamage : public ZEntityImpl {};
 class ZCLSetHumanoidInfiniteClipAmmo : public ZEntityImpl {};
-class ZCLValueBoolEntity : public ZEntityImpl {};
 class ZCLGetLocalPlayerHumanoidCharacter : public ZEntityImpl {};
 
 class Cheats : public zknt::IPluginInterface {
