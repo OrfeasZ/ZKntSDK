@@ -31,17 +31,33 @@ FreeCam::FreeCam()
     , m_ControlsVisible(false) {
     m_PcControls = {
         {"K", "Toggle freecam"},
-        {"F3", "Lock camera and enable 47 input"},
-        {"Ctrl + W/S", "Change FOV"},
+        {"F3", "Freeze camera and enable player input"},
+
+        {"W / S", "Move camera forward/backward"},
+        {"A / D", "Move camera left/right"},
+        {"Q / E", "Move camera down/up"},
+        {"Arrow Keys", "Move camera"},
+
+        {"Mouse", "Rotate camera"},
+
         {"Ctrl + A/D", "Roll camera"},
-        {"Ctrl + X", "Reset roll"},
+        {"Ctrl + W/S", "Change FOV"},
+
         {"Alt + W/S", "Change camera speed"},
-        {"Space + Q/E", "Change camera height"},
-        {"Space + W/S", "Move camera on axis"},
-        {"Shift", "Increase camera speed"},
-        {"F9", "Kill NPC"},
+        {"Alt + A/D", "Change rotation speed"},
+
+        {"Ctrl + X", "Reset roll"},
+        {"Ctrl + Z", "Reset FOV"},
+        {"Alt + Z", "Reset camera speed"},
+
+        {"Space + W/A/S/D", "Move camera in world space"},
+        {"Space + Q/E", "Move camera vertically in world space"},
+
+        {"Shift", "Temporary speed boost"},
+        {"F", "Fixed-degree camera rotation"},
+
         {"Ctrl + F6", "Teleport Hitman"},
-        {"F8", "Pause/Resume game"},
+        {"F8", "Pause/Resume game"}
     };
 
     m_PcControlsEditorStyle = {
@@ -55,17 +71,26 @@ FreeCam::FreeCam()
         {"Z", "Zoom to selected entity (press twice to focus the gizmo)"},
         {"Alt + Scroll Wheel", "Zoom camera with precision"},
         {"Shift", "Speed modifier"},
-        {"RMB + Scroll wheel", "Adjust speed"},
+        {"RMB + Scroll wheel", "Adjust speed"}
     };
 
     m_ControllerControls = {
-        {"Y + Left Stick", "Change FOV"},
-        {"A + Left Stick", "Roll camera"},
-        {"Left Stick Press", "Reset roll"},
-        {"B + Left Stick", "Change camera speed"},
+        {"Right Stick", "Rotate camera"},
+        {"Left Stick", "Move camera"},
+
+        {"RB", "Move camera vertically"},
         {"RT", "Temporary speed boost"},
-        {"LB", "Enable game controls"},
-        {"LT + Right Stick", "Move camera vertically"},
+
+        {"A + Left Stick", "Roll camera"},
+        {"Y + Left Stick", "Change FOV"},
+        {"B + Left Stick", "Change camera speed"},
+
+        {"Left Stick Press", "Reset roll/FOV/speed"},
+
+        {"LT + Left Stick", "Move camera in world space"},
+        {"LT + Right Stick Vertical", "Move camera vertically in world space"},
+
+        {"LB", "Enable game controls"}
     };
 }
 
