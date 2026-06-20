@@ -3,8 +3,7 @@
 #include <IPluginInterface.hpp>
 #include <Glacier/ZCamera.hpp>
 #include <Glacier/ZValue.hpp>
-
-class ZCLGetLocalPlayerHumanoidCharacter : public ZEntityImpl {};
+#include <Glacier/ZPlayer.hpp>
 
 class Cheats : public zknt::IPluginInterface {
   public:

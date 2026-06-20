@@ -8,6 +8,8 @@ class ZCLGetLocalPlayerCharacterImpl : public ZEntityImpl {
     TEntityRef<ZHumanoidCharacterEntity> m_pCharacter; // 0x18
 };
 
+class ZCLGetLocalPlayerHumanoidCharacter : public ZEntityImpl {};
+
 class ZCLGetLocalPlayerHumanoidCharacterImpl : public ZEntityImpl {
   public:
     TEntityRef<ZHumanoidCharacterEntity> m_pCharacter; // 0x18
