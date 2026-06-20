@@ -55,6 +55,7 @@ class FreeCam : public zknt::IPluginInterface {
 
     ZInputAction m_ToggleFreeCamAction;
     ZInputAction m_ActivatePlayerInputAction;
+    ZInputAction m_ActivateGameControlAction;
     ZInputAction m_TogglePauseGameAction;
     ZInputAction m_TeleportPlayerAction;
 
