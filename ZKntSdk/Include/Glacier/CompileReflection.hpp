@@ -93,6 +93,11 @@ namespace detail {
                 continue;
             }
 
+            // MSVC: "T<A<B> >" -> "T<A<B>>"
+            if (p_TypeName[i] == ' ' && i > 0 && p_TypeName[i - 1] == '>' && i + 1 < N && p_TypeName[i + 1] == '>') {
+                continue;
+            }
+
             if (p_TypeName[i] == ':' && i + 1 < N && p_TypeName[i + 1] == ':') {
                 ++i;
                 s_ZHMTypeNameStorage[s_FinalSize++] = '.';
