@@ -62,7 +62,7 @@ FreeCam::FreeCam()
 
     m_PcControlsEditorStyle = {
         {"P", "Toggle freecam"},
-        {"F3", "Lock camera and enable 47 input"},
+        {"F3", "Freeze camera and enable player input"},
         {"MMB", "Drag camera"},
         {"Scroll Wheel", "Zoom camera"},
         {"RMB", "Activate rotate"},
@@ -90,7 +90,7 @@ FreeCam::FreeCam()
         {"LT + Left Stick", "Move camera in world space"},
         {"LT + Right Stick Vertical", "Move camera vertically in world space"},
 
-        {"LB", "Enable game controls"}
+        {"LB", "Freeze camera and enable player input"}
     };
 }
 
