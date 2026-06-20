@@ -472,7 +472,7 @@ template<typename T> class TEntityRef {
      */
     static TEntityRef SpawnEntity(ZRuntimeResourceID p_Rrid) {
         TResourcePtr<IEntityFactory> s_EntityFactory;
-        SDK()->Globals()->ResourceManager->GetResourcePtr(s_EntityFactory, p_Rrid, 0);
+        SDK()->Globals()->ResourceManager->LoadResource(s_EntityFactory, p_Rrid);
         if (!s_EntityFactory) {
             return {};
         }
