@@ -109,6 +109,11 @@ zknt::Functions::Functions() {
         "\x48\x81\xEC\x00\x00\x00\x00\x48\x83\x79\x50\x00\x4C\x8B\xD2", "xxx????xxxx?xxx", ZFreeCameraControlEditorStyleEntity_ApplyCameraMatrix,
         void(ZFreeCameraControlEditorStyleEntity * th, const SMatrix& mCameraToWorld)
     );
+
+    PATTERN_FUNCTION(
+        "\x48\x89\x5C\x24\x18\x56\x48\x83\xEC\x00\x48\x8B\x41\x08", "xxxxxxxxx?xxxx", ZEntityImpl_EnsureUniqueType,
+        ZEntityType * (ZEntityImpl * th, uint32_t nUniqueMapMask)
+    );
 }
 
 zknt::Functions::~Functions() {

@@ -53,4 +53,65 @@ zknt::Globals::Globals() {
         "\xC5\xFA\x7F\x05",
         "xxx????xxx????xxx????xxx????xxx????xxxx", 3, ZCollisionManager*, CollisionManager
     );
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x01\x4C\x8D\x77\x08", "xxx????xxxxxxx", 3, void*, ZTemplateEntityFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x69\x08", "xxx????xxxx", 3, void*, ZAspectEntityFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x49\x89\x04\x24\x49\x8B\xD7", "xxx????xxxxxxx", 3, void*, ZCppEntityFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8D\x05\x00\x00\x00\x00\x89\x4C\x24\x60\x48\x8D\x4E\x08", "xxx????xxxxxxxx", 3, void*, ZExtendedCppEntityFactory_vtbl
+    );
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x06\x89\x4C\x24\x68", "xxx????xxxxxxx", 3, void*, ZUIControlEntityFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8D\x05\x00\x00\x00\x00\x48\xC7\xC7\x00\x00\x00\x00\x48\x89\x01", "xxx????xxx????xxx", 3, void*, ZRenderMaterialEntityFactory_vtbl
+    );
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x06\x89\x4C\x24\x60", "xxx????xxxxxxx", 3, void*, ZAudioSwitchEntityFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x06\x89\x4C\x24\x60", "xxx????xxxxxxx", 3, void*, ZAudioStateEntityFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8D\x05\x00\x00\x00\x00\x49\x89\x07\x48\x8D\x94\x24\x98\x00\x00\x00\x44\x89\x31\x89\x69\x04\x45\x89\x77\x10\x41\x89\x6F\x14\x49\x89\x6F"
+        "\x18\xE8\x00\x00\x00\x00\x48\x8D\x54\x24\x20\x49\x8D\x4F\x10\xE8\x00\x00\x00\x00\x49\x8B\x07\x48\x8B\x50\x40\x48\x8D\x05\x00\x00\x00\x00\x48"
+        "\x3B\xD0\x75\x00\x49\x8D\x4F\x10\xE8\x00\x00\x00\x00\xEB\x00\x49\x8B\xCF\xFF\xD2\x49\x8B\x45\x00",
+        "xxx????xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx????xxxxxxxxxx????xxxxxxxxxx????xxxx?xxxxx????x?xxxxxxxxx", 3, void*, ZPadEntityFactory_vtbl
+    );
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8D\x05\x00\x00\x00\x00\x49\x89\x07\x48\x8D\x94\x24\x98\x00\x00\x00", "xxx????xxxxxxxxxxx", 3, void*, ZShadernodeEntityFactory_vtbl
+    );
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x71\x68", "xxx????xxxx", 3, void*, ZTemplateEntityBlueprintFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x79\x38\x4C\x8D\xB3\xD0\x00\x00\x00", "xxx????xxxxxxxxxxx", 3, void*, ZAspectEntityBlueprintFactory_vtbl
+    );
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x59\x10\x48\x89\x59\x18", "xxx????xxxxxxxx", 3, void*, ZCppEntityBlueprintFactory_vtbl
+    );
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x9F\xC0\x00\x00\x00", "xxx????xxxxxxx", 3, void*, ZExtendedCppEntityBlueprintFactory_vtbl
+    );
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x41\x88\x7E\x24", "xxx????xxxx", 3, void*, ZUIControlBlueprintFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x49\x89\x7E\x38", "xxx????xxxx", 3, void*, ZRenderMaterialEntityBlueprintFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x01\x45\x89\x28", "xxx????xxxxxx", 3, void*, ZAudioSwitchBlueprintFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x06\x4C\x8D\x46\x14", "xxx????xxxxxxx", 3, void*, ZAudioStateBlueprintFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x6F\x30\x48\x8D\x4F\x48\x4C\x89\x6F\x38\x4C\x89\x6F\x40\xC7\x47\x48\x00\x00\x00\x00\x44\x89\x6F\x4C\x4C"
+        "\x89\x6F\x50\x4C\x89\x6F\x58",
+        "xxx????xxxxxxxxxxxxxxxxxxx????xxxxxxxxxxxx", 3, void*, ZPadEntityBlueprintFactory_vtbl
+    );
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x6F\x30", "xxx????xxxx", 3, void*, ZShadernodeEntityBlueprintFactory_vtbl);
 }

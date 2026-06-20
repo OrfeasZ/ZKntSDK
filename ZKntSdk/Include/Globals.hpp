@@ -37,5 +37,25 @@ namespace zknt {
         ZLocalPlayerData* LocalPlayerData = nullptr;
         ZGameTimeManager* GameTimeManager = nullptr;
         ZCollisionManager* CollisionManager = nullptr;
+        void* ZTemplateEntityFactory_vtbl = nullptr;
+        void* ZAspectEntityFactory_vtbl = nullptr;
+        void* ZCppEntityFactory_vtbl = nullptr;
+        void* ZExtendedCppEntityFactory_vtbl = nullptr;
+        void* ZUIControlEntityFactory_vtbl = nullptr;
+        void* ZRenderMaterialEntityFactory_vtbl = nullptr;
+        void* ZAudioSwitchEntityFactory_vtbl = nullptr;
+        void* ZAudioStateEntityFactory_vtbl = nullptr;
+        void* ZPadEntityFactory_vtbl = nullptr;
+        void* ZShadernodeEntityFactory_vtbl = nullptr;
+        void* ZTemplateEntityBlueprintFactory_vtbl = nullptr;
+        void* ZAspectEntityBlueprintFactory_vtbl = nullptr;
+        void* ZCppEntityBlueprintFactory_vtbl = nullptr;
+        void* ZExtendedCppEntityBlueprintFactory_vtbl = nullptr;
+        void* ZUIControlBlueprintFactory_vtbl = nullptr;
+        void* ZRenderMaterialEntityBlueprintFactory_vtbl = nullptr;
+        void* ZAudioSwitchBlueprintFactory_vtbl = nullptr;
+        void* ZAudioStateBlueprintFactory_vtbl = nullptr;
+        void* ZPadEntityBlueprintFactory_vtbl = nullptr;
+        void* ZShadernodeEntityBlueprintFactory_vtbl = nullptr;
     };
 }

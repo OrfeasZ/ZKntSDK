@@ -23,6 +23,7 @@ class ZEntityType;
 class ZInputContext;
 class ICameraEntity;
 class ZFreeCameraControlEditorStyleEntity;
+class ZEntityImpl;
 
 namespace zknt {
     class Functions {
@@ -87,5 +88,7 @@ namespace zknt {
 
         EngineFunction<void(ZFreeCameraControlEditorStyleEntity* th, const SMatrix& mCameraToWorld)>*
             ZFreeCameraControlEditorStyleEntity_ApplyCameraMatrix = nullptr;
+
+        EngineFunction<ZEntityType*(ZEntityImpl* th, uint32_t nUniqueMapMask)>* ZEntityImpl_EnsureUniqueType;
     };
 }

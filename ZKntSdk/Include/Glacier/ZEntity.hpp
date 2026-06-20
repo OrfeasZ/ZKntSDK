@@ -9,6 +9,7 @@
 #include <Functions.hpp>
 
 class ZEntityRef;
+class ZEntityBlueprintFactoryBase;
 
 struct SPropertyData {
     SNamedPropertyInfo* GetPropertyInfo() const {
@@ -161,6 +162,76 @@ class ZEntityRef {
     ZEntityImpl* operator->() const {
         return GetEntity();
     }
+
+    ZEntityRef GetLogicalParent() const {
+        const auto s_Entity = GetEntity();
+
+        if (!s_Entity || !s_Entity->GetType() || s_Entity->GetType()->m_nLogicalParentEntityOffset == 0) {
+            return {};
+        }
+
+        return {reinterpret_cast<ZEntityType**>(reinterpret_cast<uintptr_t>(m_pObj) + s_Entity->GetType()->m_nLogicalParentEntityOffset)};
+    }
+
+    void SetLogicalParent(ZEntityRef entityRef) {
+        const auto s_Entity = GetEntity();
+        ZEntityType* s_EntityType = SDK()->Functions()->ZEntityImpl_EnsureUniqueType->Call(s_Entity, 0);
+
+        s_EntityType->m_nLogicalParentEntityOffset = reinterpret_cast<uintptr_t>(entityRef.m_pObj) - reinterpret_cast<uintptr_t>(m_pObj);
+    }
+
+    ZEntityRef GetOwningEntity() const {
+        const auto s_Entity = GetEntity();
+
+        if (!s_Entity || !s_Entity->GetType() || s_Entity->GetType()->m_nOwningEntityOffset == 0) {
+            return {};
+        }
+
+        return {reinterpret_cast<ZEntityType**>(reinterpret_cast<uintptr_t>(m_pObj) + s_Entity->GetType()->m_nOwningEntityOffset)};
+    }
+
+    bool IsAnyParent(const ZEntityRef& p_Other) const {
+        if (!p_Other) {
+            return false;
+        }
+
+        if (!GetEntity()) {
+            return false;
+        }
+
+        if (GetLogicalParent() == p_Other || GetOwningEntity() == p_Other) {
+            return true;
+        }
+
+        return GetLogicalParent().IsAnyParent(p_Other);
+    }
+
+    // ZEntityBlueprintFactoryBase* GetBlueprintFactory() const {
+    //     const auto* s_Entity = GetEntity();
+
+    //    if (!s_Entity) {
+    //        return nullptr;
+    //    }
+
+    //    const auto* s_Type = s_Entity->GetType();
+
+    //    if (!s_Type) {
+    //        return nullptr;
+    //    }
+
+    //    if ((s_Type->m_nBorrowedPointersMask & 0x200) == 0) { // IsRootFactoryEntity or something
+    //        return nullptr;
+    //    }
+
+    //    auto s_RootEntity = QueryInterface<void>();
+
+    //    if (!s_RootEntity) {
+    //        return nullptr;
+    //    }
+
+    //    // Pointer to IEntityBlueprintFactory stored right before the start of this entity.
+    //    return *reinterpret_cast<ZEntityBlueprintFactoryBase**>(reinterpret_cast<uintptr_t>(s_RootEntity) - sizeof(uintptr_t));
+    //}
 
     template<typename T> T* QueryInterface() const {
         const auto s_Entity = GetEntity();
@@ -370,6 +441,12 @@ class ZEntityRef {
     uint32_t m_Unk = 0;             // 0xC
 };
 
+template<> struct std::hash<ZEntityRef> {
+    size_t operator()(const ZEntityRef& p_Ref) const noexcept {
+        return reinterpret_cast<uintptr_t>(p_Ref.GetEntity());
+    }
+};
+
 struct SEntityCreateInfo {
     ZResourcePtr m_EntityFactory; // 0x0
     ZString m_Unk;                // 0x8
@@ -443,4 +520,327 @@ template<typename T> class TInterfaceRef {
     T* m_pInterface = nullptr;
     uint32_t m_EntityIndex = 0;
     uint32_t m_Unk = 0;
+};
+
+class IEntityRefValue : public IComponentInterface {};
+
+template<typename T> class ITEntityRefValue : public IEntityRefValue {
+  public:
+    virtual ZEntityRef* GetEntity(ZEntityRef& result) = 0;
+};
+
+class IEntityFactory : public IComponentInterface {
+  public:
+    virtual void IEntityFactory_unk5() = 0;
+    virtual void ConfigureEntity() = 0;
+    virtual void IEntityFactory_unk7() = 0;
+    virtual ZEntityBlueprintFactoryBase* GetBlueprint() = 0;
+    virtual void IEntityFactory_unk9() = 0;
+    virtual void IEntityFactory_unk10() = 0;
+    virtual void IEntityFactory_unk11() = 0;
+    virtual void IEntityFactory_unk12() = 0;
+    virtual void IEntityFactory_unk13() = 0;
+
+    bool IsTemplateEntityFactory() const {
+        return SDK()->Globals()->ZTemplateEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsAspectEntityFactory() const {
+        return SDK()->Globals()->ZAspectEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsCppEntityFactory() const {
+        return SDK()->Globals()->ZCppEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsExtendedCppEntityFactory() const {
+        return SDK()->Globals()->ZExtendedCppEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsUIControlEntityFactory() const {
+        return SDK()->Globals()->ZUIControlEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsRenderMaterialEntityFactory() const {
+        return SDK()->Globals()->ZRenderMaterialEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsAudioSwitchEntityFactory() const {
+        return SDK()->Globals()->ZAudioSwitchEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsAudioStateEntityFactory() const {
+        return SDK()->Globals()->ZAudioStateEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsPadEntityFactory() const {
+        return SDK()->Globals()->ZPadEntityFactory_vtbl == *(void**)this;
+    }
+
+    bool IsShadernodeEntityFactory() const {
+        return SDK()->Globals()->ZShadernodeEntityFactory_vtbl == *(void**)this;
+    }
+};
+
+class IEntityBlueprintFactory : public IComponentInterface {
+  public:
+    virtual void IEntityBlueprintFactory_unk5() = 0;
+    virtual void IEntityBlueprintFactory_unk6() = 0;
+    virtual void GetMemoryRequirements(uint32_t&, uint32_t&, int64_t&) = 0;
+    virtual void IEntityBlueprintFactory_unk8() = 0;
+    virtual void IEntityBlueprintFactory_unk9() = 0;
+    virtual void IEntityBlueprintFactory_unk10() = 0;
+    virtual void IEntityBlueprintFactory_unk11() = 0;
+    virtual void IEntityBlueprintFactory_unk12() = 0;
+    virtual void IEntityBlueprintFactory_unk13() = 0;
+    virtual void IEntityBlueprintFactory_unk14() = 0;
+    virtual void IEntityBlueprintFactory_unk15() = 0;
+    virtual bool IEntityBlueprintFactory_unk16() = 0;
+    virtual void IEntityBlueprintFactory_unk17() = 0;
+    virtual void IEntityBlueprintFactory_unk18() = 0;
+    virtual void IEntityBlueprintFactory_unk19() = 0;
+    virtual bool IEntityBlueprintFactory_unk20() = 0;
+    virtual void IEntityBlueprintFactory_unk21() = 0;
+    virtual void IEntityBlueprintFactory_unk22() = 0;
+    virtual void IEntityBlueprintFactory_unk23() = 0;
+    virtual void IEntityBlueprintFactory_unk24() = 0;
+    virtual void IEntityBlueprintFactory_unk25() = 0;
+    virtual void IEntityBlueprintFactory_unk26() = 0;
+    virtual int64_t GetSubEntitiesCount() = 0;
+    virtual void IEntityBlueprintFactory_unk28() = 0;
+    virtual void IEntityBlueprintFactory_unk29() = 0;
+    virtual void IEntityBlueprintFactory_unk30() = 0;
+    virtual void IEntityBlueprintFactory_unk31() = 0;
+    virtual ZEntityBlueprintFactoryBase* GetSubEntityBlueprint(int index) = 0;
+    virtual uint64_t GetSubEntityId(int index) = 0;
+    virtual int GetSubEntityIndex(unsigned long long nEntityID) const = 0;
+    virtual ZEntityType** GetSubEntity(ZEntityType**, int index) = 0;
+
+    bool IsTemplateEntityBlueprintFactory() const {
+        return SDK()->Globals()->ZTemplateEntityBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsAspectEntityBlueprintFactory() const {
+        return SDK()->Globals()->ZAspectEntityBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsCppEntityBlueprintFactory() const {
+        return SDK()->Globals()->ZCppEntityBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsExtendedCppEntityBlueprintFactory() const {
+        return SDK()->Globals()->ZExtendedCppEntityBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsUIControlBlueprintFactory() const {
+        return SDK()->Globals()->ZUIControlBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsRenderMaterialEntityBlueprintFactory() const {
+        return SDK()->Globals()->ZRenderMaterialEntityBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsAudioSwitchBlueprintFactory() const {
+        return SDK()->Globals()->ZAudioSwitchBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsAudioStateBlueprintFactory() const {
+        return SDK()->Globals()->ZAudioStateBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsPadEntityBlueprintFactory() const {
+        return SDK()->Globals()->ZPadEntityBlueprintFactory_vtbl == *(void**)this;
+    }
+
+    bool IsShadernodeEntityBlueprintFactory() const {
+        return SDK()->Globals()->ZShadernodeEntityBlueprintFactory_vtbl == *(void**)this;
+    }
+};
+
+enum class EVirtualPlatformID : int32_t {
+    DEFAULT = 0,
+    PC = 256,
+    PC_ENHANCED = 257,
+    PC_GAMESERVER = 258,
+    PC_STEAMDECK = 259,
+    PC_ASUSROG = 260,
+    PC_ASUSROGX = 261,
+    PS5 = 1280,
+    PS5_PRO = 1281,
+    XBOX_SERIES = 1536,
+    XBOX_SERIES_X = 1537,
+    OUNCE = 1792,
+    DARWIN = 2048,
+    DARWIN_IOS = 2049,
+    DARWIN_MACOS = 2050,
+    VR = 65536,
+    VR_PC = 65792,
+    VR_PS5 = 66816,
+    __SUB = 255,
+    __BASE = 65280,
+    __SYSTEM = 16711680
+};
+
+struct SEntityTemplateReference {
+    int32 entityIndex;        // 0x0
+    uint64 entityID;          // 0x8
+    ZString exposedEntity;    // 0x10
+    int32 externalSceneIndex; // 0x20
+};
+
+struct SEntityTemplateProperty {
+    uint32 nPropertyID; // 0x0
+    ZObjectRef value;   // 0x8
+};
+
+struct SEntityTemplatePlatformSpecificProperty {
+    SEntityTemplateProperty propertyValue; // 0x0
+    EVirtualPlatformID platform;           // 0x18
+    bool postInit;                         // 0x1C
+};
+
+struct STemplateFactorySubEntity {
+    SEntityTemplateReference logicalParent;                                         // 0x0
+    int32 entityTypeResourceIndex;                                                  // 0x28
+    TArray<SEntityTemplateProperty> propertyValues;                                 // 0x30
+    TArray<SEntityTemplateProperty> postInitPropertyValues;                         // 0x48
+    TArray<SEntityTemplatePlatformSpecificProperty> platformSpecificPropertyValues; // 0x60
+};
+
+struct SEntityTemplatePropertyOverride {
+    SEntityTemplateReference propertyOwner; // 0x0
+    SEntityTemplateProperty propertyValue;  // 0x28
+    bool isRTEditable;                      // 0x40
+};
+
+struct STemplateEntityFactory {
+    int32 subType;                        // 0x0
+    int32 blueprintIndexInResourceHeader; // 0x4
+    int32 rootEntityIndex;                // 0x8
+    uint8_t _padC[4]{};
+    ZString sourceResourceID;                                   // 0x10
+    TArray<STemplateFactorySubEntity> subEntities;              // 0x20
+    TArray<SEntityTemplatePropertyOverride> propertyOverrides;  // 0x38
+    TArray<int32> externalSceneTypeIndicesInResourceHeader;     // 0x50
+    TArray<ZRuntimeResourceID> externalSceneRuntimeResourceIDs; // 0x68
+};
+
+struct SEntityTemplatePropertyAlias {
+    ZString sAliasName;    // 0x0
+    int32 entityID;        // 0x10
+    ZString sPropertyName; // 0x18
+};
+
+struct SEntityTemplateExposedEntity {
+    ZString sName;                             // 0x0
+    bool bIsArray;                             // 0x10
+    TArray<SEntityTemplateReference> aTargets; // 0x18
+};
+
+struct STemplateBlueprintSubEntity {
+    SEntityTemplateReference logicalParent;               // 0x0
+    int32 entityTypeResourceIndex;                        // 0x28
+    uint64 entityId;                                      // 0x30
+    bool editorOnly;                                      // 0x38
+    TArray<EVirtualPlatformID> excludedPlatforms;         // 0x40
+    ZString entityName;                                   // 0x58
+    TArray<SEntityTemplatePropertyAlias> propertyAliases; // 0x68
+    TArray<SEntityTemplateExposedEntity> exposedEntities; // 0x80
+    TArray<TPair<ZString, int32>> exposedInterfaces;      // 0x98
+};
+
+struct SEntityTemplatePinConnection {
+    int32 fromID;                // 0x0
+    int32 toID;                  // 0x4
+    ZString fromPinName;         // 0x8
+    ZString toPinName;           // 0x18
+    ZObjectRef constantPinValue; // 0x28
+};
+
+struct SExternalEntityTemplatePinConnection {
+    SEntityTemplateReference fromEntity; // 0x0
+    SEntityTemplateReference toEntity;   // 0x28
+    ZString fromPinName;                 // 0x50
+    ZString toPinName;                   // 0x60
+    ZObjectRef constantPinValue;         // 0x70
+};
+
+struct STemplateEntityBlueprint {
+    int32 subType;                                                             // 0x0
+    int32 rootEntityIndex;                                                     // 0x4
+    ZString sourceResourceID;                                                  // 0x8
+    TArray<STemplateBlueprintSubEntity> subEntities;                           // 0x18
+    TArray<int32> externalSceneTypeIndicesInResourceHeader;                    // 0x30
+    TArray<ZRuntimeResourceID> externalSceneRuntimeResourceIDs;                // 0x48
+    TArray<SEntityTemplatePinConnection> pinConnections;                       // 0x60
+    TArray<SEntityTemplatePinConnection> inputPinForwardings;                  // 0x78
+    TArray<SEntityTemplatePinConnection> outputPinForwardings;                 // 0x90
+    TArray<SEntityTemplateReference> overrideDeletes;                          // 0xA8
+    TArray<SExternalEntityTemplatePinConnection> pinConnectionOverrides;       // 0xC0
+    TArray<SExternalEntityTemplatePinConnection> pinConnectionOverrideDeletes; // 0xD8
+};
+
+class ZEntityBlueprintFactoryBase : public IEntityBlueprintFactory {
+  public:
+    ZRuntimeResourceID m_ridResource;                      // 0x8
+    PAD(0x10);                                             // 0x10
+    int32_t m_rootEntityIndex;                             // 0x20
+    PAD(0x14);                                             // 0x24
+    TArray<IEntityBlueprintFactory*> m_blueprintResources; // 0x38
+    PAD(0x18);                                             // 0x50
+};
+
+static_assert(offsetof(ZEntityBlueprintFactoryBase, m_rootEntityIndex) == 0x20);
+
+class ZCompositeEntityBlueprintFactoryBase : public ZEntityBlueprintFactoryBase {
+  public:
+    TArray<int64_t> m_aSubEntityOffsets; // 0x68
+};
+
+static_assert(offsetof(ZCompositeEntityBlueprintFactoryBase, m_aSubEntityOffsets) == 0x68);
+
+class ZTemplateEntityBlueprintFactory : public ZCompositeEntityBlueprintFactoryBase {
+  public:
+    PAD(0x68);                                            // 0x80
+    TArray<uint64_t> m_aEntityIds;                        // 0xE8
+    PAD(0xC8);                                            // 0x100
+    STemplateEntityBlueprint* m_pTemplateEntityBlueprint; // 0x1C8
+};
+
+class ZCppEntityBlueprintFactory : ZEntityBlueprintFactoryBase {};
+
+class ZCppEntityFactory : public IEntityFactory {
+  public:
+    PAD(0x68);                                                    // 0x8
+    TResourcePtr<ZCppEntityBlueprintFactory> m_blueprintResource; // 0x70
+    ZRuntimeResourceID m_ridResource;                             // 0x78
+};
+
+class ZAspectEntityBlueprintFactory : public ZCompositeEntityBlueprintFactoryBase {
+  public:
+    struct SAspectedSubentityEntry {
+        uint32 m_nAspectIdx;    // 0x0
+        uint32 m_nSubentityIdx; // 0x4
+    };
+
+    PAD(0x38);                                                                   // 0x80
+    TArray<SAspectedSubentityEntry> m_aSubEntitiesLookUp;                        // 0xB8
+    THashMap<uint64, int32, TDefaultHashMapPolicy<uint64>> m_aSubEntityIndexMap; // 0xD0
+};
+
+class ZTemplateEntityFactory : public IEntityFactory {
+  public:
+    STemplateEntityFactory* m_pResourceData;                           // 0x8
+    bool m_bHasCalculatedPropertyValues;                               // 0x10
+    int32 m_rootEntityIndex;                                           // 0x14
+    TArray<IEntityFactory*> m_pFactories;                              // 0x18
+    PAD(0x18);                                                         // 0x30
+    ZRuntimeResourceID m_ridResource;                                  // 0x48
+    ZString m_SourceResourceID;                                        // 0x50
+    TResourcePtr<ZTemplateEntityBlueprintFactory> m_blueprintResource; // 0x60
+};
+
+struct SEntityResource {
+    ZEntityRef entityRef;         // 0x0
+    ZResourcePtr factoryResource; // 0x10
 };
