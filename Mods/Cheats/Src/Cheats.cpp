@@ -46,17 +46,17 @@ void Cheats::OnEngineInitialized() {
     SDK()->Globals()->GameLoopManager->RegisterFrameUpdate(s_Delegate, 1, EUpdateMode::eUpdatePlayMode);
     m_FrameUpdateRegistered = true;
 
-    const char* binds = "NoclipInput={"
-                        "ToggleNoclip=& hold(kb,lctrl) tap(kb,n);"
-                        "Forward=hold(kb,w);"
-                        "Backward=hold(kb,s);"
-                        "Left=hold(kb,a);"
-                        "Right=hold(kb,d);"
-                        "Fast=hold(kb,lshift) | hold(kb,rshift);};";
+    const char* s_Bindings = "NoclipInput={"
+                             "ToggleNoclip=& hold(kb,lctrl) tap(kb,n);"
+                             "Forward=hold(kb,w);"
+                             "Backward=hold(kb,s);"
+                             "Left=hold(kb,a);"
+                             "Right=hold(kb,d);"
+                             "Fast=hold(kb,lshift) | hold(kb,rshift);};";
 
     ZInputContext* s_InputContext = SDK()->Functions()->GetGlobalInputContext->Call();
 
-    SDK()->Functions()->AddBindings->Call(binds, s_InputContext);
+    SDK()->Functions()->AddBindings->Call(s_Bindings, s_InputContext);
 }
 
 bool Cheats::EnsureEntitiesSpawned() {
