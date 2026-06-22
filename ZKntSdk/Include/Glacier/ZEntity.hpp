@@ -783,14 +783,14 @@ struct STemplateEntityBlueprint {
 class ZEntityBlueprintFactoryBase : public IEntityBlueprintFactory {
   public:
     ZRuntimeResourceID m_ridResource;                      // 0x8
-    PAD(0x10);                                             // 0x10
-    int32_t m_rootEntityIndex;                             // 0x20
-    PAD(0x14);                                             // 0x24
+    PAD(0x1C);                                             // 0x10
+    int32_t m_rootEntityIndex;                             // 0x2C
+    PAD(0x8);                                              // 0x30
     TArray<IEntityBlueprintFactory*> m_blueprintResources; // 0x38
     PAD(0x18);                                             // 0x50
 };
 
-static_assert(offsetof(ZEntityBlueprintFactoryBase, m_rootEntityIndex) == 0x20);
+static_assert(offsetof(ZEntityBlueprintFactoryBase, m_rootEntityIndex) == 0x2C);
 
 class ZCompositeEntityBlueprintFactoryBase : public ZEntityBlueprintFactoryBase {
   public:
