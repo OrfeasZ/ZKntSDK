@@ -138,6 +138,7 @@ class ZPinFunctor {
 
 struct SPinInfo {
     ZPinFunctor m_functor;
+    uint32_t m_nPinID;
     uint32_t m_nExtraData;
 };
 
