@@ -78,6 +78,20 @@ class ZEntityType {
         return nullptr;
     }
 
+    SExposedEntityData* GetExposedEntityData(const ZString& p_Name) {
+        if (!m_pExposedEntityData) {
+            return nullptr;
+        }
+
+        for (auto& s_ExposedEntityData : *m_pExposedEntityData) {
+            if (s_ExposedEntityData.m_sExposedEntityName == p_Name) {
+                return &s_ExposedEntityData;
+            }
+        }
+
+        return nullptr;
+    }
+
     int32_t m_nBorrowedPointersMask;                  // 0x0
     TArray<SPropertyData>* m_pPropertyData;           // 0x8
     TArray<SPropertyData>* m_pResettablePropertyData; // 0x10
@@ -233,6 +247,22 @@ class ZEntityRef {
     //    // Pointer to IEntityBlueprintFactory stored right before the start of this entity.
     //    return *reinterpret_cast<ZEntityBlueprintFactoryBase**>(reinterpret_cast<uintptr_t>(s_RootEntity) - sizeof(uintptr_t));
     //}
+
+    ZEntityRef GetExposedEntity(const ZString& p_SubEntityName) {
+        SExposedEntityData* s_ExposedEntityData = GetEntity()->GetType()->GetExposedEntityData(p_SubEntityName);
+
+        if (!s_ExposedEntityData || s_ExposedEntityData->m_aEntityOffsets.size() == 0) {
+            return {};
+        }
+
+        const int64_t s_EntityOffset = s_ExposedEntityData->m_aEntityOffsets[0];
+        ZEntityRef s_EntityRef = reinterpret_cast<ZEntityType**>(reinterpret_cast<char*>(m_pObj) + s_EntityOffset);
+
+        ZEntityRef s_Result;
+        s_EntityRef.GetEntity()->GetID(s_Result);
+
+        return s_Result;
+    }
 
     template<typename T> T* QueryInterface() const {
         const auto s_Entity = GetEntity();
