@@ -131,7 +131,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
 
         Util::ImGuiUtils::InputWithAutocomplete(
-            "##OutfitCategory", s_Category, sizeof(s_Category), m_OutfitCategoryToOutfits,
+            "Outfit category##OutfitCategory", s_Category, sizeof(s_Category), m_OutfitCategoryToOutfits,
             [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
             [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
             [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
@@ -148,7 +148,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
 
         Util::ImGuiUtils::InputWithAutocomplete(
-            "##Outfit", s_Outfit, sizeof(s_Outfit), s_CategoryOutfits ? *s_CategoryOutfits : std::set<std::string>{},
+            "Outfit##Outfit", s_Outfit, sizeof(s_Outfit), s_CategoryOutfits ? *s_CategoryOutfits : std::set<std::string>{},
             [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
             [&](const std::string&, const std::string& p_Name, const auto&) {
                 if (const auto it = m_OutfitNameToOutfitInfo.find(p_Name); it != m_OutfitNameToOutfitInfo.end()) {
@@ -163,7 +163,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
 
         Util::ImGuiUtils::InputWithAutocomplete(
-            "##OutfitVariation", s_OutfitVariation, sizeof(s_OutfitVariation),
+            "Outfit variation##OutfitVariation", s_OutfitVariation, sizeof(s_OutfitVariation),
             s_OutfitInfo ? s_OutfitInfo->m_Variations : std::vector<std::pair<std::string, size_t>>{},
             [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
             [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
