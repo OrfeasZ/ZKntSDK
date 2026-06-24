@@ -39,8 +39,12 @@ void Cheats::CleanupSpawnedEntities() {
     s_Delete(&m_ImmuneModifier);
     s_Delete(&m_UnkillableModifier);
     s_Delete(&m_InfiniteAmmoModifier);
+    s_Delete(&m_InvisibleModifier);
+    s_Delete(&m_LocalPlayerIDGetter);
+    s_Delete(&m_SetHumanoidOutfit);
     s_Delete(&m_ImmuneBoolValue);
     s_Delete(&m_UnkillableBoolValue);
+    s_Delete(&m_InvisibleBoolValue);
 }
 
 void Cheats::Init() {
@@ -97,6 +101,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         m_StateDirty |= ImGui::Checkbox("God mode (invincible)", &m_GodMode);
         m_StateDirty |= ImGui::Checkbox("Buddha mode (unkillable)", &m_Unkillable);
         m_StateDirty |= ImGui::Checkbox("Infinite ammo", &m_InfiniteAmmo);
+        m_StateDirty |= ImGui::Checkbox("Invisible", &m_Invisible);
 
         ImGui::Separator();
 
@@ -326,20 +331,25 @@ bool Cheats::EnsureEntitiesSpawned() {
         TEntityRef<ZCLSetHumanoidUnkillableByDamage>::SpawnEntity(ResId<"[modules:/zclsethumanoidunkillablebydamage.class].entitytype">);
     m_InfiniteAmmoModifier =
         TEntityRef<ZCLSetHumanoidInfiniteClipAmmo>::SpawnEntity(ResId<"[modules:/zclsethumanoidinfiniteclipammo.class].entitytype">);
+    m_InvisibleModifier = TEntityRef<ZCLSetPlayerInvisibleToNpcs>::SpawnEntity(ResId<"[modules:/zclsetplayerinvisibletonpcs.class].entitytype">);
+    m_LocalPlayerIDGetter = TEntityRef<ZCLGetLocalPlayerID>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerid.class].entitytype">);
+    m_SetHumanoidOutfit = TEntityRef<ZCLSetHumanoidOutfitEntity>::SpawnEntity(ResId<"[modules:/zclsethumanoidoutfitentity.class].entitytype">);
     m_ImmuneBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
     m_UnkillableBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
-    m_SetHumanoidOutfit = TEntityRef<ZCLSetHumanoidOutfitEntity>::SpawnEntity(ResId<"[modules:/zclsethumanoidoutfitentity.class].entitytype">);
+    m_InvisibleBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
 
     if (!m_Teleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier || !m_UnkillableModifier
-        || !m_InfiniteAmmoModifier || !m_ImmuneBoolValue || !m_UnkillableBoolValue || !m_SetHumanoidOutfit) {
+        || !m_InfiniteAmmoModifier || !m_InvisibleModifier || !m_LocalPlayerIDGetter || !m_SetHumanoidOutfit || !m_ImmuneBoolValue
+        || !m_UnkillableBoolValue || !m_InvisibleBoolValue) {
         Logger::Error(
             "Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
-            "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}, SetHumanoidOutfit: "
-            "{}",
+            "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, InvisibleModifier: {}, LocalPlayerIDGetter: {}, "
+            "SetHumanoidOutfit: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}, InvisibleBoolValue: {}",
             static_cast<bool>(m_Teleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
             static_cast<bool>(m_CollisionModifier), static_cast<bool>(m_ImmuneModifier), static_cast<bool>(m_UnkillableModifier),
-            static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue),
-            static_cast<bool>(m_SetHumanoidOutfit)
+            static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_InvisibleModifier), static_cast<bool>(m_LocalPlayerIDGetter),
+            static_cast<bool>(m_SetHumanoidOutfit), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue),
+            static_cast<bool>(m_InvisibleBoolValue)
         );
         CleanupSpawnedEntities();
         return false;
@@ -353,6 +363,14 @@ bool Cheats::EnsureEntitiesSpawned() {
         return false;
     }
 
+    const auto s_PlayerIDRef = TInterfaceRef<IIntValue>::FromEntityRef(m_LocalPlayerIDGetter.m_entityRef);
+
+    if (!s_HumanoidRef) {
+        Logger::Error("Failed to get IIntValue for player.");
+        CleanupSpawnedEntities();
+        return false;
+    }
+
     // Point every humanoid-targeting modifier at the local player.
     m_Teleporter.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_Teleporter.m_entityRef.SetProperty("m_targetSpatial", m_TeleportTarget);
@@ -360,19 +378,22 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_ImmuneModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_UnkillableModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_InfiniteAmmoModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+    m_InvisibleModifier.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
 
-    // Wire the immune/unkillable modifiers to their bool-value sources.
+    // Wire the immune/unkillable/invisible modifiers to their bool-value sources.
     const auto s_ImmuneBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_ImmuneBoolValue.m_entityRef);
     const auto s_UnkillableBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_UnkillableBoolValue.m_entityRef);
+    const auto s_InvisibleBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_InvisibleBoolValue.m_entityRef);
 
-    if (!s_ImmuneBoolRef || !s_UnkillableBoolRef) {
-        Logger::Error("Failed to get IBoolValue ref for damage modifiers.");
+    if (!s_ImmuneBoolRef || !s_UnkillableBoolRef || !s_InvisibleBoolRef) {
+        Logger::Error("Failed to get IBoolValue ref for modifiers.");
         CleanupSpawnedEntities();
         return false;
     }
 
     m_ImmuneModifier.m_entityRef.SetProperty("m_invulnerable", s_ImmuneBoolRef);
     m_UnkillableModifier.m_entityRef.SetProperty("m_isUnkillable", s_UnkillableBoolRef);
+    m_InvisibleModifier.m_entityRef.SetProperty("m_invisible", s_InvisibleBoolRef);
 
     // Make sure the freshly spawned entities pick up the current toggle states.
     m_StateDirty = true;
@@ -383,7 +404,7 @@ bool Cheats::EnsureEntitiesSpawned() {
 }
 
 bool Cheats::AnyCheatEnabled() const {
-    return m_NoclipEnabled || m_DisableCollision || m_GodMode || m_Unkillable || m_InfiniteAmmo;
+    return m_NoclipEnabled || m_DisableCollision || m_GodMode || m_Unkillable || m_InfiniteAmmo || m_Invisible;
 }
 
 void Cheats::ApplyPlayerModifiers() {
@@ -395,6 +416,9 @@ void Cheats::ApplyPlayerModifiers() {
 
     m_InfiniteAmmoModifier.m_entityRef.SetProperty("m_infiniteAmmo", m_InfiniteAmmo);
     m_InfiniteAmmoModifier.m_entityRef.SignalInputPin("Do");
+
+    m_InvisibleBoolValue.m_entityRef.SetProperty("m_bValue", m_Invisible);
+    m_InvisibleModifier.m_entityRef.SignalInputPin("Do");
 
     // Collision is forced off while noclip is active.
     const bool s_CollisionEnabled = !(m_NoclipEnabled || m_DisableCollision);

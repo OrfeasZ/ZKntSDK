@@ -8,6 +8,7 @@
 #include <Glacier/ZPlayer.hpp>
 
 class ZCLSetHumanoidOutfitEntity;
+class ZCLSetPlayerInvisibleToNpcs;
 
 class Cheats : public zknt::IPluginInterface {
   public:
@@ -53,15 +54,19 @@ class Cheats : public zknt::IPluginInterface {
     TEntityRef<ZCLSetHumanoidImmuneToDamage> m_ImmuneModifier;
     TEntityRef<ZCLSetHumanoidUnkillableByDamage> m_UnkillableModifier;
     TEntityRef<ZCLSetHumanoidInfiniteClipAmmo> m_InfiniteAmmoModifier;
+    TEntityRef<ZCLSetPlayerInvisibleToNpcs> m_InvisibleModifier;
+    TEntityRef<ZCLGetLocalPlayerID> m_LocalPlayerIDGetter;
+    TEntityRef<ZCLSetHumanoidOutfitEntity> m_SetHumanoidOutfit;
     TEntityRef<ZCLValueBoolEntity> m_ImmuneBoolValue;
     TEntityRef<ZCLValueBoolEntity> m_UnkillableBoolValue;
-    TEntityRef<ZCLSetHumanoidOutfitEntity> m_SetHumanoidOutfit;
+    TEntityRef<ZCLValueBoolEntity> m_InvisibleBoolValue;
 
     bool m_ShowPanel = false;
     bool m_DisableCollision = false;
     bool m_GodMode = false;
     bool m_Unkillable = false;
     bool m_InfiniteAmmo = false;
+    bool m_Invisible = false;
     bool m_StateDirty = false;
 
     ZInputAction m_ToggleNoclipAction;
