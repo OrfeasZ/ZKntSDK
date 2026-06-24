@@ -11,6 +11,7 @@ class ZObjectRef;
 class ZEntityRef;
 class ZEntityType;
 class ZFreeCameraControlEditorStyleEntity;
+class ZKntLoadoutCollectionEntity;
 
 namespace zknt {
     class ModSDK;
@@ -36,8 +37,10 @@ namespace zknt {
         Hook<ZString*(ZFreeCameraControlEditorStyleEntity* th, ZString& result, int32_t nControllerId)>*
             ZFreeCameraControlEditorStyleEntity_GenerateActionBindingString = nullptr;
         Hook<void(ZFreeCameraControlEditorStyleEntity* const th, bool bRotationIsActive, bool bObjectHookIsActive, bool bIsOrbitActive)>*
-            ZFreeCameraControlEditorStyleEntity_HandleDrag;
-        Hook<void(ZFreeCameraControlEditorStyleEntity* th, float fDeltaTime)>* ZFreeCameraControlEditorStyleEntity_MoveCameraWithKey;
+            ZFreeCameraControlEditorStyleEntity_HandleDrag = nullptr;
+        Hook<void(ZFreeCameraControlEditorStyleEntity* th, float fDeltaTime)>* ZFreeCameraControlEditorStyleEntity_MoveCameraWithKey = nullptr;
+        Hook<ZKntLoadoutCollectionEntity*(ZKntLoadoutCollectionEntity* th, bool unk)>* ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity =
+            nullptr;
 
       private:
         void EnableAll();

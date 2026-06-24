@@ -50,3 +50,13 @@ class ZCLSetHumanoidImmuneToDamage : public ZEntityImpl {};
 class ZCLSetHumanoidUnkillableByDamage : public ZEntityImpl {};
 
 class ZCLSetHumanoidInfiniteClipAmmo : public ZEntityImpl {};
+
+class ZHumanoidOutfitReference : public ZEntityImpl {
+  public:
+    ZRuntimeResourceID m_outfit; // 0x18
+};
+
+class ZHumanoidOutfitSet : public ZEntityImpl {
+  public:
+    TArray<TInterfaceRef<ZHumanoidOutfitReference>> m_outfits; // 0x18
+};

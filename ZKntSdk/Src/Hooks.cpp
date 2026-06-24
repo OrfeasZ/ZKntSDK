@@ -74,6 +74,13 @@ zknt::Hooks::Hooks() {
         "\x4C\x8B\xDC\x53\x48\x81\xEC\x00\x00\x00\x00\x48\x83\x79\x50", "xxxxxxx????xxxx", ZFreeCameraControlEditorStyleEntity_MoveCameraWithKey,
         void(ZFreeCameraControlEditorStyleEntity * th, float fDeltaTime)
     );
+
+    PATTERN_HOOK(
+        "\x48\x89\x5C\x24\x08\x57\x48\x83\xEC\x00\x48\x8D\x05\x00\x00\x00\x00\x48\x8B\xF9\x48\x89\x01\x8B\xDA\x48\x81\xC1\x00\x00\x00\x00\xE8\x00\x00"
+        "\x00\x00\x48\x8D\x8F\x98\x00\x00\x00\xE8",
+        "xxxxxxxxx?xxx????xxxxxxxxxxx????x????xxxxxxxx", ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity,
+        ZKntLoadoutCollectionEntity * (ZKntLoadoutCollectionEntity * th, bool unk)
+    );
 }
 
 void zknt::Hooks::EnableAll() {

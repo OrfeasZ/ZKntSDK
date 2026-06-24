@@ -1,26 +1,44 @@
 #pragma once
 
+#include <set>
+
 #include <IPluginInterface.hpp>
 #include <Glacier/ZCamera.hpp>
 #include <Glacier/ZValue.hpp>
 #include <Glacier/ZPlayer.hpp>
+
+class ZCLSetHumanoidOutfitEntity;
 
 class Cheats : public zknt::IPluginInterface {
   public:
     Cheats();
     ~Cheats();
 
+    void Init() override;
     void OnEngineInitialized() override;
     void OnDrawMenu() override;
     void OnDrawUI(bool p_HasFocus) override;
 
   private:
+    struct OutfitInfo {
+        std::vector<std::pair<std::string, size_t>> m_Variations;
+        ZRuntimeResourceID m_OutfitSetRuntimeResourceID;
+    };
+
+    void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
+
     void CleanupSpawnedEntities();
     bool EnsureEntitiesSpawned();
     void ApplyPlayerModifiers();
     bool AnyCheatEnabled() const;
 
-    void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
+    void LoadPlayerOutfitSets();
+    void LoadAllOutfitSets();
+    void SetPlayerOutfit(const ZRuntimeResourceID& p_OutfitSetRuntimeResourceID, size_t p_OutfitVariationIndex);
+
+    DECLARE_PLUGIN_DETOUR(
+        Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th, bool unk
+    );
 
     bool m_FrameUpdateRegistered = false;
     bool m_NoclipEnabled = false;
@@ -37,6 +55,7 @@ class Cheats : public zknt::IPluginInterface {
     TEntityRef<ZCLSetHumanoidInfiniteClipAmmo> m_InfiniteAmmoModifier;
     TEntityRef<ZCLValueBoolEntity> m_ImmuneBoolValue;
     TEntityRef<ZCLValueBoolEntity> m_UnkillableBoolValue;
+    TEntityRef<ZCLSetHumanoidOutfitEntity> m_SetHumanoidOutfit;
 
     bool m_ShowPanel = false;
     bool m_DisableCollision = false;
@@ -51,6 +70,13 @@ class Cheats : public zknt::IPluginInterface {
     ZInputAction m_LeftAction;
     ZInputAction m_RightAction;
     ZInputAction m_FastAction;
+
+    ZKntLoadoutCollectionEntity* m_KntLoadoutCollectionEntity = nullptr;
+    std::vector<std::string> m_OutfitCategories;
+    std::unordered_map<std::string, std::set<std::string>> m_OutfitCategoryToOutfits;
+    std::unordered_map<std::string, OutfitInfo> m_OutfitNameToOutfitInfo;
+
+    std::map<std::string, OutfitInfo> m_AllOutfitSets;
 };
 
 DECLARE_ZKNT_PLUGIN(Cheats)

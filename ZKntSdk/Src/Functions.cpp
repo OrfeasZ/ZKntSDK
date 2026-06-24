@@ -134,4 +134,9 @@ zknt::Functions::~Functions() {
     delete GetGlobalPointer;
     delete ZStringCollection_Allocate;
     delete ZString_ZImpl_Free;
+    delete ZCameraUtil_PanCamera;
+    delete ZFreeCameraControlEditorStyleEntity_OrbitCamera;
+    delete ZCameraUtil_RotateCameraToWorldMatrix;
+    delete ZFreeCameraControlEditorStyleEntity_ApplyCameraMatrix;
+    delete ZEntityImpl_EnsureUniqueType;
 }

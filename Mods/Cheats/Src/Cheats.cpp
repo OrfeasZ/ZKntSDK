@@ -2,7 +2,9 @@
 #include <Glacier/ZPlayer.hpp>
 #include <Glacier/ZGameLoopManager.hpp>
 #include <Glacier/ZMath.hpp>
+#include <Glacier/ZLoadout.hpp>
 #include <Logging.hpp>
+#include <Util/ImGuiUtils.hpp>
 
 Cheats::Cheats()
     : m_ToggleNoclipAction("ToggleNoclip")
@@ -41,6 +43,12 @@ void Cheats::CleanupSpawnedEntities() {
     s_Delete(&m_UnkillableBoolValue);
 }
 
+void Cheats::Init() {
+    SDK()->Hooks()->ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity->AddDetour(
+        this, &Cheats::ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity
+    );
+}
+
 void Cheats::OnEngineInitialized() {
     const ZMemberDelegate<Cheats, void(const SGameUpdateEvent&)> s_Delegate(this, &Cheats::OnFrameUpdate);
     SDK()->Globals()->GameLoopManager->RegisterFrameUpdate(s_Delegate, 1, EUpdateMode::eUpdatePlayMode);
@@ -59,93 +67,172 @@ void Cheats::OnEngineInitialized() {
     SDK()->Functions()->AddBindings->Call(s_Bindings, s_InputContext);
 }
 
-bool Cheats::EnsureEntitiesSpawned() {
-    if (m_Teleporter) {
-        return true;
+void Cheats::OnDrawMenu() {
+    if (ImGui::Button("CHEATS")) {
+        m_ShowPanel = !m_ShowPanel;
+    }
+}
+
+void Cheats::OnDrawUI(bool p_HasFocus) {
+    if (!m_ShowPanel || !p_HasFocus) {
+        return;
     }
 
-    m_Teleporter = TEntityRef<ZCLTeleportHumanoidEntity>::SpawnEntity(ResId<"[modules:/zclteleporthumanoidentity.class].entitytype">);
-    m_TeleportTarget = TEntityRef<ZSpatialEntity>::SpawnEntity(ResId<"[modules:/zspatialentity.class].entitytype">);
-    m_LocalPlayerHumanoidGetter =
-        TEntityRef<ZCLGetLocalPlayerHumanoidCharacter>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerhumanoidcharacter.class].entitytype">);
-    m_CollisionModifier =
-        TEntityRef<ZCLEnableDisableHumanoidCollision>::SpawnEntity(ResId<"[modules:/zclenabledisablehumanoidcollision.class].entitytype">);
-    m_ImmuneModifier = TEntityRef<ZCLSetHumanoidImmuneToDamage>::SpawnEntity(ResId<"[modules:/zclsethumanoidimmunetodamage.class].entitytype">);
-    m_UnkillableModifier =
-        TEntityRef<ZCLSetHumanoidUnkillableByDamage>::SpawnEntity(ResId<"[modules:/zclsethumanoidunkillablebydamage.class].entitytype">);
-    m_InfiniteAmmoModifier =
-        TEntityRef<ZCLSetHumanoidInfiniteClipAmmo>::SpawnEntity(ResId<"[modules:/zclsethumanoidinfiniteclipammo.class].entitytype">);
-    m_ImmuneBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
-    m_UnkillableBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
+    ImGui::SetNextWindowSize({500, 500}, ImGuiCond_FirstUseEver);
 
-    if (!m_Teleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier || !m_UnkillableModifier
-        || !m_InfiniteAmmoModifier || !m_ImmuneBoolValue || !m_UnkillableBoolValue) {
-        Logger::Error(
-            "Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
-            "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}",
-            static_cast<bool>(m_Teleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
-            static_cast<bool>(m_CollisionModifier), static_cast<bool>(m_ImmuneModifier), static_cast<bool>(m_UnkillableModifier),
-            static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue)
+    if (ImGui::Begin("Cheats", &m_ShowPanel)) {
+        ImGui::Checkbox("Noclip (Ctrl+N)", &m_NoclipEnabled);
+
+        // Collision is forced off while noclip is active.
+        ImGui::BeginDisabled(m_NoclipEnabled);
+        bool s_DisableCollision = m_NoclipEnabled || m_DisableCollision;
+        if (ImGui::Checkbox("Disable collision", &s_DisableCollision)) {
+            m_DisableCollision = s_DisableCollision;
+            m_StateDirty = true;
+        }
+        ImGui::EndDisabled();
+
+        ImGui::Separator();
+
+        m_StateDirty |= ImGui::Checkbox("God mode (invincible)", &m_GodMode);
+        m_StateDirty |= ImGui::Checkbox("Buddha mode (unkillable)", &m_Unkillable);
+        m_StateDirty |= ImGui::Checkbox("Infinite ammo", &m_InfiniteAmmo);
+
+        ImGui::Separator();
+
+        ImGui::Text("Player outfits");
+
+        if (m_KntLoadoutCollectionEntity && m_OutfitCategories.empty()) {
+            LoadPlayerOutfitSets();
+        }
+
+        static std::string s_SelectedCategory;
+        static std::string s_SelectedOutfit;
+        static std::string s_SelectedOutfitVariation;
+
+        if (s_SelectedCategory.empty() && !m_OutfitCategoryToOutfits.empty()) {
+            s_SelectedCategory = m_OutfitCategoryToOutfits.begin()->first;
+        }
+
+        ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
+
+        if (ImGui::BeginCombo("Outfit category", s_SelectedCategory.c_str())) {
+            for (const auto& [s_Category, s_Outfits] : m_OutfitCategoryToOutfits) {
+                bool s_IsSelected = s_Category == s_SelectedCategory;
+
+                if (ImGui::Selectable(s_Category.c_str(), s_IsSelected)) {
+                    s_SelectedCategory = s_Category;
+                    s_SelectedOutfit.clear();
+                    s_SelectedOutfitVariation.clear();
+                }
+
+                if (s_IsSelected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
+
+        if (ImGui::BeginCombo("Outfit", s_SelectedOutfit.c_str())) {
+            auto s_CategoryOutfitsIt = m_OutfitCategoryToOutfits.find(s_SelectedCategory);
+
+            if (s_CategoryOutfitsIt != m_OutfitCategoryToOutfits.end()) {
+                for (const auto& s_Outfit : s_CategoryOutfitsIt->second) {
+                    bool s_IsSelected = s_Outfit == s_SelectedOutfit;
+
+                    if (ImGui::Selectable(s_Outfit.c_str(), s_IsSelected)) {
+                        s_SelectedOutfit = s_Outfit;
+                        s_SelectedOutfitVariation.clear();
+                    }
+
+                    if (s_IsSelected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
+
+        if (ImGui::BeginCombo("Outfit variations", s_SelectedOutfitVariation.c_str())) {
+            auto s_OutfitInfoIt = m_OutfitNameToOutfitInfo.find(s_SelectedOutfit);
+
+            if (s_OutfitInfoIt != m_OutfitNameToOutfitInfo.end()) {
+                for (const auto& s_Pair : s_OutfitInfoIt->second.m_Variations) {
+                    bool s_IsSelected = s_Pair.first == s_SelectedOutfitVariation;
+
+                    if (ImGui::Selectable(s_Pair.first.c_str(), s_IsSelected)) {
+                        s_SelectedOutfitVariation = s_Pair.first;
+
+                        SetPlayerOutfit(s_OutfitInfoIt->second.m_OutfitSetRuntimeResourceID, s_Pair.second);
+                    }
+
+                    if (s_IsSelected) {
+                        ImGui::SetItemDefaultFocus();
+                    }
+                }
+            }
+
+            ImGui::EndCombo();
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::Separator();
+
+        ImGui::Text("All outfits");
+
+        static char s_OutfitName[2048]{""};
+        static char s_OutfitVariationName[2048]{""};
+        static const OutfitInfo* s_OutfitInfo = nullptr;
+
+        ImGui::BeginDisabled(m_AllOutfitSets.empty());
+
+        Util::ImGuiUtils::InputWithAutocomplete(
+            "##OutfitsPopup", s_OutfitName, sizeof(s_OutfitName), m_AllOutfitSets, [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
+            [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
+            [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
+                if (const auto it = m_AllOutfitSets.find(p_Name); it != m_AllOutfitSets.end()) {
+                    s_OutfitInfo = &it->second;
+                    s_OutfitVariationName[0] = '\0';
+                }
+            }
         );
-        CleanupSpawnedEntities();
-        return false;
+
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(m_AllOutfitSets.empty() || !s_OutfitInfo);
+
+        Util::ImGuiUtils::InputWithAutocomplete(
+            "##OutfitVariationsPopup", s_OutfitVariationName, sizeof(s_OutfitVariationName),
+            s_OutfitInfo ? s_OutfitInfo->m_Variations : std::vector<std::pair<std::string, size_t>>{},
+            [](auto& p_Pair) -> std::string { return p_Pair.first; }, [](auto& p_Pair) -> std::string { return p_Pair.first; },
+            [&](const std::string&, const std::string& p_Name, const std::pair<std::string, size_t>& p_Value) {
+                SetPlayerOutfit(s_OutfitInfo->m_OutfitSetRuntimeResourceID, p_Value.second);
+            }
+        );
+
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(!m_AllOutfitSets.empty());
+
+        if (ImGui::Button("Get all outfits")) {
+            LoadAllOutfitSets();
+        }
+
+        ImGui::EndDisabled();
     }
 
-    const auto s_HumanoidRef = TInterfaceRef<ITEntityRefValue<ZHumanoidCharacterEntity>>::FromEntityRef(m_LocalPlayerHumanoidGetter.m_entityRef);
-
-    if (!s_HumanoidRef) {
-        Logger::Error("Failed to get ITEntityRefValue for player.");
-        CleanupSpawnedEntities();
-        return false;
-    }
-
-    // Point every humanoid-targeting modifier at the local player.
-    m_Teleporter.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
-    m_Teleporter.m_entityRef.SetProperty("m_targetSpatial", m_TeleportTarget);
-    m_CollisionModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
-    m_ImmuneModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
-    m_UnkillableModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
-    m_InfiniteAmmoModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
-
-    // Wire the immune/unkillable modifiers to their bool-value sources.
-    const auto s_ImmuneBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_ImmuneBoolValue.m_entityRef);
-    const auto s_UnkillableBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_UnkillableBoolValue.m_entityRef);
-
-    if (!s_ImmuneBoolRef || !s_UnkillableBoolRef) {
-        Logger::Error("Failed to get IBoolValue ref for damage modifiers.");
-        CleanupSpawnedEntities();
-        return false;
-    }
-
-    m_ImmuneModifier.m_entityRef.SetProperty("m_invulnerable", s_ImmuneBoolRef);
-    m_UnkillableModifier.m_entityRef.SetProperty("m_isUnkillable", s_UnkillableBoolRef);
-
-    // Make sure the freshly spawned entities pick up the current toggle states.
-    m_StateDirty = true;
-
-    Logger::Info("Cheat entities spawned!");
-
-    return true;
-}
-
-bool Cheats::AnyCheatEnabled() const {
-    return m_NoclipEnabled || m_DisableCollision || m_GodMode || m_Unkillable || m_InfiniteAmmo;
-}
-
-void Cheats::ApplyPlayerModifiers() {
-    m_ImmuneBoolValue.m_entityRef.SetProperty("m_bValue", m_GodMode);
-    m_ImmuneModifier.m_entityRef.SignalInputPin("Do");
-
-    m_UnkillableBoolValue.m_entityRef.SetProperty("m_bValue", m_Unkillable);
-    m_UnkillableModifier.m_entityRef.SignalInputPin("Do");
-
-    m_InfiniteAmmoModifier.m_entityRef.SetProperty("m_infiniteAmmo", m_InfiniteAmmo);
-    m_InfiniteAmmoModifier.m_entityRef.SignalInputPin("Do");
-
-    // Collision is forced off while noclip is active.
-    const bool s_CollisionEnabled = !(m_NoclipEnabled || m_DisableCollision);
-    m_CollisionModifier.m_entityRef.SetProperty("m_collisionEnabled", s_CollisionEnabled);
-    m_CollisionModifier.m_entityRef.SignalInputPin("Do");
+    ImGui::End();
 }
 
 void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
@@ -223,37 +310,243 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
     m_Teleporter.m_entityRef.SignalInputPin("Do");
 }
 
-void Cheats::OnDrawMenu() {
-    if (ImGui::Button("CHEATS")) {
-        m_ShowPanel = !m_ShowPanel;
+bool Cheats::EnsureEntitiesSpawned() {
+    if (m_Teleporter) {
+        return true;
+    }
+
+    m_Teleporter = TEntityRef<ZCLTeleportHumanoidEntity>::SpawnEntity(ResId<"[modules:/zclteleporthumanoidentity.class].entitytype">);
+    m_TeleportTarget = TEntityRef<ZSpatialEntity>::SpawnEntity(ResId<"[modules:/zspatialentity.class].entitytype">);
+    m_LocalPlayerHumanoidGetter =
+        TEntityRef<ZCLGetLocalPlayerHumanoidCharacter>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerhumanoidcharacter.class].entitytype">);
+    m_CollisionModifier =
+        TEntityRef<ZCLEnableDisableHumanoidCollision>::SpawnEntity(ResId<"[modules:/zclenabledisablehumanoidcollision.class].entitytype">);
+    m_ImmuneModifier = TEntityRef<ZCLSetHumanoidImmuneToDamage>::SpawnEntity(ResId<"[modules:/zclsethumanoidimmunetodamage.class].entitytype">);
+    m_UnkillableModifier =
+        TEntityRef<ZCLSetHumanoidUnkillableByDamage>::SpawnEntity(ResId<"[modules:/zclsethumanoidunkillablebydamage.class].entitytype">);
+    m_InfiniteAmmoModifier =
+        TEntityRef<ZCLSetHumanoidInfiniteClipAmmo>::SpawnEntity(ResId<"[modules:/zclsethumanoidinfiniteclipammo.class].entitytype">);
+    m_ImmuneBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
+    m_UnkillableBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
+    m_SetHumanoidOutfit = TEntityRef<ZCLSetHumanoidOutfitEntity>::SpawnEntity(ResId<"[modules:/zclsethumanoidoutfitentity.class].entitytype">);
+
+    if (!m_Teleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier || !m_UnkillableModifier
+        || !m_InfiniteAmmoModifier || !m_ImmuneBoolValue || !m_UnkillableBoolValue || !m_SetHumanoidOutfit) {
+        Logger::Error(
+            "Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
+            "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}, SetHumanoidOutfit: "
+            "{}",
+            static_cast<bool>(m_Teleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
+            static_cast<bool>(m_CollisionModifier), static_cast<bool>(m_ImmuneModifier), static_cast<bool>(m_UnkillableModifier),
+            static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue),
+            static_cast<bool>(m_SetHumanoidOutfit)
+        );
+        CleanupSpawnedEntities();
+        return false;
+    }
+
+    const auto s_HumanoidRef = TInterfaceRef<ITEntityRefValue<ZHumanoidCharacterEntity>>::FromEntityRef(m_LocalPlayerHumanoidGetter.m_entityRef);
+
+    if (!s_HumanoidRef) {
+        Logger::Error("Failed to get ITEntityRefValue for player.");
+        CleanupSpawnedEntities();
+        return false;
+    }
+
+    // Point every humanoid-targeting modifier at the local player.
+    m_Teleporter.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+    m_Teleporter.m_entityRef.SetProperty("m_targetSpatial", m_TeleportTarget);
+    m_CollisionModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+    m_ImmuneModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+    m_UnkillableModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+    m_InfiniteAmmoModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+
+    // Wire the immune/unkillable modifiers to their bool-value sources.
+    const auto s_ImmuneBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_ImmuneBoolValue.m_entityRef);
+    const auto s_UnkillableBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_UnkillableBoolValue.m_entityRef);
+
+    if (!s_ImmuneBoolRef || !s_UnkillableBoolRef) {
+        Logger::Error("Failed to get IBoolValue ref for damage modifiers.");
+        CleanupSpawnedEntities();
+        return false;
+    }
+
+    m_ImmuneModifier.m_entityRef.SetProperty("m_invulnerable", s_ImmuneBoolRef);
+    m_UnkillableModifier.m_entityRef.SetProperty("m_isUnkillable", s_UnkillableBoolRef);
+
+    // Make sure the freshly spawned entities pick up the current toggle states.
+    m_StateDirty = true;
+
+    Logger::Info("Cheat entities spawned!");
+
+    return true;
+}
+
+bool Cheats::AnyCheatEnabled() const {
+    return m_NoclipEnabled || m_DisableCollision || m_GodMode || m_Unkillable || m_InfiniteAmmo;
+}
+
+void Cheats::ApplyPlayerModifiers() {
+    m_ImmuneBoolValue.m_entityRef.SetProperty("m_bValue", m_GodMode);
+    m_ImmuneModifier.m_entityRef.SignalInputPin("Do");
+
+    m_UnkillableBoolValue.m_entityRef.SetProperty("m_bValue", m_Unkillable);
+    m_UnkillableModifier.m_entityRef.SignalInputPin("Do");
+
+    m_InfiniteAmmoModifier.m_entityRef.SetProperty("m_infiniteAmmo", m_InfiniteAmmo);
+    m_InfiniteAmmoModifier.m_entityRef.SignalInputPin("Do");
+
+    // Collision is forced off while noclip is active.
+    const bool s_CollisionEnabled = !(m_NoclipEnabled || m_DisableCollision);
+    m_CollisionModifier.m_entityRef.SetProperty("m_collisionEnabled", s_CollisionEnabled);
+    m_CollisionModifier.m_entityRef.SignalInputPin("Do");
+}
+
+void Cheats::LoadPlayerOutfitSets() {
+    m_OutfitCategories.push_back("All");
+
+    for (const auto& s_OutfitCategoryResourcePtr : m_KntLoadoutCollectionEntity->m_outfitCategories) {
+        SEntityResource* s_OutfitCategoryEntityResource = static_cast<SEntityResource*>(s_OutfitCategoryResourcePtr.GetResourceData());
+        ZOutfitCategory* s_OutfitCategory = s_OutfitCategoryEntityResource->entityRef.QueryInterface<ZOutfitCategory>();
+
+        m_OutfitCategories.push_back(s_OutfitCategory->m_titleRaw.c_str());
+
+        for (const auto& s_OutfitDefinitionResourcePtr : s_OutfitCategory->m_outfits) {
+            SEntityResource* s_OutfitDefinitionEntityResource = static_cast<SEntityResource*>(s_OutfitDefinitionResourcePtr.GetResourceData());
+            ZOutfitDefinitionEntity* s_OutfitDefinitionEntity = s_OutfitDefinitionEntityResource->entityRef.QueryInterface<ZOutfitDefinitionEntity>();
+
+            ZTextLine* s_TextLine = static_cast<ZTextLine*>(s_OutfitDefinitionEntity->m_outfitDisplayNameSweet.GetResourceData());
+            ZTextListData* s_TextListData = static_cast<ZTextListData*>(s_TextLine->m_pTextList.GetResourceData());
+
+            auto it = s_TextListData->m_Map.find(s_TextLine->m_nNameHash);
+
+            if (it == s_TextListData->m_Map.end()) {
+                continue;
+            }
+
+            ZString s_Name;
+            SDK()->Functions()->ZTextListData_DecryptText->Call(s_Name, it->second);
+
+            m_OutfitCategoryToOutfits[s_OutfitCategory->m_titleRaw.c_str()].insert(s_Name.c_str());
+
+            SEntityResource* s_OutfitSetEntityResource = static_cast<SEntityResource*>(s_OutfitDefinitionEntity->m_outfitSet.GetResourceData());
+            ZHumanoidOutfitSet* s_HumanoidOutfitSet = s_OutfitSetEntityResource->entityRef.QueryInterface<ZHumanoidOutfitSet>();
+
+            ZTemplateEntityBlueprintFactory* s_TemplateEntityBlueprintFactory = static_cast<ZTemplateEntityBlueprintFactory*>(
+                static_cast<IEntityFactory*>(s_OutfitSetEntityResource->factoryResource.GetResourceData())->GetBlueprint()
+            );
+
+            OutfitInfo& s_OutfitInfo = m_OutfitNameToOutfitInfo[s_Name.c_str()];
+            s_OutfitInfo.m_OutfitSetRuntimeResourceID = s_OutfitDefinitionEntity->m_outfitSet.GetResourceInfo().rid;
+
+            const auto s_SubEntityCount = s_TemplateEntityBlueprintFactory->GetSubEntitiesCount();
+
+            for (const auto& s_HumanoidOutfitReferenceInterfaceRef : s_HumanoidOutfitSet->m_outfits) {
+                for (int i = 0; i < s_SubEntityCount; ++i) {
+                    if (i == s_TemplateEntityBlueprintFactory->m_rootEntityIndex) {
+                        continue;
+                    }
+
+                    const ZEntityRef s_SubEntity = s_TemplateEntityBlueprintFactory->GetSubEntity(s_OutfitSetEntityResource->entityRef.m_pObj, i);
+                    ZHumanoidOutfitReference* s_HumanoidOutfitReference = s_SubEntity.QueryInterface<ZHumanoidOutfitReference>();
+
+                    if (s_HumanoidOutfitReferenceInterfaceRef.m_pInterface == s_HumanoidOutfitReference) {
+                        s_OutfitInfo.m_Variations.push_back(
+                            {s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->subEntities[i].entityName.c_str(),
+                             s_OutfitInfo.m_Variations.size()}
+                        );
+
+                        break;
+                    }
+                }
+            }
+        }
     }
 }
 
-void Cheats::OnDrawUI(bool p_HasFocus) {
-    if (!m_ShowPanel || !p_HasFocus) {
+void Cheats::LoadAllOutfitSets() {
+    for (const auto& s_ResourceInfo : (*SDK()->Globals()->ResourceContainer)->m_resources) {
+        if (s_ResourceInfo.resourceType != 'ERES') {
+            continue;
+        }
+
+        for (size_t i = 0; i < s_ResourceInfo.numReferences; ++i) {
+            const uint32_t s_ReferenceIndex = (*SDK()->Globals()->ResourceContainer)->m_references[s_ResourceInfo.firstReferenceIndex + i].index;
+            const ZResourceContainer::SResourceInfo& s_ReferenceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[s_ReferenceIndex];
+
+            if (s_ReferenceInfo.resourceType == 'CPPT' && s_ReferenceInfo.rid == ResId<"[modules:/zhumanoidoutfitset.class].entitytype">) {
+                TResourcePtr<ZEntityRef> s_ResourcePtr;
+                SDK()->Globals()->ResourceManager->LoadResource(s_ResourcePtr, s_ResourceInfo.rid);
+
+                SEntityResource* s_EntityResource = static_cast<SEntityResource*>(s_ResourcePtr.GetResourceData());
+                ZHumanoidOutfitSet* s_HumanoidOutfitSet = s_EntityResource->entityRef.QueryInterface<ZHumanoidOutfitSet>();
+
+                ZTemplateEntityBlueprintFactory* s_TemplateEntityBlueprintFactory = static_cast<ZTemplateEntityBlueprintFactory*>(
+                    static_cast<IEntityFactory*>(s_EntityResource->factoryResource.GetResourceData())->GetBlueprint()
+                );
+
+                std::string s_RootEntityName = s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint
+                                                   ->subEntities[s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->rootEntityIndex]
+                                                   .entityName.c_str();
+
+                OutfitInfo& s_OutfitInfo = m_AllOutfitSets[s_RootEntityName];
+                s_OutfitInfo.m_OutfitSetRuntimeResourceID = s_ResourceInfo.rid;
+
+                const auto s_SubEntityCount = s_TemplateEntityBlueprintFactory->GetSubEntitiesCount();
+
+                for (const auto& s_HumanoidOutfitReferenceInterfaceRef : s_HumanoidOutfitSet->m_outfits) {
+                    for (int i = 0; i < s_SubEntityCount; ++i) {
+                        if (i == s_TemplateEntityBlueprintFactory->m_rootEntityIndex) {
+                            continue;
+                        }
+
+                        const ZEntityRef s_SubEntity = s_TemplateEntityBlueprintFactory->GetSubEntity(s_EntityResource->entityRef.m_pObj, i);
+                        ZHumanoidOutfitReference* s_HumanoidOutfitReference = s_SubEntity.QueryInterface<ZHumanoidOutfitReference>();
+
+                        if (s_HumanoidOutfitReferenceInterfaceRef.m_pInterface == s_HumanoidOutfitReference) {
+                            s_OutfitInfo.m_Variations.push_back(
+                                {s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->subEntities[i].entityName.c_str(),
+                                 s_OutfitInfo.m_Variations.size()}
+                            );
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Cheats::SetPlayerOutfit(const ZRuntimeResourceID& p_OutfitSetRuntimeResourceID, size_t p_OutfitVariationIndex) {
+    if (!EnsureEntitiesSpawned()) {
         return;
     }
 
-    if (ImGui::Begin("Cheats", &m_ShowPanel, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::Checkbox("Noclip (Ctrl+N)", &m_NoclipEnabled);
+    const auto s_HumanoidRef = TInterfaceRef<ITEntityRefValue<ZHumanoidCharacterEntity>>::FromEntityRef(m_LocalPlayerHumanoidGetter.m_entityRef);
 
-        // Collision is forced off while noclip is active.
-        ImGui::BeginDisabled(m_NoclipEnabled);
-        bool s_DisableCollision = m_NoclipEnabled || m_DisableCollision;
-        if (ImGui::Checkbox("Disable collision", &s_DisableCollision)) {
-            m_DisableCollision = s_DisableCollision;
-            m_StateDirty = true;
-        }
-        ImGui::EndDisabled();
-
-        ImGui::Separator();
-
-        m_StateDirty |= ImGui::Checkbox("God mode (invincible)", &m_GodMode);
-        m_StateDirty |= ImGui::Checkbox("Buddha mode (unkillable)", &m_Unkillable);
-        m_StateDirty |= ImGui::Checkbox("Infinite ammo", &m_InfiniteAmmo);
+    if (!s_HumanoidRef) {
+        Logger::Error("Failed to get ITEntityRefValue for player.");
+        CleanupSpawnedEntities();
+        return;
     }
 
-    ImGui::End();
+    TResourcePtr<ZEntityRef> s_ResourcePtr;
+    SDK()->Globals()->ResourceManager->LoadResource(s_ResourcePtr, p_OutfitSetRuntimeResourceID);
+
+    m_SetHumanoidOutfit.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+    m_SetHumanoidOutfit.m_entityRef.SetProperty<TResourcePtr<ZEntityRef>>("m_outfitSet", s_ResourcePtr);
+    m_SetHumanoidOutfit.m_entityRef.SetProperty<int32_t>("m_selectedOutfit", p_OutfitVariationIndex);
+
+    m_SetHumanoidOutfit.m_entityRef.SignalInputPin("Do");
+}
+
+DEFINE_PLUGIN_DETOUR(
+    Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th, bool unk
+) {
+    m_KntLoadoutCollectionEntity = th;
+
+    return {HookAction::Continue()};
 }
 
 DEFINE_ZKNT_PLUGIN(Cheats)
