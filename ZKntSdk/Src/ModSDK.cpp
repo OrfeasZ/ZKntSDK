@@ -149,6 +149,22 @@ namespace zknt {
             return;
         }
 
+        Logger::Info("Applying startup patches...");
+
+        uint8_t s_Nop[0x59] = {};
+        memset(s_Nop, 0x90, sizeof(s_Nop));
+
+        if (!SDK()->PatchCode("\x48\x85\xFF\x74\x00\x80\xB9\xD0\x01\x00\x00", "xxxx?xxxxxx", s_Nop, sizeof(s_Nop), 0)) {
+            Logger::Error("Could not patch ZTemplateEntityBlueprintFactory data freeing.");
+        }
+
+        uint8_t s_Nop2[0xB] = {};
+        memset(s_Nop2, 0x90, sizeof(s_Nop2));
+
+        if (!SDK()->PatchCode("\x48\xC7\x81\xC8\x01\x00\x00\x00\x00\x00\x00\x48\x83\xC4", "xxxxxxx????xxx", s_Nop2, sizeof(s_Nop2), 0)) {
+            Logger::Error("Could not patch ZTemplateEntityBlueprintFactory data freeing.");
+        }
+
         m_StartedUp = true;
         m_HostServices = p_HostServices;
 
