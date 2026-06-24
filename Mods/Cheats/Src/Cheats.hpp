@@ -9,6 +9,7 @@
 
 class ZCLSetHumanoidOutfitEntity;
 class ZCLSetPlayerInvisibleToNpcs;
+class ZCLGiveResourceToPlayer;
 
 class Cheats : public zknt::IPluginInterface {
   public:
@@ -60,6 +61,14 @@ class Cheats : public zknt::IPluginInterface {
     TEntityRef<ZCLValueBoolEntity> m_ImmuneBoolValue;
     TEntityRef<ZCLValueBoolEntity> m_UnkillableBoolValue;
     TEntityRef<ZCLValueBoolEntity> m_InvisibleBoolValue;
+    TEntityRef<ZCLGetCurrentPlayerResource> m_CurrentElectricityGetter;
+    TEntityRef<ZCLGetCurrentPlayerResource> m_CurrentChemicalGetter;
+    TEntityRef<ZCLGetMaximumPlayerResource> m_MaximumElectricityGetter;
+    TEntityRef<ZCLGetMaximumPlayerResource> m_MaximumChemicalGetter;
+    TEntityRef<ZCLGiveResourceToPlayer> m_ElectricityGiver;
+    TEntityRef<ZCLGiveResourceToPlayer> m_ChemicalGiver;
+    TEntityRef<ZCLValueFloatEntity> s_ElectricityAmountFloatValue;
+    TEntityRef<ZCLValueFloatEntity> s_ChemicalAmountFloatValue;
 
     bool m_ShowPanel = false;
     bool m_DisableCollision = false;
@@ -67,6 +76,8 @@ class Cheats : public zknt::IPluginInterface {
     bool m_Unkillable = false;
     bool m_InfiniteAmmo = false;
     bool m_Invisible = false;
+    bool m_InfiniteElectricity = false;
+    bool m_InfiniteChecmical = false;
     bool m_StateDirty = false;
 
     ZInputAction m_ToggleNoclipAction;

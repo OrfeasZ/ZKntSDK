@@ -45,6 +45,14 @@ void Cheats::CleanupSpawnedEntities() {
     s_Delete(&m_ImmuneBoolValue);
     s_Delete(&m_UnkillableBoolValue);
     s_Delete(&m_InvisibleBoolValue);
+    s_Delete(&m_CurrentElectricityGetter);
+    s_Delete(&m_CurrentChemicalGetter);
+    s_Delete(&m_MaximumElectricityGetter);
+    s_Delete(&m_MaximumChemicalGetter);
+    s_Delete(&m_ElectricityGiver);
+    s_Delete(&m_ChemicalGiver);
+    s_Delete(&s_ElectricityAmountFloatValue);
+    s_Delete(&s_ChemicalAmountFloatValue);
 }
 
 void Cheats::Init() {
@@ -102,6 +110,8 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         m_StateDirty |= ImGui::Checkbox("Buddha mode (unkillable)", &m_Unkillable);
         m_StateDirty |= ImGui::Checkbox("Infinite ammo", &m_InfiniteAmmo);
         m_StateDirty |= ImGui::Checkbox("Invisible", &m_Invisible);
+        ImGui::Checkbox("Q-Lens: Infinite electricity", &m_InfiniteElectricity);
+        ImGui::Checkbox("Q-Lens: Infinite chemical", &m_InfiniteChecmical);
 
         ImGui::Separator();
 
@@ -282,6 +292,32 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
         m_StateDirty = false;
     }
 
+    if (m_CurrentElectricityGetter && m_MaximumElectricityGetter) {
+        float f1 = m_CurrentElectricityGetter.m_pInterfaceRef->GetValue();
+        float f2 = m_MaximumElectricityGetter.m_pInterfaceRef->GetValue();
+        int a = 2;
+    }
+
+    if (m_CurrentChemicalGetter && m_MaximumChemicalGetter) {
+        float f3 = m_CurrentChemicalGetter.m_pInterfaceRef->GetValue();
+        float f4 = m_MaximumChemicalGetter.m_pInterfaceRef->GetValue();
+        int a = 2;
+    }
+
+    if (m_InfiniteElectricity && m_CurrentElectricityGetter && m_MaximumElectricityGetter) {
+        if (m_CurrentElectricityGetter.m_pInterfaceRef->GetValue() < m_MaximumElectricityGetter.m_pInterfaceRef->GetValue()) {
+            s_ElectricityAmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", m_MaximumElectricityGetter.m_pInterfaceRef->GetValue());
+            m_ElectricityGiver.m_entityRef.SignalInputPin("Do");
+        }
+    }
+
+    if (m_InfiniteChecmical && m_CurrentChemicalGetter && m_MaximumChemicalGetter) {
+        if (m_CurrentChemicalGetter.m_pInterfaceRef->GetValue() < m_MaximumChemicalGetter.m_pInterfaceRef->GetValue()) {
+            s_ChemicalAmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", m_MaximumElectricityGetter.m_pInterfaceRef->GetValue());
+            m_ChemicalGiver.m_entityRef.SignalInputPin("Do");
+        }
+    }
+
     if (!m_NoclipEnabled) {
         return;
     }
@@ -337,19 +373,34 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_ImmuneBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
     m_UnkillableBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
     m_InvisibleBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
+    m_CurrentElectricityGetter =
+        TEntityRef<ZCLGetCurrentPlayerResource>::SpawnEntity(ResId<"[modules:/zclgetcurrentplayerresource.class].entitytype">);
+    m_CurrentChemicalGetter = TEntityRef<ZCLGetCurrentPlayerResource>::SpawnEntity(ResId<"[modules:/zclgetcurrentplayerresource.class].entitytype">);
+    m_MaximumElectricityGetter =
+        TEntityRef<ZCLGetMaximumPlayerResource>::SpawnEntity(ResId<"[modules:/zclgetmaximumplayerresource.class].entitytype">);
+    m_MaximumChemicalGetter = TEntityRef<ZCLGetMaximumPlayerResource>::SpawnEntity(ResId<"[modules:/zclgetmaximumplayerresource.class].entitytype">);
+    m_ElectricityGiver = TEntityRef<ZCLGiveResourceToPlayer>::SpawnEntity(ResId<"[modules:/zclgiveresourcetoplayer.class].entitytype">);
+    m_ChemicalGiver = TEntityRef<ZCLGiveResourceToPlayer>::SpawnEntity(ResId<"[modules:/zclgiveresourcetoplayer.class].entitytype">);
+    s_ElectricityAmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
+    s_ChemicalAmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
 
     if (!m_Teleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier || !m_UnkillableModifier
         || !m_InfiniteAmmoModifier || !m_InvisibleModifier || !m_LocalPlayerIDGetter || !m_SetHumanoidOutfit || !m_ImmuneBoolValue
-        || !m_UnkillableBoolValue || !m_InvisibleBoolValue) {
+        || !m_UnkillableBoolValue || !m_InvisibleBoolValue || !m_CurrentElectricityGetter || !m_CurrentChemicalGetter || !m_MaximumElectricityGetter
+        || !m_MaximumChemicalGetter || !m_ElectricityGiver || !m_ChemicalGiver || !s_ElectricityAmountFloatValue || !s_ChemicalAmountFloatValue) {
         Logger::Error(
             "Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
             "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, InvisibleModifier: {}, LocalPlayerIDGetter: {}, "
-            "SetHumanoidOutfit: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}, InvisibleBoolValue: {}",
+            "SetHumanoidOutfit: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}, InvisibleBoolValue: {}, CurrentElectricityGetter: {}, "
+            "CurrentChemicalGetter: {}, MaximumElectricityGetter: {}, MaximumChemicalGetter: {}, ElectricityGiver: {}, ChemicalGiver: {}, "
+            "ElectricityAmountFloatValue: {}, ChemicalAmountFloatValue: {}",
             static_cast<bool>(m_Teleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
             static_cast<bool>(m_CollisionModifier), static_cast<bool>(m_ImmuneModifier), static_cast<bool>(m_UnkillableModifier),
             static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_InvisibleModifier), static_cast<bool>(m_LocalPlayerIDGetter),
             static_cast<bool>(m_SetHumanoidOutfit), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue),
-            static_cast<bool>(m_InvisibleBoolValue)
+            static_cast<bool>(m_InvisibleBoolValue), static_cast<bool>(m_CurrentElectricityGetter), static_cast<bool>(m_CurrentChemicalGetter),
+            static_cast<bool>(m_MaximumElectricityGetter), static_cast<bool>(m_MaximumChemicalGetter), static_cast<bool>(m_ElectricityGiver),
+            static_cast<bool>(m_ChemicalGiver), static_cast<bool>(s_ElectricityAmountFloatValue), static_cast<bool>(s_ChemicalAmountFloatValue)
         );
         CleanupSpawnedEntities();
         return false;
@@ -378,7 +429,13 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_ImmuneModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_UnkillableModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_InfiniteAmmoModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+
+    // Point every player ID-targeting modifier at the local player's ID.
     m_InvisibleModifier.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_CurrentElectricityGetter.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_CurrentChemicalGetter.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_ElectricityGiver.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_ChemicalGiver.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
 
     // Wire the immune/unkillable/invisible modifiers to their bool-value sources.
     const auto s_ImmuneBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_ImmuneBoolValue.m_entityRef);
@@ -395,6 +452,37 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_UnkillableModifier.m_entityRef.SetProperty("m_isUnkillable", s_UnkillableBoolRef);
     m_InvisibleModifier.m_entityRef.SetProperty("m_invisible", s_InvisibleBoolRef);
 
+    TResourcePtr<ZEntityRef> s_ElectricResourceDefinitionPtr;
+    SDK()->Globals()->ResourceManager->LoadResource(
+        s_ElectricResourceDefinitionPtr, ResId<"[assembly:/_knt/design/gadgets/gadget_resource_definitions.template?/"
+                                               "playerresource_def_electric.entitytemplate].entityresource">
+    );
+
+    TResourcePtr<ZEntityRef> s_ChemicalResourceDefinitionPtr;
+    SDK()->Globals()->ResourceManager->LoadResource(
+        s_ChemicalResourceDefinitionPtr, ResId<"[assembly:/_knt/design/gadgets/gadget_resource_definitions.template?/"
+                                               "playerresource_def_chemical.entitytemplate].entityresource">
+    );
+
+    m_CurrentElectricityGetter.m_entityRef.SetProperty("m_resourceDefinition", s_ElectricResourceDefinitionPtr);
+    m_CurrentChemicalGetter.m_entityRef.SetProperty("m_resourceDefinition", s_ChemicalResourceDefinitionPtr);
+    m_MaximumElectricityGetter.m_entityRef.SetProperty("m_resourceDefinition", s_ElectricResourceDefinitionPtr);
+    m_MaximumChemicalGetter.m_entityRef.SetProperty("m_resourceDefinition", s_ChemicalResourceDefinitionPtr);
+    m_ElectricityGiver.m_entityRef.SetProperty("m_resourceDefinition", s_ElectricResourceDefinitionPtr);
+    m_ChemicalGiver.m_entityRef.SetProperty("m_resourceDefinition", s_ChemicalResourceDefinitionPtr);
+
+    const auto s_ElectricityAmountFloatRef = TInterfaceRef<IFloatValue>::FromEntityRef(s_ElectricityAmountFloatValue.m_entityRef);
+    const auto s_ChemicalAmountFloatRef = TInterfaceRef<IFloatValue>::FromEntityRef(s_ChemicalAmountFloatValue.m_entityRef);
+
+    if (!s_ElectricityAmountFloatRef || !s_ChemicalAmountFloatRef) {
+        Logger::Error("Failed to get IFloatValue ref for electricity and chemical resource amounts.");
+        CleanupSpawnedEntities();
+        return false;
+    }
+
+    m_ElectricityGiver.m_entityRef.SetProperty("m_amount", s_ElectricityAmountFloatRef);
+    m_ChemicalGiver.m_entityRef.SetProperty("m_amount", s_ChemicalAmountFloatRef);
+
     // Make sure the freshly spawned entities pick up the current toggle states.
     m_StateDirty = true;
 
@@ -404,7 +492,8 @@ bool Cheats::EnsureEntitiesSpawned() {
 }
 
 bool Cheats::AnyCheatEnabled() const {
-    return m_NoclipEnabled || m_DisableCollision || m_GodMode || m_Unkillable || m_InfiniteAmmo || m_Invisible;
+    return m_NoclipEnabled || m_DisableCollision || m_GodMode || m_Unkillable || m_InfiniteAmmo || m_Invisible || m_InfiniteElectricity
+           || m_InfiniteChecmical;
 }
 
 void Cheats::ApplyPlayerModifiers() {

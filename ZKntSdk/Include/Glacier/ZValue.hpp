@@ -26,7 +26,11 @@ class IFloatValue : public IComponentInterface {
     virtual float GetValue() = 0;
 };
 
+class ZCLValueFloatEntity : public ZCLSimpleValue, public IFloatValue {};
+
 class IIntValue : public IComponentInterface {
   public:
     virtual int32_t GetValue() = 0;
 };
+
+class ZCLValueIntEntity : public ZCLSimpleValue, public IIntValue {};
