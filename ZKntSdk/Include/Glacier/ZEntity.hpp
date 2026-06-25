@@ -834,7 +834,9 @@ class ZTemplateEntityBlueprintFactory : public ZCompositeEntityBlueprintFactoryB
   public:
     PAD(0x68);                                            // 0x80
     TArray<uint64_t> m_aEntityIds;                        // 0xE8
-    PAD(0xC8);                                            // 0x100
+    PAD(0x68);                                            // 0x100
+    ZString m_SourceResourceID;                           // 0x168
+    PAD(0x50);                                            // 0x178
     STemplateEntityBlueprint* m_pTemplateEntityBlueprint; // 0x1C8
 };
 
