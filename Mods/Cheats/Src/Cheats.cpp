@@ -53,6 +53,10 @@ void Cheats::CleanupSpawnedEntities() {
     s_Delete(&m_ChemicalGiver);
     s_Delete(&s_ElectricityAmountFloatValue);
     s_Delete(&s_ChemicalAmountFloatValue);
+    s_Delete(&m_GadgetSpawner);
+    s_Delete(&m_GadgetSpawnerItemEntry);
+    s_Delete(&m_GadgetAttacher);
+    s_Delete(&m_GadgetSlotAssigner);
 }
 
 void Cheats::Init() {
@@ -167,9 +171,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
             s_OutfitInfo ? s_OutfitInfo->m_Variations : std::vector<std::pair<std::string, size_t>>{},
             [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
             [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [&](const std::string&, const std::string&, const auto& p_Pair) {
-                SetPlayerOutfit(s_OutfitInfo->m_OutfitSetRuntimeResourceID, p_Pair.second);
-            }
+            [&](const std::string&, const std::string&, const auto& p_Pair) { SetPlayerOutfit(s_OutfitInfo->m_OutfitSet, p_Pair.second); }
         );
 
         ImGui::EndDisabled();
@@ -204,7 +206,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
             s_OutfitInfo2 ? s_OutfitInfo2->m_Variations : std::vector<std::pair<std::string, size_t>>{},
             [](auto& p_Pair) -> std::string { return p_Pair.first; }, [](auto& p_Pair) -> std::string { return p_Pair.first; },
             [&](const std::string&, const std::string& p_Name, const std::pair<std::string, size_t>& p_Value) {
-                SetPlayerOutfit(s_OutfitInfo2->m_OutfitSetRuntimeResourceID, p_Value.second);
+                SetPlayerOutfit(s_OutfitInfo2->m_OutfitSet, p_Value.second);
             }
         );
 
@@ -214,6 +216,56 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
 
         if (ImGui::Button("Get all outfits")) {
             LoadAllOutfitSets();
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::Separator();
+
+        ImGui::Text("Gadgets");
+
+        static char s_Gadget[1024]{""};
+
+        ImGui::BeginDisabled(m_Gadgets.empty());
+
+        Util::ImGuiUtils::InputWithAutocomplete(
+            "Slot 1##Slot1", s_Gadget, sizeof(s_Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
+                SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot1);
+            }
+        );
+
+        Util::ImGuiUtils::InputWithAutocomplete(
+            "Slot 2##Slot2", s_Gadget, sizeof(s_Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
+                SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot2);
+            }
+        );
+
+        Util::ImGuiUtils::InputWithAutocomplete(
+            "Slot 3##Slot3", s_Gadget, sizeof(s_Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
+                SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot3);
+            }
+        );
+
+        Util::ImGuiUtils::InputWithAutocomplete(
+            "Slot 4##Slot4", s_Gadget, sizeof(s_Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
+                SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot4);
+            }
+        );
+
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(!m_Gadgets.empty());
+
+        if (ImGui::Button("Get gadgets")) {
+            LoadGadgets();
         }
 
         ImGui::EndDisabled();
@@ -264,18 +316,6 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
         m_StateDirty = false;
     }
 
-    if (m_CurrentElectricityGetter && m_MaximumElectricityGetter) {
-        float f1 = m_CurrentElectricityGetter.m_pInterfaceRef->GetValue();
-        float f2 = m_MaximumElectricityGetter.m_pInterfaceRef->GetValue();
-        int a = 2;
-    }
-
-    if (m_CurrentChemicalGetter && m_MaximumChemicalGetter) {
-        float f3 = m_CurrentChemicalGetter.m_pInterfaceRef->GetValue();
-        float f4 = m_MaximumChemicalGetter.m_pInterfaceRef->GetValue();
-        int a = 2;
-    }
-
     if (m_InfiniteElectricity && m_CurrentElectricityGetter && m_MaximumElectricityGetter) {
         if (m_CurrentElectricityGetter.m_pInterfaceRef->GetValue() < m_MaximumElectricityGetter.m_pInterfaceRef->GetValue()) {
             s_ElectricityAmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", m_MaximumElectricityGetter.m_pInterfaceRef->GetValue());
@@ -288,6 +328,13 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
             s_ChemicalAmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", m_MaximumElectricityGetter.m_pInterfaceRef->GetValue());
             m_ChemicalGiver.m_entityRef.SignalInputPin("Do");
         }
+    }
+
+    if (m_AssignGadgetToSlot && !m_GadgetSpawner.m_pInterfaceRef->IsSpawning) {
+        m_GadgetAttacher.m_entityRef.SignalInputPin("Do");
+        m_GadgetSlotAssigner.m_entityRef.SignalInputPin("Do");
+
+        m_AssignGadgetToSlot = false;
     }
 
     if (!m_NoclipEnabled) {
@@ -355,6 +402,11 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_ChemicalGiver = TEntityRef<ZCLGiveResourceToPlayer>::SpawnEntity(ResId<"[modules:/zclgiveresourcetoplayer.class].entitytype">);
     s_ElectricityAmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
     s_ChemicalAmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
+    m_GadgetSpawner = TEntityRef<ZDynamicGameplaySpawnerEntity>::SpawnEntity(ResId<"[modules:/zdynamicgameplayspawnerentity.class].entitytype">);
+    m_GadgetSpawnerItemEntry =
+        TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity>::SpawnEntity(ResId<"[modules:/zdynamicgameplayspawneritementryentity.class].entitytype">);
+    m_GadgetAttacher = TEntityRef<ZCLAttachItemToHumanoid>::SpawnEntity(ResId<"[modules:/zclattachitemtohumanoid.class].entitytype">);
+    m_GadgetSlotAssigner = TEntityRef<ZCLAssignGadgetToSlot>::SpawnEntity(ResId<"[modules:/zclassigngadgettoslot.class].entitytype">);
 
     if (!m_Teleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier || !m_UnkillableModifier
         || !m_InfiniteAmmoModifier || !m_InvisibleModifier || !m_LocalPlayerIDGetter || !m_SetHumanoidOutfit || !m_ImmuneBoolValue
@@ -365,14 +417,17 @@ bool Cheats::EnsureEntitiesSpawned() {
             "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, InvisibleModifier: {}, LocalPlayerIDGetter: {}, "
             "SetHumanoidOutfit: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}, InvisibleBoolValue: {}, CurrentElectricityGetter: {}, "
             "CurrentChemicalGetter: {}, MaximumElectricityGetter: {}, MaximumChemicalGetter: {}, ElectricityGiver: {}, ChemicalGiver: {}, "
-            "ElectricityAmountFloatValue: {}, ChemicalAmountFloatValue: {}",
+            "ElectricityAmountFloatValue: {}, ChemicalAmountFloatValue: {}, GadgetSpawner: {}, GadgetSpawnerItemEntry: {}, GadgetAttacher: {}, "
+            "GadgetSlotAssigner: {}",
             static_cast<bool>(m_Teleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
             static_cast<bool>(m_CollisionModifier), static_cast<bool>(m_ImmuneModifier), static_cast<bool>(m_UnkillableModifier),
             static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_InvisibleModifier), static_cast<bool>(m_LocalPlayerIDGetter),
             static_cast<bool>(m_SetHumanoidOutfit), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue),
             static_cast<bool>(m_InvisibleBoolValue), static_cast<bool>(m_CurrentElectricityGetter), static_cast<bool>(m_CurrentChemicalGetter),
             static_cast<bool>(m_MaximumElectricityGetter), static_cast<bool>(m_MaximumChemicalGetter), static_cast<bool>(m_ElectricityGiver),
-            static_cast<bool>(m_ChemicalGiver), static_cast<bool>(s_ElectricityAmountFloatValue), static_cast<bool>(s_ChemicalAmountFloatValue)
+            static_cast<bool>(m_ChemicalGiver), static_cast<bool>(s_ElectricityAmountFloatValue), static_cast<bool>(s_ChemicalAmountFloatValue),
+            static_cast<bool>(m_GadgetSpawner), static_cast<bool>(m_GadgetSpawnerItemEntry), static_cast<bool>(m_GadgetAttacher),
+            static_cast<bool>(m_GadgetSlotAssigner)
         );
         CleanupSpawnedEntities();
         return false;
@@ -401,6 +456,7 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_ImmuneModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_UnkillableModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_InfiniteAmmoModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+    m_GadgetAttacher.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
 
     // Point every player ID-targeting modifier at the local player's ID.
     m_InvisibleModifier.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
@@ -522,7 +578,7 @@ void Cheats::LoadPlayerOutfitSets() {
             );
 
             OutfitInfo& s_OutfitInfo = m_OutfitNameToOutfitInfo[s_Name.c_str()];
-            s_OutfitInfo.m_OutfitSetRuntimeResourceID = s_OutfitDefinitionEntity->m_outfitSet.GetResourceInfo().rid;
+            s_OutfitInfo.m_OutfitSet = s_OutfitDefinitionEntity->m_outfitSet.GetResourceInfo().rid;
 
             const auto s_SubEntityCount = s_TemplateEntityBlueprintFactory->GetSubEntitiesCount();
 
@@ -575,7 +631,7 @@ void Cheats::LoadAllOutfitSets() {
                                                    .entityName.c_str();
 
                 OutfitInfo& s_OutfitInfo = m_AllOutfitSets[s_RootEntityName];
-                s_OutfitInfo.m_OutfitSetRuntimeResourceID = s_ResourceInfo.rid;
+                s_OutfitInfo.m_OutfitSet = s_ResourceInfo.rid;
 
                 const auto s_SubEntityCount = s_TemplateEntityBlueprintFactory->GetSubEntitiesCount();
 
@@ -624,6 +680,90 @@ void Cheats::SetPlayerOutfit(const ZRuntimeResourceID& p_OutfitSetRuntimeResourc
     m_SetHumanoidOutfit.m_entityRef.SetProperty<int32_t>("m_selectedOutfit", p_OutfitVariationIndex);
 
     m_SetHumanoidOutfit.m_entityRef.SignalInputPin("Do");
+}
+
+void Cheats::LoadGadgets() {
+    for (const auto& s_GadgetResourcePtr : m_KntLoadoutCollectionEntity->m_gadgets) {
+        SEntityResource* s_GadgetLoaderEntityResource = static_cast<SEntityResource*>(s_GadgetResourcePtr.GetResourceData());
+
+        ZTemplateEntityFactory* s_TemplateEntityFactory =
+            static_cast<ZTemplateEntityFactory*>(s_GadgetLoaderEntityResource->factoryResource.GetResourceData());
+
+        constexpr uint32_t s_ItemResourcePropertyID = Hash::Crc32("m_itemResource");
+        constexpr uint32_t s_ItemDefinitionPropertyID = Hash::Crc32("m_itemDefinition");
+
+        GadgetInfo& s_GadgetInfo = m_Gadgets.emplace_back();
+
+        for (const auto& s_ResourceIDProperty : s_TemplateEntityFactory->m_resourceIDPropertyValues) {
+            if (s_ResourceIDProperty.propertyID == s_ItemDefinitionPropertyID) {
+                ZRuntimeResourceID s_ItemDefinition = *s_ResourceIDProperty.value.As<ZRuntimeResourceID>();
+
+                TResourcePtr<ZEntityRef> s_ResourcePtr;
+                SDK()->Globals()->ResourceManager->LoadResource(s_ResourcePtr, s_ItemDefinition);
+
+                SEntityResource* s_EntityResource = static_cast<SEntityResource*>(s_ResourcePtr.GetResourceData());
+
+                ZGadgetItemDefinition* s_GadgetItemDefinition = s_EntityResource->entityRef.QueryInterface<ZGadgetItemDefinition>();
+                ZTextLine* s_TextLine = s_GadgetItemDefinition->m_itemDisplayNameSweet.GetResource();
+                ZTextListData* s_TextListData = static_cast<ZTextListData*>(s_TextLine->m_pTextList.GetResourceData());
+
+                auto it = s_TextListData->m_Map.find(s_TextLine->m_nNameHash);
+
+                if (it == s_TextListData->m_Map.end()) {
+                    continue;
+                }
+
+                ZString s_Name;
+                SDK()->Functions()->ZTextListData_DecryptText->Call(s_Name, it->second);
+
+                s_GadgetInfo.m_Name = s_Name.c_str();
+                s_GadgetInfo.m_GadgetItemDefinition = s_ItemDefinition;
+            }
+            else if (s_ResourceIDProperty.propertyID == s_ItemResourcePropertyID) {
+                s_GadgetInfo.m_ItemTemplate = *s_ResourceIDProperty.value.As<ZRuntimeResourceID>();
+            }
+        }
+    }
+}
+
+void Cheats::SpawnGadget(
+    const ZRuntimeResourceID& p_ItemDefinition, const ZRuntimeResourceID& p_ItemResource, Gameplay::EGadgetActivationSlot p_Slot
+) {
+    if (!EnsureEntitiesSpawned()) {
+        return;
+    }
+
+    m_GadgetSpawnerItemEntry.m_entityRef.SetProperty("m_itemTemplate", p_ItemResource);
+
+    auto s_LocalPlayer = SDK()->Globals()->LocalPlayerData->m_pCharacterImpl->m_pCharacter;
+
+    if (!s_LocalPlayer) {
+        return;
+    }
+
+    m_GadgetSpawnerItemEntry.m_entityRef.SetProperty("m_mTransform", s_LocalPlayer.m_pInterfaceRef->GetObjectToWorldMatrix().ToMatrix43());
+
+    TArray<TInterfaceRef<ZDynamicGameplaySpawnerEntryEntity>> s_Entries;
+    s_Entries.push_back(TInterfaceRef<ZDynamicGameplaySpawnerEntryEntity>::FromEntityRef(m_GadgetSpawnerItemEntry.m_entityRef));
+
+    m_GadgetSpawner.m_entityRef.SetProperty("m_entries", s_Entries);
+
+    ZEntityRef s_ExposedEntity = m_GadgetSpawnerItemEntry.m_entityRef.GetExposedEntity("3765481439");
+
+    m_GadgetAttacher.m_entityRef.SetProperty("m_item", TInterfaceRef<ITEntityRefValue<ZItemCharacterEntityBase>>::FromEntityRef(s_ExposedEntity));
+
+    TResourcePtr<ZEntityRef> s_ResourcePtr;
+    SDK()->Globals()->ResourceManager->LoadResource(s_ResourcePtr, p_ItemDefinition);
+
+    m_GadgetSlotAssigner.m_entityRef.SetProperty("m_itemDefinition", s_ResourcePtr);
+    m_GadgetSlotAssigner.m_entityRef.SetProperty(
+        "m_gadgetItem", TInterfaceRef<ITEntityRefValue<ZItemCharacterEntityBase>>::FromEntityRef(s_ExposedEntity)
+    );
+    m_GadgetSlotAssigner.m_entityRef.SetProperty("m_slot", p_Slot);
+
+    m_GadgetSpawner.m_entityRef.SignalInputPin("Spawn");
+
+    m_AssignGadgetToSlot = true;
 }
 
 DEFINE_PLUGIN_DETOUR(

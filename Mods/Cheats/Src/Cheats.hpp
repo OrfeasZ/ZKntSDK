@@ -6,10 +6,15 @@
 #include <Glacier/ZCamera.hpp>
 #include <Glacier/ZValue.hpp>
 #include <Glacier/ZPlayer.hpp>
+#include <Glacier/ZSpawner.hpp>
+#include <Glacier/ZGadget.hpp>
 
 class ZCLSetHumanoidOutfitEntity;
 class ZCLSetPlayerInvisibleToNpcs;
 class ZCLGiveResourceToPlayer;
+class ZCLAttachItemToHumanoid;
+class ZCLAssignGadgetToSlot;
+class ZItemCharacterEntityBase;
 
 class Cheats : public zknt::IPluginInterface {
   public:
@@ -24,7 +29,13 @@ class Cheats : public zknt::IPluginInterface {
   private:
     struct OutfitInfo {
         std::vector<std::pair<std::string, size_t>> m_Variations;
-        ZRuntimeResourceID m_OutfitSetRuntimeResourceID;
+        ZRuntimeResourceID m_OutfitSet;
+    };
+
+    struct GadgetInfo {
+        std::string m_Name;
+        ZRuntimeResourceID m_GadgetItemDefinition;
+        ZRuntimeResourceID m_ItemTemplate;
     };
 
     void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
@@ -36,7 +47,10 @@ class Cheats : public zknt::IPluginInterface {
 
     void LoadPlayerOutfitSets();
     void LoadAllOutfitSets();
-    void SetPlayerOutfit(const ZRuntimeResourceID& p_OutfitSetRuntimeResourceID, size_t p_OutfitVariationIndex);
+    void SetPlayerOutfit(const ZRuntimeResourceID& p_OutfitSet, size_t p_OutfitVariationIndex);
+
+    void LoadGadgets();
+    void SpawnGadget(const ZRuntimeResourceID& p_ItemDefinition, const ZRuntimeResourceID& p_ItemResource, Gameplay::EGadgetActivationSlot p_Slot);
 
     DECLARE_PLUGIN_DETOUR(
         Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th, bool unk
@@ -69,6 +83,10 @@ class Cheats : public zknt::IPluginInterface {
     TEntityRef<ZCLGiveResourceToPlayer> m_ChemicalGiver;
     TEntityRef<ZCLValueFloatEntity> s_ElectricityAmountFloatValue;
     TEntityRef<ZCLValueFloatEntity> s_ChemicalAmountFloatValue;
+    TEntityRef<ZDynamicGameplaySpawnerEntity> m_GadgetSpawner;
+    TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity> m_GadgetSpawnerItemEntry;
+    TEntityRef<ZCLAttachItemToHumanoid> m_GadgetAttacher;
+    TEntityRef<ZCLAssignGadgetToSlot> m_GadgetSlotAssigner;
 
     bool m_ShowPanel = false;
     bool m_DisableCollision = false;
@@ -93,6 +111,9 @@ class Cheats : public zknt::IPluginInterface {
     std::unordered_map<std::string, OutfitInfo> m_OutfitNameToOutfitInfo;
 
     std::map<std::string, OutfitInfo> m_AllOutfitSets;
+
+    std::vector<GadgetInfo> m_Gadgets;
+    bool m_AssignGadgetToSlot = false;
 };
 
 DECLARE_ZKNT_PLUGIN(Cheats)
