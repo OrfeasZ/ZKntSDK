@@ -881,7 +881,7 @@ class ZTemplateEntityFactory : public IEntityFactory {
     struct SResourceIDProperty {
         ZObjectRef value;  // 0x0
         int32 entityIndex; // 0x10
-        int32 propertyID;  // 0x14
+        uint32 propertyID; // 0x14
         int32 unk0;        // 0x18
         bool unk1;         // 0x1C
     };
