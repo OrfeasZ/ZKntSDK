@@ -57,6 +57,10 @@ class ZRuntimeResourceID {
         return m_IDHigh ^ m_IDLow;
     }
 
+    bool IsValid() const {
+        return GetID() != -1;
+    }
+
   public:
     union {
         struct {
