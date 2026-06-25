@@ -12,6 +12,7 @@ class ZCLValue : public ZEntityImpl, public IValueChanged {
 
 class ZCLSimpleValue : public ZCLValue, public IReplicatedCLValue {
   public:
+    PAD(0x8);
 };
 
 class IBoolValue : public IComponentInterface {
