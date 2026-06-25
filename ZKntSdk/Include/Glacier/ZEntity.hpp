@@ -863,14 +863,41 @@ class ZAspectEntityBlueprintFactory : public ZCompositeEntityBlueprintFactoryBas
 
 class ZTemplateEntityFactory : public IEntityFactory {
   public:
-    STemplateEntityFactory* m_pResourceData;                           // 0x8
-    bool m_bHasCalculatedPropertyValues;                               // 0x10
-    int32 m_rootEntityIndex;                                           // 0x14
-    TArray<IEntityFactory*> m_pFactories;                              // 0x18
-    PAD(0x18);                                                         // 0x30
-    ZRuntimeResourceID m_ridResource;                                  // 0x48
-    ZString m_SourceResourceID;                                        // 0x50
-    TResourcePtr<ZTemplateEntityBlueprintFactory> m_blueprintResource; // 0x60
+    struct SDirectlySettableProperty {
+        int32 entityIndex;    // 0x0
+        int32 unk;            // 0x4
+        int64 propertyOffset; // 0x8
+        ZObjectRef value;     // 0x10
+    };
+
+    struct SDirectlySettablePropertyWithSetter {
+        int32 entityIndex;          // 0x0
+        int32 unk;                  // 0x4
+        int64 propertyOffset;       // 0x8
+        const SPropertyInfo* pInfo; // 0x10
+        ZObjectRef value;           // 0x18
+    };
+
+    struct SResourceIDProperty {
+        ZObjectRef value;  // 0x0
+        int32 entityIndex; // 0x10
+        int32 propertyID;  // 0x14
+        int32 unk0;        // 0x18
+        bool unk1;         // 0x1C
+    };
+
+    STemplateEntityFactory* m_pResourceData;                                            // 0x8
+    bool m_bHasCalculatedPropertyValues;                                                // 0x10
+    int32 m_rootEntityIndex;                                                            // 0x14
+    TArray<IEntityFactory*> m_pFactories;                                               // 0x18
+    PAD(0x18);                                                                          // 0x30
+    ZRuntimeResourceID m_ridResource;                                                   // 0x48
+    ZString m_SourceResourceID;                                                         // 0x50
+    TResourcePtr<ZTemplateEntityBlueprintFactory> m_blueprintResource;                  // 0x60
+    PAD(0xA8);                                                                          // 0x68
+    TArray<SResourceIDProperty> m_resourceIDPropertyValues;                             // 0x110
+    TArray<SDirectlySettableProperty> m_directlySettableProperties;                     // 0x128
+    TArray<SDirectlySettablePropertyWithSetter> m_directlySettablePropertiesWithSetter; // 0x140
 };
 
 struct SEntityResource {
