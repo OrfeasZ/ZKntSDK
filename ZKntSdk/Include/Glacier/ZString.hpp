@@ -140,6 +140,11 @@ class ZString {
     }
 
     [[nodiscard]]
+    bool Contains(const ZString& p_Other) const {
+        return strstr(c_str(), p_Other.c_str()) != nullptr;
+    }
+
+    [[nodiscard]]
     bool StartsWith(const ZString& p_Other) const {
         if (size() < p_Other.size()) {
             return false;
