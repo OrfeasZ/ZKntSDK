@@ -119,8 +119,6 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
 
         ImGui::Separator();
 
-        ImGui::Text("Player outfits");
-
         if (m_KntLoadoutCollectionEntity && m_OutfitCategories.empty()) {
             LoadPlayerOutfitSets();
         }
@@ -131,6 +129,8 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
 
         static const std::set<std::string>* s_CategoryOutfits = nullptr;
         static const OutfitInfo* s_OutfitInfo = nullptr;
+
+        ImGui::Text("Player outfits");
 
         ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
 
@@ -222,14 +222,21 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
 
         ImGui::Separator();
 
-        ImGui::Text("Gadgets");
+        if (m_KntLoadoutCollectionEntity && m_Gadgets.empty()) {
+            LoadGadgets();
+        }
 
-        static char s_Gadget[1024]{""};
+        static char s_Slot1Gadget[1024]{};
+        static char s_Slot2Gadget[1024]{};
+        static char s_Slot3Gadget[1024]{};
+        static char s_Slot4Gadget[1024]{};
+
+        ImGui::Text("Spawn gadgets");
 
         ImGui::BeginDisabled(m_Gadgets.empty());
 
         Util::ImGuiUtils::InputWithAutocomplete(
-            "Slot 1##Slot1", s_Gadget, sizeof(s_Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            "Slot 1##Slot1", s_Slot1Gadget, sizeof(s_Slot1Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
             [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
             [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
                 SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot1);
@@ -237,7 +244,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         );
 
         Util::ImGuiUtils::InputWithAutocomplete(
-            "Slot 2##Slot2", s_Gadget, sizeof(s_Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            "Slot 2##Slot2", s_Slot2Gadget, sizeof(s_Slot2Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
             [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
             [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
                 SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot2);
@@ -245,7 +252,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         );
 
         Util::ImGuiUtils::InputWithAutocomplete(
-            "Slot 3##Slot3", s_Gadget, sizeof(s_Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            "Slot 3##Slot3", s_Slot3Gadget, sizeof(s_Slot3Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
             [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
             [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
                 SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot3);
@@ -253,20 +260,12 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         );
 
         Util::ImGuiUtils::InputWithAutocomplete(
-            "Slot 4##Slot4", s_Gadget, sizeof(s_Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+            "Slot 4##Slot4", s_Slot4Gadget, sizeof(s_Slot4Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
             [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
             [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
                 SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot4);
             }
         );
-
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(!m_Gadgets.empty());
-
-        if (ImGui::Button("Get gadgets")) {
-            LoadGadgets();
-        }
 
         ImGui::EndDisabled();
     }
@@ -544,6 +543,10 @@ void Cheats::ApplyPlayerModifiers() {
 }
 
 void Cheats::LoadPlayerOutfitSets() {
+    if (!m_KntLoadoutCollectionEntity) {
+        return;
+    }
+
     m_OutfitCategories.push_back("All");
 
     for (const auto& s_OutfitCategoryResourcePtr : m_KntLoadoutCollectionEntity->m_outfitCategories) {
@@ -683,6 +686,10 @@ void Cheats::SetPlayerOutfit(const ZRuntimeResourceID& p_OutfitSetRuntimeResourc
 }
 
 void Cheats::LoadGadgets() {
+    if (!m_KntLoadoutCollectionEntity) {
+        return;
+    }
+
     for (const auto& s_GadgetResourcePtr : m_KntLoadoutCollectionEntity->m_gadgets) {
         SEntityResource* s_GadgetLoaderEntityResource = static_cast<SEntityResource*>(s_GadgetResourcePtr.GetResourceData());
 
