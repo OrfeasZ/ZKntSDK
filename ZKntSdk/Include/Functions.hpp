@@ -24,6 +24,8 @@ class ZInputContext;
 class ICameraEntity;
 class ZFreeCameraControlEditorStyleEntity;
 class ZEntityImpl;
+class ZResourceManager;
+class ZResourceIndex;
 
 namespace zknt {
     class Functions {
@@ -89,6 +91,8 @@ namespace zknt {
         EngineFunction<void(ZFreeCameraControlEditorStyleEntity* th, const SMatrix& mCameraToWorld)>*
             ZFreeCameraControlEditorStyleEntity_ApplyCameraMatrix = nullptr;
 
-        EngineFunction<ZEntityType*(ZEntityImpl* th, uint32_t nUniqueMapMask)>* ZEntityImpl_EnsureUniqueType;
+        EngineFunction<ZEntityType*(ZEntityImpl* th, uint32_t nUniqueMapMask)>* ZEntityImpl_EnsureUniqueType = nullptr;
+
+        EngineFunction<void(ZResourceManager* th, ZResourceIndex index)>* ZResourceManager_UninstallResource = nullptr;
     };
 }

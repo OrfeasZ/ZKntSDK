@@ -114,6 +114,11 @@ zknt::Functions::Functions() {
         "\x48\x89\x5C\x24\x18\x56\x48\x83\xEC\x00\x48\x8B\x41\x08", "xxxxxxxxx?xxxx", ZEntityImpl_EnsureUniqueType,
         ZEntityType * (ZEntityImpl * th, uint32_t nUniqueMapMask)
     );
+
+    PATTERN_RELATIVE_FUNCTION(
+        "\xE8\x00\x00\x00\x00\x8B\x13\x45\x33\xC0", "x????xxxxx", ZResourceManager_UninstallResource,
+        void(ZResourceManager * th, ZResourceIndex index)
+    );
 }
 
 zknt::Functions::~Functions() {
@@ -139,4 +144,5 @@ zknt::Functions::~Functions() {
     delete ZCameraUtil_RotateCameraToWorldMatrix;
     delete ZFreeCameraControlEditorStyleEntity_ApplyCameraMatrix;
     delete ZEntityImpl_EnsureUniqueType;
+    delete ZResourceManager_UninstallResource;
 }

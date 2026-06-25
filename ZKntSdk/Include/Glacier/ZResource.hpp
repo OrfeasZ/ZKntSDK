@@ -7,6 +7,7 @@
 #include "THashSet.hpp"
 #include <Globals.hpp>
 #include <IModSDK.hpp>
+#include <Functions.hpp>
 
 class ZResourceIndex {
   public:
@@ -98,15 +99,15 @@ class ZResourcePtr {
     }
 
     ~ZResourcePtr() {
-        /*if (m_nResourceIndex.val < 0) {
+        if (m_nResourceIndex.val < 0) {
             return;
         }
 
         auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_nResourceIndex.val];
 
         if (InterlockedDecrement(&s_ResourceInfo.refCount) == 0 && s_ResourceInfo.resourceData) {
-            Functions::ZResourceManager_UninstallResource->Call(Globals::ResourceManager, m_nResourceIndex);
-        }*/
+            SDK()->Functions()->ZResourceManager_UninstallResource->Call(SDK()->Globals()->ResourceManager, m_nResourceIndex);
+        }
     }
 
   public:
