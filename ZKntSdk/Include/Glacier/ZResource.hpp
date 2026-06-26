@@ -110,6 +110,10 @@ class ZResourcePtr {
         }
     }
 
+    bool Exists() const {
+        return m_nResourceIndex.val != -1;
+    }
+
   public:
     ZResourceContainer::SResourceInfo& GetResourceInfo() const {
         auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_nResourceIndex.val];
