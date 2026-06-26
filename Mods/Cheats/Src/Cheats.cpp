@@ -131,7 +131,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
             LoadPlayerOutfitSets();
         }
 
-        static char s_Category[1024]{};
+        static char s_OutfitCategory[1024]{};
         static char s_Outfit[1024]{};
         static char s_OutfitVariation[1024]{};
 
@@ -143,7 +143,7 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
 
         Util::ImGuiUtils::InputWithAutocomplete(
-            "Outfit category##OutfitCategory", s_Category, sizeof(s_Category), m_OutfitCategoryToOutfits,
+            "Outfit category##OutfitCategory", s_OutfitCategory, sizeof(s_OutfitCategory), m_OutfitCategoryToOutfits,
             [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
             [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
             [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
