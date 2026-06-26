@@ -606,15 +606,7 @@ void Cheats::LoadPlayerOutfitSets() {
 
             ZTextLine* s_TextLine = static_cast<ZTextLine*>(s_OutfitDefinitionEntity->m_outfitDisplayNameSweet.GetResourceData());
             ZTextListData* s_TextListData = static_cast<ZTextListData*>(s_TextLine->m_pTextList.GetResourceData());
-
-            auto it = s_TextListData->m_Map.find(s_TextLine->m_nNameHash);
-
-            if (it == s_TextListData->m_Map.end()) {
-                continue;
-            }
-
-            ZString s_Name;
-            SDK()->Functions()->ZTextListData_DecryptText->Call(s_Name, it->second);
+            ZString s_Name = s_TextLine->GetText();
 
             m_OutfitCategoryToOutfits[s_OutfitCategory->m_titleRaw.c_str()].insert(s_Name.c_str());
 
@@ -757,18 +749,8 @@ void Cheats::LoadGadgets() {
 
                 ZGadgetItemDefinition* s_GadgetItemDefinition = s_EntityResource->entityRef.QueryInterface<ZGadgetItemDefinition>();
                 ZTextLine* s_TextLine = s_GadgetItemDefinition->m_itemDisplayNameSweet.GetResource();
-                ZTextListData* s_TextListData = static_cast<ZTextListData*>(s_TextLine->m_pTextList.GetResourceData());
 
-                auto it = s_TextListData->m_Map.find(s_TextLine->m_nNameHash);
-
-                if (it == s_TextListData->m_Map.end()) {
-                    continue;
-                }
-
-                ZString s_Name;
-                SDK()->Functions()->ZTextListData_DecryptText->Call(s_Name, it->second);
-
-                s_GadgetInfo.m_Name = s_Name.c_str();
+                s_GadgetInfo.m_Name = s_TextLine->GetText().c_str();
                 s_GadgetInfo.m_GadgetItemDefinition = s_ItemDefinition;
             }
             else if (s_ResourceIDProperty.propertyID == s_ItemResourcePropertyID) {
