@@ -75,58 +75,58 @@ static_assert(sizeof(ZResourceContainer::SResourceInfo) == 64);
 class ZResourcePtr {
   public:
     ZResourcePtr() {
-        m_nResourceIndex.val = -1;
+        m_ResourceIndex.val = -1;
     }
 
     ZResourcePtr(const ZResourcePtr& p_Other) {
-        m_nResourceIndex = p_Other.m_nResourceIndex;
+        m_ResourceIndex = p_Other.m_ResourceIndex;
 
-        if (m_nResourceIndex.val != -1) {
-            auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_nResourceIndex.val];
+        if (m_ResourceIndex.val != -1) {
+            auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_ResourceIndex.val];
 
             InterlockedIncrement(&s_ResourceInfo.refCount);
         }
     }
 
     ZResourcePtr(ZResourceIndex p_ResourceIndex) {
-        m_nResourceIndex = p_ResourceIndex;
+        m_ResourceIndex = p_ResourceIndex;
 
-        if (m_nResourceIndex.val != -1) {
-            auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_nResourceIndex.val];
+        if (m_ResourceIndex.val != -1) {
+            auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_ResourceIndex.val];
 
             InterlockedIncrement(&s_ResourceInfo.refCount);
         }
     }
 
     ~ZResourcePtr() {
-        if (m_nResourceIndex.val < 0) {
+        if (m_ResourceIndex.val < 0) {
             return;
         }
 
-        auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_nResourceIndex.val];
+        auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_ResourceIndex.val];
 
         if (InterlockedDecrement(&s_ResourceInfo.refCount) == 0 && s_ResourceInfo.resourceData) {
-            SDK()->Functions()->ZResourceManager_UninstallResource->Call(SDK()->Globals()->ResourceManager, m_nResourceIndex);
+            SDK()->Functions()->ZResourceManager_UninstallResource->Call(SDK()->Globals()->ResourceManager, m_ResourceIndex);
         }
     }
 
     bool Exists() const {
-        return m_nResourceIndex.val != -1;
+        return m_ResourceIndex.val != -1;
     }
 
   public:
     ZResourceContainer::SResourceInfo& GetResourceInfo() const {
-        auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_nResourceIndex.val];
+        auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_ResourceIndex.val];
 
         return s_ResourceInfo;
     }
 
     void* GetResourceData() const {
-        if (m_nResourceIndex.val < 0) {
+        if (m_ResourceIndex.val < 0) {
             return nullptr;
         }
 
-        auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_nResourceIndex.val];
+        auto& s_ResourceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[m_ResourceIndex.val];
 
         return s_ResourceInfo.resourceData;
     }
@@ -136,7 +136,7 @@ class ZResourcePtr {
     }
 
   public:
-    ZResourceIndex m_nResourceIndex;
+    ZResourceIndex m_ResourceIndex;
     uint32_t m_Padding = 0;
 };
 
@@ -147,7 +147,7 @@ template<typename T> class TResourcePtr : public ZResourcePtr {
     TResourcePtr() = default;
 
     explicit TResourcePtr(const ZResourceIndex p_Index) {
-        m_nResourceIndex = p_Index;
+        m_ResourceIndex = p_Index;
     }
 
   public:
