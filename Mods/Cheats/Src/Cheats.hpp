@@ -17,6 +17,7 @@ class ZCLAttachItemToHumanoid;
 class ZCLAssignGadgetToSlot;
 class ZItemCharacterEntityBase;
 class ZCLGiveHumanoidPlayerAmmunition;
+class ZCLSetPlayerEquippedItem;
 
 class Cheats : public zknt::IPluginInterface {
   public:
@@ -40,6 +41,8 @@ class Cheats : public zknt::IPluginInterface {
         ZRuntimeResourceID m_ItemTemplate;
     };
 
+    enum class SpawnMode { AddToWorld, AddToInventory };
+
     void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
 
     void CleanupSpawnedEntities();
@@ -53,6 +56,10 @@ class Cheats : public zknt::IPluginInterface {
 
     void LoadGadgets();
     void SpawnGadget(const ZRuntimeResourceID& p_ItemDefinition, const ZRuntimeResourceID& p_ItemResource, Gameplay::EGadgetActivationSlot p_Slot);
+
+    void LoadFirearms();
+    void SpawnFirearm(const ZRuntimeResourceID& p_ItemResource);
+    static const char* FirearmClassToString(EFirearmClass p_FirearmClass);
 
     DECLARE_PLUGIN_DETOUR(
         Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th, bool unk
@@ -89,6 +96,9 @@ class Cheats : public zknt::IPluginInterface {
     TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity> m_GadgetSpawnerItemEntry;
     TEntityRef<ZCLAttachItemToHumanoid> m_GadgetAttacher;
     TEntityRef<ZCLAssignGadgetToSlot> m_GadgetSlotAssigner;
+    TEntityRef<ZDynamicGameplaySpawnerEntity> m_FirearmSpawner;
+    TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity> m_FirearmSpawnerItemEntry;
+    TEntityRef<ZCLSetPlayerEquippedItem> m_EquippedItemSetter;
     std::array<TEntityRef<ZCLGetPlayerInventoryAmmunition>, 8> m_AmmunitionGetters;
     std::array<TEntityRef<ZCLGiveHumanoidPlayerAmmunition>, 8> m_AmmunitionSetters;
 
@@ -118,6 +128,11 @@ class Cheats : public zknt::IPluginInterface {
 
     std::vector<GadgetInfo> m_Gadgets;
     bool m_AssignGadgetToSlot = false;
+
+    std::map<std::string, std::set<std::string>> m_FirearmCategoryToFirearmNames;
+    std::unordered_map<std::string, ZRuntimeResourceID> m_FirearmNameToItemResource;
+    SpawnMode m_SpawnMode = SpawnMode::AddToWorld;
+    bool m_EquipFirearm = false;
 };
 
 DECLARE_ZKNT_PLUGIN(Cheats)

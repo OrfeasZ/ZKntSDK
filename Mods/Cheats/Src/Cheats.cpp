@@ -57,6 +57,9 @@ void Cheats::CleanupSpawnedEntities() {
     s_Delete(&m_GadgetSpawnerItemEntry);
     s_Delete(&m_GadgetAttacher);
     s_Delete(&m_GadgetSlotAssigner);
+    s_Delete(&m_FirearmSpawner);
+    s_Delete(&m_FirearmSpawnerItemEntry);
+    s_Delete(&m_EquippedItemSetter);
 
     for (auto& s_AmmunitionGetter : m_AmmunitionGetters) {
         s_Delete(&s_AmmunitionGetter);
@@ -276,6 +279,52 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
         );
 
         ImGui::EndDisabled();
+
+        ImGui::Separator();
+
+        static char s_FireamCategory[1024]{};
+        static char s_Firearm[1024]{};
+        static const std::set<std::string>* s_CategoryFirearms = nullptr;
+
+        ImGui::Text("Spawn firearms");
+
+        ImGui::BeginDisabled(m_FirearmCategoryToFirearmNames.empty());
+
+        Util::ImGuiUtils::InputWithAutocomplete(
+            "Firearm category##FirearmCategory", s_FireamCategory, sizeof(s_FireamCategory), m_FirearmCategoryToFirearmNames,
+            [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
+            [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
+            [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
+                s_CategoryFirearms = &p_Pair.second;
+                s_Firearm[0] = '\0';
+            }
+        );
+
+        Util::ImGuiUtils::InputWithAutocomplete(
+            "Firearm##Firearm", s_Firearm, sizeof(s_Firearm), s_CategoryFirearms ? *s_CategoryFirearms : std::set<std::string>{},
+            [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
+            [&](const std::string&, const std::string& p_Name, const auto&) { SpawnFirearm(m_FirearmNameToItemResource[p_Name]); }
+        );
+
+        if (ImGui::RadioButton("Add To World", m_SpawnMode == SpawnMode::AddToWorld)) {
+            m_SpawnMode = SpawnMode::AddToWorld;
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::RadioButton("Add To Inventory", m_SpawnMode == SpawnMode::AddToInventory)) {
+            m_SpawnMode = SpawnMode::AddToInventory;
+        }
+
+        ImGui::EndDisabled();
+
+        ImGui::BeginDisabled(!m_FirearmCategoryToFirearmNames.empty());
+
+        if (ImGui::Button("Get firearms")) {
+            LoadFirearms();
+        }
+
+        ImGui::EndDisabled();
     }
 
     ImGui::End();
@@ -342,6 +391,17 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
         m_GadgetSlotAssigner.m_entityRef.SignalInputPin("Do");
 
         m_AssignGadgetToSlot = false;
+    }
+
+    if (m_EquipFirearm && !m_FirearmSpawner.m_pInterfaceRef->IsSpawning) {
+        ZEntityRef s_ExposedEntity = m_FirearmSpawnerItemEntry.m_entityRef.GetExposedEntity("3765481439");
+
+        m_EquippedItemSetter.m_entityRef.SetProperty(
+            "m_item", TInterfaceRef<ITEntityRefValue<ZItemCharacterEntityBase>>::FromEntityRef(s_ExposedEntity)
+        );
+        m_EquippedItemSetter.m_entityRef.SignalInputPin("Do");
+
+        m_EquipFirearm = false;
     }
 
     if (m_InfiniteAmmo) {
@@ -423,6 +483,10 @@ bool Cheats::EnsureEntitiesSpawned() {
         TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity>::SpawnEntity(ResId<"[modules:/zdynamicgameplayspawneritementryentity.class].entitytype">);
     m_GadgetAttacher = TEntityRef<ZCLAttachItemToHumanoid>::SpawnEntity(ResId<"[modules:/zclattachitemtohumanoid.class].entitytype">);
     m_GadgetSlotAssigner = TEntityRef<ZCLAssignGadgetToSlot>::SpawnEntity(ResId<"[modules:/zclassigngadgettoslot.class].entitytype">);
+    m_FirearmSpawner = TEntityRef<ZDynamicGameplaySpawnerEntity>::SpawnEntity(ResId<"[modules:/zdynamicgameplayspawnerentity.class].entitytype">);
+    m_FirearmSpawnerItemEntry =
+        TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity>::SpawnEntity(ResId<"[modules:/zdynamicgameplayspawneritementryentity.class].entitytype">);
+    m_EquippedItemSetter = TEntityRef<ZCLSetPlayerEquippedItem>::SpawnEntity(ResId<"[modules:/zclsetplayerequippeditem.class].entitytype">);
 
     for (size_t i = 0; i < m_AmmunitionGetters.size(); ++i) {
         m_AmmunitionGetters[i] =
@@ -443,14 +507,15 @@ bool Cheats::EnsureEntitiesSpawned() {
         || !m_InfiniteAmmoModifier || !m_InvisibleModifier || !m_LocalPlayerIDGetter || !m_SetHumanoidOutfit || !m_ImmuneBoolValue
         || !m_UnkillableBoolValue || !m_InvisibleBoolValue || !m_CurrentElectricityGetter || !m_CurrentChemicalGetter || !m_MaximumElectricityGetter
         || !m_MaximumChemicalGetter || !m_ElectricityGiver || !m_ChemicalGiver || !s_ElectricityAmountFloatValue || !s_ChemicalAmountFloatValue
-        || !s_AreAmmunitionGettersSpawned || !s_AreAmmunitionSettersSpawned) {
+        || !m_GadgetSpawner || !m_GadgetSpawnerItemEntry || !m_GadgetAttacher || !m_GadgetSlotAssigner || !m_FirearmSpawner
+        || !m_FirearmSpawnerItemEntry || !m_EquippedItemSetter || !s_AreAmmunitionGettersSpawned || !s_AreAmmunitionSettersSpawned) {
         Logger::Error(
             "Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
             "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, InvisibleModifier: {}, LocalPlayerIDGetter: {}, "
             "SetHumanoidOutfit: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}, InvisibleBoolValue: {}, CurrentElectricityGetter: {}, "
             "CurrentChemicalGetter: {}, MaximumElectricityGetter: {}, MaximumChemicalGetter: {}, ElectricityGiver: {}, ChemicalGiver: {}, "
             "ElectricityAmountFloatValue: {}, ChemicalAmountFloatValue: {}, GadgetSpawner: {}, GadgetSpawnerItemEntry: {}, GadgetAttacher: {}, "
-            "GadgetSlotAssigner: {}",
+            "GadgetSlotAssigner: {}, EquippedItemSetter: {}, AreAmmunitionGettersSpawned: {}, AreAmmunitionSettersSpawned: {}",
             static_cast<bool>(m_Teleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
             static_cast<bool>(m_CollisionModifier), static_cast<bool>(m_ImmuneModifier), static_cast<bool>(m_UnkillableModifier),
             static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_InvisibleModifier), static_cast<bool>(m_LocalPlayerIDGetter),
@@ -459,7 +524,8 @@ bool Cheats::EnsureEntitiesSpawned() {
             static_cast<bool>(m_MaximumElectricityGetter), static_cast<bool>(m_MaximumChemicalGetter), static_cast<bool>(m_ElectricityGiver),
             static_cast<bool>(m_ChemicalGiver), static_cast<bool>(s_ElectricityAmountFloatValue), static_cast<bool>(s_ChemicalAmountFloatValue),
             static_cast<bool>(m_GadgetSpawner), static_cast<bool>(m_GadgetSpawnerItemEntry), static_cast<bool>(m_GadgetAttacher),
-            static_cast<bool>(m_GadgetSlotAssigner), s_AreAmmunitionGettersSpawned, s_AreAmmunitionSettersSpawned
+            static_cast<bool>(m_GadgetSlotAssigner), static_cast<bool>(m_FirearmSpawner), static_cast<bool>(m_FirearmSpawnerItemEntry),
+            static_cast<bool>(m_EquippedItemSetter), s_AreAmmunitionGettersSpawned, s_AreAmmunitionSettersSpawned
         );
         CleanupSpawnedEntities();
         return false;
@@ -496,6 +562,7 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_CurrentChemicalGetter.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
     m_ElectricityGiver.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
     m_ChemicalGiver.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_EquippedItemSetter.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
 
     for (size_t i = 0; i < m_AmmunitionSetters.size(); ++i) {
         m_AmmunitionSetters[i].m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
@@ -795,9 +862,139 @@ void Cheats::SpawnGadget(
     );
     m_GadgetSlotAssigner.m_entityRef.SetProperty("m_slot", p_Slot);
 
-    m_GadgetSpawner.m_entityRef.SignalInputPin("Spawn");
-
     m_AssignGadgetToSlot = true;
+
+    m_GadgetSpawner.m_entityRef.SignalInputPin("Spawn");
+}
+
+void Cheats::LoadFirearms() {
+    for (const auto& s_ResourceInfo : (*SDK()->Globals()->ResourceContainer)->m_resources) {
+        if (s_ResourceInfo.resourceType != 'TEMP') {
+            continue;
+        }
+
+        ZRuntimeResourceID s_ItemResource;
+
+        for (size_t i = 0; i < s_ResourceInfo.numReferences; ++i) {
+            const uint32_t s_ReferenceIndex = (*SDK()->Globals()->ResourceContainer)->m_references[s_ResourceInfo.firstReferenceIndex + i].index;
+            const ZResourceContainer::SResourceInfo& s_ReferenceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[s_ReferenceIndex];
+
+            if (s_ReferenceInfo.resourceType == 'TEMP'
+                && s_ReferenceInfo.rid
+                       == ResId<"[assembly:/_knt/items/templates/firearms/firearms.template?/firearm_instance_base.entitytemplate].entitytype">) {
+                s_ItemResource = s_ResourceInfo.rid;
+                break;
+            }
+        }
+
+        if (!s_ItemResource.IsValid()) {
+            continue;
+        }
+
+        for (size_t i = 0; i < s_ResourceInfo.numReferences; ++i) {
+            const uint32_t s_ReferenceIndex = (*SDK()->Globals()->ResourceContainer)->m_references[s_ResourceInfo.firstReferenceIndex + i].index;
+            const ZResourceContainer::SResourceInfo& s_ReferenceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[s_ReferenceIndex];
+
+            bool s_IsEntityResourceFound = false;
+
+            if (s_ReferenceInfo.resourceType == 'ERES') {
+                const uint32_t s_TemplateFactoryReferenceIndex =
+                    (*SDK()->Globals()->ResourceContainer)->m_references[s_ReferenceInfo.firstReferenceIndex].index;
+                const ZResourceContainer::SResourceInfo& s_TemplateFactoryReferenceInfo =
+                    (*SDK()->Globals()->ResourceContainer)->m_resources[s_TemplateFactoryReferenceIndex];
+
+                for (size_t j = 0; j < s_TemplateFactoryReferenceInfo.numReferences; ++j) {
+                    const uint32_t s_ReferenceIndex2 =
+                        (*SDK()->Globals()->ResourceContainer)->m_references[s_TemplateFactoryReferenceInfo.firstReferenceIndex + j].index;
+                    const ZResourceContainer::SResourceInfo& s_ReferenceInfo2 =
+                        (*SDK()->Globals()->ResourceContainer)->m_resources[s_ReferenceIndex2];
+
+                    if (s_ReferenceInfo2.resourceType == 'CPPT' && s_ReferenceInfo2.rid == ResId<"[modules:/zfirearmdefinition.class].entitytype">) {
+                        s_IsEntityResourceFound = true;
+                        break;
+                    }
+                }
+
+                if (!s_IsEntityResourceFound) {
+                    continue;
+                }
+
+                TResourcePtr<ZEntityRef> s_ResourcePtr;
+                SDK()->Globals()->ResourceManager->LoadResource(s_ResourcePtr, s_ReferenceInfo.rid);
+
+                SEntityResource* s_EntityResource = static_cast<SEntityResource*>(s_ResourcePtr.GetResourceData());
+                ZFirearmDefinition* s_FirearmDefinition = s_EntityResource->entityRef.QueryInterface<ZFirearmDefinition>();
+
+                if (!s_FirearmDefinition) {
+                    continue;
+                }
+
+                ZString s_Name;
+
+                if (s_FirearmDefinition->m_itemDisplayNameSweet.Exists()) {
+                    ZTextLine* s_TextLine = s_FirearmDefinition->m_itemDisplayNameSweet.GetResource();
+                    s_Name = s_TextLine->GetText();
+                }
+                else {
+                    s_Name = s_FirearmDefinition->m_itemDisplayNameRaw;
+                }
+
+                std::string s_Category = FirearmClassToString(s_FirearmDefinition->m_firearmClass);
+
+                m_FirearmCategoryToFirearmNames[s_Category].insert(s_Name.c_str());
+                m_FirearmNameToItemResource[s_Name.c_str()] = s_ItemResource;
+            }
+        }
+    }
+}
+
+void Cheats::SpawnFirearm(const ZRuntimeResourceID& p_ItemResource) {
+    if (!EnsureEntitiesSpawned()) {
+        return;
+    }
+
+    m_FirearmSpawnerItemEntry.m_entityRef.SetProperty("m_itemTemplate", p_ItemResource);
+
+    auto s_LocalPlayer = SDK()->Globals()->LocalPlayerData->m_pCharacterImpl->m_pCharacter;
+
+    if (!s_LocalPlayer) {
+        return;
+    }
+
+    m_FirearmSpawnerItemEntry.m_entityRef.SetProperty("m_mTransform", s_LocalPlayer.m_pInterfaceRef->GetObjectToWorldMatrix().ToMatrix43());
+
+    TArray<TInterfaceRef<ZDynamicGameplaySpawnerEntryEntity>> s_Entries;
+    s_Entries.push_back(TInterfaceRef<ZDynamicGameplaySpawnerEntryEntity>::FromEntityRef(m_FirearmSpawnerItemEntry.m_entityRef));
+
+    if (m_SpawnMode == SpawnMode::AddToInventory) {
+        m_EquipFirearm = true;
+    }
+
+    m_FirearmSpawner.m_entityRef.SetProperty("m_entries", s_Entries);
+    m_FirearmSpawner.m_entityRef.SignalInputPin("Spawn");
+}
+
+const char* Cheats::FirearmClassToString(EFirearmClass p_FirearmClass) {
+    switch (p_FirearmClass) {
+    case EFirearmClass::HandGun:
+        return "Handgun";
+    case EFirearmClass::SubMachineGun:
+        return "Submachine gun";
+    case EFirearmClass::AssaultRifle:
+        return "Assault rifle";
+    case EFirearmClass::Taser:
+        return "Taser";
+    case EFirearmClass::TranquilizerDartGun:
+        return "Tranquilizer dart gun";
+    case EFirearmClass::Shotgun:
+        return "Shotgun";
+    case EFirearmClass::LongRifle:
+        return "Long rifle";
+    case EFirearmClass::HeavyHandGun:
+        return "Heavy handgun";
+    default:
+        return "";
+    }
 }
 
 DEFINE_PLUGIN_DETOUR(

@@ -86,4 +86,5 @@ class ZItemCharacterDefinitionBase : public ZEntityImpl {
     ZRuntimeResourceID m_itemThumbnail;                  // 0x108
     ZRuntimeResourceID m_itemIcon;                       // 0x110
     ZRuntimeResourceID m_itemVideo;                      // 0x118
+    PAD(0xB0);                                           // 0x120
 };
