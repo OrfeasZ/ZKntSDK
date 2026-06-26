@@ -43,6 +43,11 @@ class Cheats : public zknt::IPluginInterface {
 
     enum class SpawnMode { AddToWorld, AddToInventory };
 
+    void DrawGeneralTab();
+    void DrawOutfitsTab();
+    void DrawGadgetsTab();
+    void DrawFirearmsTab();
+
     void OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent);
 
     void CleanupSpawnedEntities();

@@ -108,226 +108,245 @@ void Cheats::OnDrawUI(bool p_HasFocus) {
     ImGui::SetNextWindowSize({500, 500}, ImGuiCond_FirstUseEver);
 
     if (ImGui::Begin("Cheats", &m_ShowPanel)) {
-        ImGui::Checkbox("Noclip (Ctrl+N)", &m_NoclipEnabled);
+        if (ImGui::BeginTabBar("CheatsTabs")) {
+            if (ImGui::BeginTabItem("General")) {
+                DrawGeneralTab();
 
-        // Collision is forced off while noclip is active.
-        ImGui::BeginDisabled(m_NoclipEnabled);
-        bool s_DisableCollision = m_NoclipEnabled || m_DisableCollision;
-        if (ImGui::Checkbox("Disable collision", &s_DisableCollision)) {
-            m_DisableCollision = s_DisableCollision;
-            m_StateDirty = true;
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Outfits")) {
+                DrawOutfitsTab();
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Gadgets")) {
+                DrawGadgetsTab();
+
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("Firearms")) {
+                DrawFirearmsTab();
+
+                ImGui::EndTabItem();
+            }
+
+            ImGui::EndTabBar();
         }
-        ImGui::EndDisabled();
-
-        ImGui::Separator();
-
-        m_StateDirty |= ImGui::Checkbox("God mode (invincible)", &m_GodMode);
-        m_StateDirty |= ImGui::Checkbox("Buddha mode (unkillable)", &m_Unkillable);
-        m_StateDirty |= ImGui::Checkbox("Infinite ammo", &m_InfiniteAmmo);
-        m_StateDirty |= ImGui::Checkbox("Invisible", &m_Invisible);
-        ImGui::Checkbox("Q-Lens: Infinite electricity", &m_InfiniteElectricity);
-        ImGui::Checkbox("Q-Lens: Infinite chemical", &m_InfiniteChecmical);
-
-        ImGui::Separator();
-
-        if (m_KntLoadoutCollectionEntity && m_OutfitCategories.empty()) {
-            LoadPlayerOutfitSets();
-        }
-
-        static char s_OutfitCategory[1024]{};
-        static char s_Outfit[1024]{};
-        static char s_OutfitVariation[1024]{};
-
-        static const std::set<std::string>* s_CategoryOutfits = nullptr;
-        static const OutfitInfo* s_OutfitInfo = nullptr;
-
-        ImGui::Text("Player outfits");
-
-        ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Outfit category##OutfitCategory", s_OutfitCategory, sizeof(s_OutfitCategory), m_OutfitCategoryToOutfits,
-            [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
-                s_CategoryOutfits = &p_Pair.second;
-                s_OutfitInfo = nullptr;
-
-                s_Outfit[0] = '\0';
-                s_OutfitVariation[0] = '\0';
-            }
-        );
-
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Outfit##Outfit", s_Outfit, sizeof(s_Outfit), s_CategoryOutfits ? *s_CategoryOutfits : std::set<std::string>{},
-            [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
-            [&](const std::string&, const std::string& p_Name, const auto&) {
-                if (const auto it = m_OutfitNameToOutfitInfo.find(p_Name); it != m_OutfitNameToOutfitInfo.end()) {
-                    s_OutfitInfo = &it->second;
-                    s_OutfitVariation[0] = '\0';
-                }
-            }
-        );
-
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Outfit variation##OutfitVariation", s_OutfitVariation, sizeof(s_OutfitVariation),
-            s_OutfitInfo ? s_OutfitInfo->m_Variations : std::vector<std::pair<std::string, size_t>>{},
-            [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [&](const std::string&, const std::string&, const auto& p_Pair) { SetPlayerOutfit(s_OutfitInfo->m_OutfitSet, p_Pair.second); }
-        );
-
-        ImGui::EndDisabled();
-
-        ImGui::Separator();
-
-        ImGui::Text("All outfits");
-
-        static char s_Outfit2[1024]{""};
-        static char s_OutfitVariation2[1024]{""};
-        static const OutfitInfo* s_OutfitInfo2 = nullptr;
-
-        ImGui::BeginDisabled(m_AllOutfitSets.empty());
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Outfit set##OutfitSets", s_Outfit2, sizeof(s_Outfit2), m_AllOutfitSets, [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
-                if (const auto it = m_AllOutfitSets.find(p_Name); it != m_AllOutfitSets.end()) {
-                    s_OutfitInfo2 = &it->second;
-                    s_OutfitVariation2[0] = '\0';
-                }
-            }
-        );
-
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(m_AllOutfitSets.empty() || !s_OutfitInfo2);
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Outfit variation##OutfitVariations", s_OutfitVariation2, sizeof(s_OutfitVariation2),
-            s_OutfitInfo2 ? s_OutfitInfo2->m_Variations : std::vector<std::pair<std::string, size_t>>{},
-            [](auto& p_Pair) -> std::string { return p_Pair.first; }, [](auto& p_Pair) -> std::string { return p_Pair.first; },
-            [&](const std::string&, const std::string& p_Name, const std::pair<std::string, size_t>& p_Value) {
-                SetPlayerOutfit(s_OutfitInfo2->m_OutfitSet, p_Value.second);
-            }
-        );
-
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(!m_AllOutfitSets.empty());
-
-        if (ImGui::Button("Get all outfits")) {
-            LoadAllOutfitSets();
-        }
-
-        ImGui::EndDisabled();
-
-        ImGui::Separator();
-
-        if (m_KntLoadoutCollectionEntity && m_Gadgets.empty()) {
-            LoadGadgets();
-        }
-
-        static char s_Slot1Gadget[1024]{};
-        static char s_Slot2Gadget[1024]{};
-        static char s_Slot3Gadget[1024]{};
-        static char s_Slot4Gadget[1024]{};
-
-        ImGui::Text("Spawn gadgets");
-
-        ImGui::BeginDisabled(m_Gadgets.empty());
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Slot 1##Slot1", s_Slot1Gadget, sizeof(s_Slot1Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
-            [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
-            [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
-                SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot1);
-            }
-        );
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Slot 2##Slot2", s_Slot2Gadget, sizeof(s_Slot2Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
-            [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
-            [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
-                SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot2);
-            }
-        );
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Slot 3##Slot3", s_Slot3Gadget, sizeof(s_Slot3Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
-            [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
-            [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
-                SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot3);
-            }
-        );
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Slot 4##Slot4", s_Slot4Gadget, sizeof(s_Slot4Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
-            [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
-            [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
-                SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot4);
-            }
-        );
-
-        ImGui::EndDisabled();
-
-        ImGui::Separator();
-
-        static char s_FireamCategory[1024]{};
-        static char s_Firearm[1024]{};
-        static const std::set<std::string>* s_CategoryFirearms = nullptr;
-
-        ImGui::Text("Spawn firearms");
-
-        ImGui::BeginDisabled(m_FirearmCategoryToFirearmNames.empty());
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Firearm category##FirearmCategory", s_FireamCategory, sizeof(s_FireamCategory), m_FirearmCategoryToFirearmNames,
-            [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
-            [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
-                s_CategoryFirearms = &p_Pair.second;
-                s_Firearm[0] = '\0';
-            }
-        );
-
-        Util::ImGuiUtils::InputWithAutocomplete(
-            "Firearm##Firearm", s_Firearm, sizeof(s_Firearm), s_CategoryFirearms ? *s_CategoryFirearms : std::set<std::string>{},
-            [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
-            [&](const std::string&, const std::string& p_Name, const auto&) { SpawnFirearm(m_FirearmNameToItemResource[p_Name]); }
-        );
-
-        if (ImGui::RadioButton("Add To World", m_SpawnMode == SpawnMode::AddToWorld)) {
-            m_SpawnMode = SpawnMode::AddToWorld;
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::RadioButton("Add To Inventory", m_SpawnMode == SpawnMode::AddToInventory)) {
-            m_SpawnMode = SpawnMode::AddToInventory;
-        }
-
-        ImGui::EndDisabled();
-
-        ImGui::BeginDisabled(!m_FirearmCategoryToFirearmNames.empty());
-
-        if (ImGui::Button("Get firearms")) {
-            LoadFirearms();
-        }
-
-        ImGui::EndDisabled();
     }
 
     ImGui::End();
+}
+
+void Cheats::DrawGeneralTab() {
+    ImGui::Checkbox("Noclip (Ctrl+N)", &m_NoclipEnabled);
+
+    // Collision is forced off while noclip is active.
+    ImGui::BeginDisabled(m_NoclipEnabled);
+    bool s_DisableCollision = m_NoclipEnabled || m_DisableCollision;
+    if (ImGui::Checkbox("Disable collision", &s_DisableCollision)) {
+        m_DisableCollision = s_DisableCollision;
+        m_StateDirty = true;
+    }
+    ImGui::EndDisabled();
+
+    ImGui::Separator();
+
+    m_StateDirty |= ImGui::Checkbox("God mode (invincible)", &m_GodMode);
+    m_StateDirty |= ImGui::Checkbox("Buddha mode (unkillable)", &m_Unkillable);
+    m_StateDirty |= ImGui::Checkbox("Infinite ammo", &m_InfiniteAmmo);
+    m_StateDirty |= ImGui::Checkbox("Invisible", &m_Invisible);
+    ImGui::Checkbox("Q-Lens: Infinite electricity", &m_InfiniteElectricity);
+    ImGui::Checkbox("Q-Lens: Infinite chemical", &m_InfiniteChecmical);
+}
+
+void Cheats::DrawOutfitsTab() {
+    if (m_KntLoadoutCollectionEntity && m_OutfitCategories.empty()) {
+        LoadPlayerOutfitSets();
+    }
+
+    static char s_OutfitCategory[1024]{};
+    static char s_Outfit[1024]{};
+    static char s_OutfitVariation[1024]{};
+
+    static const std::set<std::string>* s_CategoryOutfits = nullptr;
+    static const OutfitInfo* s_OutfitInfo = nullptr;
+
+    ImGui::Text("Player outfits");
+
+    ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Outfit category##OutfitCategory", s_OutfitCategory, sizeof(s_OutfitCategory), m_OutfitCategoryToOutfits,
+        [](const auto& p_Pair) -> const std::string& { return p_Pair.first; }, [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
+        [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
+            s_CategoryOutfits = &p_Pair.second;
+            s_OutfitInfo = nullptr;
+
+            s_Outfit[0] = '\0';
+            s_OutfitVariation[0] = '\0';
+        }
+    );
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Outfit##Outfit", s_Outfit, sizeof(s_Outfit), s_CategoryOutfits ? *s_CategoryOutfits : std::set<std::string>{},
+        [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
+        [&](const std::string&, const std::string& p_Name, const auto&) {
+            if (const auto it = m_OutfitNameToOutfitInfo.find(p_Name); it != m_OutfitNameToOutfitInfo.end()) {
+                s_OutfitInfo = &it->second;
+                s_OutfitVariation[0] = '\0';
+            }
+        }
+    );
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Outfit variation##OutfitVariation", s_OutfitVariation, sizeof(s_OutfitVariation),
+        s_OutfitInfo ? s_OutfitInfo->m_Variations : std::vector<std::pair<std::string, size_t>>{},
+        [](const auto& p_Pair) -> const std::string& { return p_Pair.first; }, [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
+        [&](const std::string&, const std::string&, const auto& p_Pair) { SetPlayerOutfit(s_OutfitInfo->m_OutfitSet, p_Pair.second); }
+    );
+
+    ImGui::EndDisabled();
+
+    ImGui::Separator();
+
+    ImGui::Text("All outfits");
+
+    static char s_Outfit2[1024]{""};
+    static char s_OutfitVariation2[1024]{""};
+    static const OutfitInfo* s_OutfitInfo2 = nullptr;
+
+    ImGui::BeginDisabled(m_AllOutfitSets.empty());
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Outfit set##OutfitSets", s_Outfit2, sizeof(s_Outfit2), m_AllOutfitSets, [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
+        [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
+        [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
+            if (const auto it = m_AllOutfitSets.find(p_Name); it != m_AllOutfitSets.end()) {
+                s_OutfitInfo2 = &it->second;
+                s_OutfitVariation2[0] = '\0';
+            }
+        }
+    );
+
+    ImGui::EndDisabled();
+
+    ImGui::BeginDisabled(m_AllOutfitSets.empty() || !s_OutfitInfo2);
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Outfit variation##OutfitVariations", s_OutfitVariation2, sizeof(s_OutfitVariation2),
+        s_OutfitInfo2 ? s_OutfitInfo2->m_Variations : std::vector<std::pair<std::string, size_t>>{},
+        [](auto& p_Pair) -> std::string { return p_Pair.first; }, [](auto& p_Pair) -> std::string { return p_Pair.first; },
+        [&](const std::string&, const std::string& p_Name, const std::pair<std::string, size_t>& p_Value) {
+            SetPlayerOutfit(s_OutfitInfo2->m_OutfitSet, p_Value.second);
+        }
+    );
+
+    ImGui::EndDisabled();
+
+    ImGui::BeginDisabled(!m_AllOutfitSets.empty());
+
+    if (ImGui::Button("Get all outfits")) {
+        LoadAllOutfitSets();
+    }
+
+    ImGui::EndDisabled();
+}
+
+void Cheats::DrawGadgetsTab() {
+    if (m_KntLoadoutCollectionEntity && m_Gadgets.empty()) {
+        LoadGadgets();
+    }
+
+    static char s_Slot1Gadget[1024]{};
+    static char s_Slot2Gadget[1024]{};
+    static char s_Slot3Gadget[1024]{};
+    static char s_Slot4Gadget[1024]{};
+
+    ImGui::Text("Spawn gadgets");
+
+    ImGui::BeginDisabled(m_Gadgets.empty());
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Slot 1##Slot1", s_Slot1Gadget, sizeof(s_Slot1Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+        [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+        [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
+            SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot1);
+        }
+    );
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Slot 2##Slot2", s_Slot2Gadget, sizeof(s_Slot2Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+        [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+        [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
+            SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot2);
+        }
+    );
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Slot 3##Slot3", s_Slot3Gadget, sizeof(s_Slot3Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+        [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+        [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
+            SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot3);
+        }
+    );
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Slot 4##Slot4", s_Slot4Gadget, sizeof(s_Slot4Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+        [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
+        [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
+            SpawnGadget(p_GadgetInfo.m_GadgetItemDefinition, p_GadgetInfo.m_ItemTemplate, Gameplay::EGadgetActivationSlot::Slot4);
+        }
+    );
+
+    ImGui::EndDisabled();
+}
+
+void Cheats::DrawFirearmsTab() {
+    static char s_FireamCategory[1024]{};
+    static char s_Firearm[1024]{};
+    static const std::set<std::string>* s_CategoryFirearms = nullptr;
+
+    ImGui::Text("Spawn firearms");
+
+    ImGui::BeginDisabled(m_FirearmCategoryToFirearmNames.empty());
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Firearm category##FirearmCategory", s_FireamCategory, sizeof(s_FireamCategory), m_FirearmCategoryToFirearmNames,
+        [](const auto& p_Pair) -> const std::string& { return p_Pair.first; }, [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
+        [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
+            s_CategoryFirearms = &p_Pair.second;
+            s_Firearm[0] = '\0';
+        }
+    );
+
+    Util::ImGuiUtils::InputWithAutocomplete(
+        "Firearm##Firearm", s_Firearm, sizeof(s_Firearm), s_CategoryFirearms ? *s_CategoryFirearms : std::set<std::string>{},
+        [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
+        [&](const std::string&, const std::string& p_Name, const auto&) { SpawnFirearm(m_FirearmNameToItemResource[p_Name]); }
+    );
+
+    if (ImGui::RadioButton("Add To World", m_SpawnMode == SpawnMode::AddToWorld)) {
+        m_SpawnMode = SpawnMode::AddToWorld;
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::RadioButton("Add To Inventory", m_SpawnMode == SpawnMode::AddToInventory)) {
+        m_SpawnMode = SpawnMode::AddToInventory;
+    }
+
+    ImGui::EndDisabled();
+
+    ImGui::BeginDisabled(!m_FirearmCategoryToFirearmNames.empty());
+
+    if (ImGui::Button("Get firearms")) {
+        LoadFirearms();
+    }
+
+    ImGui::EndDisabled();
 }
 
 void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
