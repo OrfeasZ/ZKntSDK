@@ -54,6 +54,10 @@ zknt::Globals::Globals() {
         "xxx????xxx????xxx????xxx????xxx????xxxx", 3, ZCollisionManager*, CollisionManager
     );
 
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8B\x0D\x00\x00\x00\x00\x48\x8B\x01\xFF\x50\x10\x48\x8B\x0D", "xxx????xxxxxxxxx", 3, ZPackageManagerBase**, PackageManager
+    );
+
     PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x48\x89\x01\x4C\x8D\x77\x08", "xxx????xxxxxxx", 3, void*, ZTemplateEntityFactory_vtbl);
 
     PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x69\x08", "xxx????xxxx", 3, void*, ZAspectEntityFactory_vtbl);
