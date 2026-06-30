@@ -181,6 +181,8 @@ class ZEntityRef {
         std::memcpy(&m_EntityIndex, &s_EntityRefData, sizeof(s_EntityRefData));
     }
 
+    ZEntityRef(ZEntityType** p_EntityRef, uint32_t p_EntityIndex, uint32_t p_Unk) : m_pObj(p_EntityRef), m_EntityIndex(p_EntityIndex), m_Unk(p_Unk) {}
+
     bool operator==(const ZEntityRef& p_Other) const {
         return GetEntity() == p_Other.GetEntity();
     }
