@@ -165,7 +165,21 @@ class ZEntityRef {
   public:
     ZEntityRef() {}
 
-    ZEntityRef(ZEntityType** p_EntityRef) : m_pObj(p_EntityRef) {}
+    ZEntityRef(ZEntityType** p_EntityRef) {
+        if (!p_EntityRef) {
+            return;
+        }
+
+        m_pObj = p_EntityRef;
+
+        // Mirrors the logic of ZEntityImpl::GetID.
+        const auto s_EntityImpl = reinterpret_cast<ZEntityImpl*>(reinterpret_cast<uintptr_t>(p_EntityRef) - sizeof(uintptr_t));
+        const uint64_t s_EntityRefData = *reinterpret_cast<uint64_t*>(
+            reinterpret_cast<uintptr_t>(s_EntityImpl) + sizeof(ZEntityImpl) + static_cast<int32_t>(s_EntityImpl->m_nEntityPtrIndex)
+        );
+
+        std::memcpy(&m_EntityIndex, &s_EntityRefData, sizeof(s_EntityRefData));
+    }
 
     bool operator==(const ZEntityRef& p_Other) const {
         return GetEntity() == p_Other.GetEntity();
