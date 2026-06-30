@@ -118,4 +118,9 @@ zknt::Globals::Globals() {
     );
 
     PATTERN_RELATIVE_GLOBAL("\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x6F\x30", "xxx????xxxx", 3, void*, ZShadernodeEntityBlueprintFactory_vtbl);
+
+    PATTERN_RELATIVE_GLOBAL(
+        "\x48\x8B\x05\x00\x00\x00\x00\x48\x85\xC0\x0F\x85\x00\x00\x00\x00\x48\x89\x5C\x24\x20", "xxx????xxxxx????xxxxx", 3, ZComponentManager**,
+        ComponentManager
+    );
 }

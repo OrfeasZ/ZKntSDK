@@ -16,6 +16,7 @@ class ZLocalPlayerData;
 class ZGameTimeManager;
 class ZCollisionManager;
 class ZPackageManagerBase;
+class ZComponentManager;
 
 namespace zknt {
     class Globals {
@@ -59,5 +60,6 @@ namespace zknt {
         void* ZAudioStateBlueprintFactory_vtbl = nullptr;
         void* ZPadEntityBlueprintFactory_vtbl = nullptr;
         void* ZShadernodeEntityBlueprintFactory_vtbl = nullptr;
+        ZComponentManager** ComponentManager = nullptr;
     };
 }

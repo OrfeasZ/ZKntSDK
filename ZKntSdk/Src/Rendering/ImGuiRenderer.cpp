@@ -10,6 +10,8 @@
 
 #include <IconsMaterialDesign.h>
 
+#include <Glacier/ZComponent.hpp>
+
 namespace zknt::rendering {
     ImGuiRenderer::ImGuiRenderer() {
         QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&m_TicksPerSecond));
@@ -796,6 +798,8 @@ namespace zknt::rendering {
                 m_ImguiVisible.store(true, std::memory_order_release);
             }
         }
+
+        (*SDK()->Globals()->ComponentManager)->m_pApplication->SetOption("DisableHardwareInput", m_ImguiHasFocus ? "1" : "0");
 
         if (!m_ImguiHasFocus) {
             return {false, 0};
