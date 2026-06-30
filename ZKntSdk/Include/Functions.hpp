@@ -26,6 +26,7 @@ class ZFreeCameraControlEditorStyleEntity;
 class ZEntityImpl;
 class ZResourceManager;
 class ZResourceIndex;
+class ZConfigCommand;
 
 namespace zknt {
     class Functions {
@@ -94,5 +95,9 @@ namespace zknt {
         EngineFunction<ZEntityType*(ZEntityImpl* th, uint32_t nUniqueMapMask)>* ZEntityImpl_EnsureUniqueType = nullptr;
 
         EngineFunction<void(ZResourceManager* th, ZResourceIndex index)>* ZResourceManager_UninstallResource = nullptr;
+
+        EngineFunction<void(const char* pCommandName, const char* argv)>* ZConfigCommand_ExecuteCommand = nullptr;
+
+        EngineFunction<ZConfigCommand*(uint32_t commandNameHash)>* ZConfigCommand_GetConfigCommand = nullptr;
     };
 }

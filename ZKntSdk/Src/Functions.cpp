@@ -119,6 +119,16 @@ zknt::Functions::Functions() {
         "\xE8\x00\x00\x00\x00\x8B\x13\x45\x33\xC0", "x????xxxxx", ZResourceManager_UninstallResource,
         void(ZResourceManager * th, ZResourceIndex index)
     );
+
+    PATTERN_FUNCTION(
+        "\x48\x89\x4C\x24\x08\x55\x53\x56\x57\x48\x8D\x6C\x24\xC1\x48\x81\xEC\x00\x00\x00\x00\x48\x8B\xDA", "xxxxxxxxxxxxxxxxx????xxx",
+        ZConfigCommand_ExecuteCommand, void(const char* pCommandName, const char* argv)
+    );
+
+    PATTERN_FUNCTION(
+        "\x48\x89\x5C\x24\x08\x57\x48\x83\xEC\x00\x8B\xF9", "xxxxxxxxx?xx", ZConfigCommand_GetConfigCommand,
+        ZConfigCommand * (uint32_t commandNameHash)
+    );
 }
 
 zknt::Functions::~Functions() {
