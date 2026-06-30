@@ -7,9 +7,19 @@
 #include "ZObject.hpp"
 #include <IModSDK.hpp>
 #include <Functions.hpp>
+#include <Hooks.hpp>
 
 class ZEntityRef;
 class ZEntityBlueprintFactoryBase;
+
+class IEntitySceneContext;
+
+class ZEntityManager : public IComponentInterface {
+  public:
+    IEntitySceneContext* m_pSceneContext;                                           // 0x8
+    PAD(0x8);                                                                       // 0x10
+    THashMap<uint64_t, TPair<ZEntityRef, TResourcePtr<IEntityFactory>>> m_Entities; // 0x18
+};
 
 struct SPropertyData {
     SNamedPropertyInfo* GetPropertyInfo() const {
