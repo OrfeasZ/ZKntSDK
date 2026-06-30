@@ -157,8 +157,8 @@ class ZEntityImpl : public IEntity {
     }
 
     ZEntityType* m_pEntityType; // 0x8
-    uint32_t m_nEntityPtrIndex; // 0x10
-    uint32_t m_nEntityFlags;    // 0x14
+    int32_t m_nEntityPtrIndex;  // 0x10
+    int16_t m_nEntityFlags;     // 0x14
 };
 
 class ZEntityRef {
