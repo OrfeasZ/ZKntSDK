@@ -12,6 +12,9 @@ endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Add CPM.
+include(cmake/get-cpm.cmake)
+
 find_package(minhook CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(directx-headers CONFIG REQUIRED)
@@ -79,3 +82,20 @@ install(CODE [[
 
 # Install licenses from external projects.
 install(FILES "External/IconFontCppHeaders/licence.txt" DESTINATION licenses RENAME IconFontCppHeaders.txt)
+
+# Install licenses from CPM packages.
+foreach (PACKAGE ${CPM_PACKAGES})
+    message(STATUS "Checking for licenses in ${PACKAGE} (${${PACKAGE}_SOURCE_DIR})...")
+    file(GLOB CPM_PACKAGE_LICENSES
+            "${${PACKAGE}_SOURCE_DIR}/license*"
+            "${${PACKAGE}_SOURCE_DIR}/licence*"
+            "${${PACKAGE}_SOURCE_DIR}/copying*"
+            "${${PACKAGE}_SOURCE_DIR}/copyright*"
+    )
+
+    # If we found any license files, copy the first one.
+    if (CPM_PACKAGE_LICENSES)
+        list(GET CPM_PACKAGE_LICENSES 0 CPM_PACKAGE_LICENSE)
+        install(FILES "${CPM_PACKAGE_LICENSE}" DESTINATION licenses RENAME "${PACKAGE}.txt")
+    endif ()
+endforeach ()
