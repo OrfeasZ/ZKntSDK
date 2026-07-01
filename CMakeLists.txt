@@ -20,6 +20,8 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(directx-headers CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 
+CPMAddPackage("gh:OrfeasZ/ZHMTools@4.1.0")
+
 add_subdirectory(DirectInputProxy)
 add_subdirectory(ZKntSdk)
 
