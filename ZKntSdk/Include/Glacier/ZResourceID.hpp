@@ -18,22 +18,22 @@ class ZRuntimeResourceID {
      * Create a runtime resource ID from a string.
      *
      * The string can be in two formats:
-     * 1. Hash: 16 hexadecimal characters (eg. "00B09C0C1A885059")
-     * 2. IOI Path: (eg. "[modules:/zspatialentity.class].pc_entityblueprint")
+     * 1. Hash: 16 hexadecimal characters (eg. "01B3F265786B9059")
+     * 2. IOI Path: (eg. "[modules:/zspatialentity.class].entityblueprint")
      *
      * In the first case, the string is parsed as a hexadecimal number and
      * used as-is. In the second case, the string is MD5 hashed and truncated.
      */
     static ZRuntimeResourceID FromString(const std::string& p_String) {
-        // If hash starts with 00, is exactly 16 chars long, and is hex, then decode it directly to a uint64.
-        if (p_String.starts_with("00") && p_String.size() == 16 && p_String.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos) {
+        // If hash starts with 01, is exactly 16 chars long, and is hex, then decode it directly to a uint64.
+        if (p_String.starts_with("01") && p_String.size() == 16 && p_String.find_first_not_of("0123456789abcdefABCDEF") == std::string::npos) {
             return {std::stoull(p_String, nullptr, 16)};
         }
 
         // Otherwise hash it.
         const auto s_Hash = Hash::MD5(std::string_view(p_String));
 
-        const uint32_t s_IDHigh = ((s_Hash.A >> 24) & 0x000000FF) | ((s_Hash.A >> 8) & 0x0000FF00) | ((s_Hash.A << 8) & 0x00FF0000);
+        const uint32_t s_IDHigh = ((s_Hash.A >> 24) & 0x000000FF) | ((s_Hash.A >> 8) & 0x0000FF00) | ((s_Hash.A << 8) & 0x00FF0000) | 0x01000000;
 
         const uint32_t s_IDLow =
             ((s_Hash.B >> 24) & 0x000000FF) | ((s_Hash.B >> 8) & 0x0000FF00) | ((s_Hash.B << 8) & 0x00FF0000) | ((s_Hash.B << 24) & 0xFF000000);
