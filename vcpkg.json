@@ -13,7 +13,6 @@
         "dx12-binding",
         "win32-binding"
       ]
-    },
-    "simdjson"
+    }
   ]
 }
