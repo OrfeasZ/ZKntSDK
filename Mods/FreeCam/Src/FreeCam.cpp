@@ -375,6 +375,13 @@ void FreeCam::EnableFreecam() {
         return;
     }
 
+    m_TeleportTarget = TEntityRef<ZSpatialEntity>::SpawnEntity(ResId<"[modules:/zspatialentity.class].entitytype">);
+    if (!m_TeleportTarget) {
+        Logger::Error("Failed to create spatial entity for teleport target.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
     m_GetLocalPlayerHumanoidCharacter =
         TEntityRef<ZCLGetLocalPlayerHumanoidCharacter>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerhumanoidcharacter.class].entitytype">);
     if (!m_GetLocalPlayerHumanoidCharacter) {
@@ -419,6 +426,7 @@ void FreeCam::EnableFreecam() {
     m_BlockHumanoidPlayerCloseCombatInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
     m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
     m_TeleportHumanoidEntity.m_entityRef.SetProperty("m_humanoid", s_LocalPlayerHumanoidCharacter);
+    m_TeleportHumanoidEntity.m_entityRef.SetProperty("m_targetSpatial", m_TeleportTarget);
 
     if (!m_IsPlayerInputEnabled) {
         m_BlockHumanoidPlayerMoveInput.m_entityRef.SignalInputPin("Do");
@@ -537,7 +545,22 @@ void FreeCam::TeleportPlayer() {
     }
 
     if (m_TeleportHumanoidEntity) {
-        m_TeleportHumanoidEntity.m_entityRef.SetProperty("m_targetSpatial", s_RayQueryOutput.m_pBlockingSpatialEntity);
+        auto s_LocalPlayer = SDK()->Globals()->LocalPlayerData->m_pCharacterImpl->m_pCharacter;
+
+        if (!s_LocalPlayer) {
+            return;
+        }
+
+        const auto s_PlayerSpatialEntity = s_LocalPlayer.m_entityRef.QueryInterface<ZSpatialEntity>();
+
+        if (!s_PlayerSpatialEntity) {
+            return;
+        }
+
+        SMatrix s_Transform = s_PlayerSpatialEntity->GetObjectToWorldMatrix();
+        s_Transform.Trans = s_RayQueryOutput.m_vPosition;
+
+        m_TeleportTarget->SetObjectToWorldMatrixFromEditor(s_Transform);
         m_TeleportHumanoidEntity.m_entityRef.SignalInputPin("Do");
     }
 }
@@ -618,6 +641,10 @@ void FreeCam::CleanupSpawnedEntities() {
         SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_TeleportHumanoidEntity.m_entityRef);
     }
 
+    if (m_TeleportTarget) {
+        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_TeleportTarget.m_entityRef);
+    }
+
     if (m_GetLocalPlayerHumanoidCharacter) {
         SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_GetLocalPlayerHumanoidCharacter.m_entityRef);
     }
@@ -633,6 +660,7 @@ void FreeCam::CleanupSpawnedEntities() {
     m_UnblockHumanoidPlayerCloseCombatInput = {};
     m_GetLocalPlayer = {};
     m_TeleportHumanoidEntity = {};
+    m_TeleportTarget = {};
     m_GetLocalPlayerHumanoidCharacter = {};
     m_PreviousCameraSource = {};
     m_Initialized = false;
