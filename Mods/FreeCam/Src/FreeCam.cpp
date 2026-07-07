@@ -118,6 +118,10 @@ void FreeCam::Init() {
     SDK()->Hooks()->ZFreeCameraControlEditorStyleEntity_MoveCameraWithKey->AddDetour(
         this, &FreeCam::ZFreeCameraControlEditorStyleEntity_MoveCameraWithKey
     );
+
+    m_IsEditorStyleFreeCamEnabled = GetSettingBool("general", "use_editor_style_freecam", false);
+    m_GamePaused = GetSettingBool("general", "toggle_pause", false);
+    m_MoveInFreecam = GetSettingBool("general", "move_in_freecam", false);
 }
 
 void FreeCam::OnEngineInitialized() {
@@ -163,16 +167,23 @@ void FreeCam::OnDrawUI(bool p_HasFocus) {
             }
 
             ImGui::BeginDisabled(s_IsFreeCamActive);
-            ImGui::Checkbox("Use editor style freecam", &m_IsEditorStyleFreeCamEnabled);
+
+            if (ImGui::Checkbox("Use editor style freecam", &m_IsEditorStyleFreeCamEnabled)) {
+                SetSettingBool("general", "use_editor_style_freecam", m_IsEditorStyleFreeCamEnabled);
+            }
+
             ImGui::EndDisabled();
 
             bool s_IsPlayerInputEnabled = m_IsPlayerInputEnabled;
 
             if (ImGui::Checkbox("Enable player input", &s_IsPlayerInputEnabled)) {
                 TogglePlayerInput();
+                SetSettingBool("general", "move_in_freecam", m_MoveInFreecam);
             }
 
             if (ImGui::Checkbox("Pause game in freecam", &m_GamePaused)) {
+                SetSettingBool("general", "toggle_pause", m_GamePaused);
+
                 if (m_IsFreeCamActive) {
                     SDK()->Globals()->GameTimeManager->m_bPaused = m_GamePaused;
                 }
@@ -265,6 +276,7 @@ void FreeCam::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
     if (m_IsFreeCamActive) {
         if (m_TogglePauseGameAction.Digital()) {
             m_GamePaused = !m_GamePaused;
+            SetSettingBool("general", "toggle_pause", m_GamePaused);
             SDK()->Globals()->GameTimeManager->m_bPaused = m_GamePaused;
         }
 
