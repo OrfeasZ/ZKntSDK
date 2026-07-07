@@ -145,11 +145,12 @@ namespace zknt {
          * @param p_Plugin The plugin to get the setting for.
          * @param p_Section The section of the setting in the INI file.
          * @param p_Name The name of the setting.
-         * @param p_DefaultValue The default value to return if the setting does not exist.
-         * @return The value of the setting, or the default value if the setting does not exist.
+         * @param p_DefaultValue The default value to use if the setting does not exist.
+         * @param p_OutValue Receives the value of the setting, or p_DefaultValue if the setting does not exist.
          */
-        virtual ZString
-        GetPluginSetting(IPluginInterface* p_Plugin, const ZString& p_Section, const ZString& p_Name, const ZString& p_DefaultValue) = 0;
+        virtual void GetPluginSetting(
+            IPluginInterface* p_Plugin, const ZString& p_Section, const ZString& p_Name, const ZString& p_DefaultValue, ZString& p_OutValue
+        ) = 0;
 
         /**
          * Get a plugin setting integer value for the given name.

@@ -396,18 +396,22 @@ namespace zknt {
         s_Settings->SetSetting(p_Section.c_str(), p_Name.c_str(), p_Value ? "true" : "false");
     }
 
-    ZString ModSDK::GetPluginSetting(IPluginInterface* p_Plugin, const ZString& p_Section, const ZString& p_Name, const ZString& p_DefaultValue) {
+    void ModSDK::GetPluginSetting(
+        IPluginInterface* p_Plugin, const ZString& p_Section, const ZString& p_Name, const ZString& p_DefaultValue, ZString& p_OutValue
+    ) {
         if (!p_Plugin) {
-            return p_DefaultValue;
+            p_OutValue = p_DefaultValue;
+            return;
         }
 
         auto s_Settings = m_ModLoader->GetModSettings(p_Plugin);
 
         if (!s_Settings) {
-            return p_DefaultValue;
+            p_OutValue = p_DefaultValue;
+            return;
         }
 
-        return s_Settings->GetSetting(p_Section.c_str(), p_Name.c_str(), p_DefaultValue.c_str());
+        p_OutValue = s_Settings->GetSetting(p_Section.c_str(), p_Name.c_str(), p_DefaultValue.c_str());
     }
 
     int64_t ModSDK::GetPluginSettingInt(IPluginInterface* p_Plugin, const ZString& p_Section, const ZString& p_Name, int64_t p_DefaultValue) {

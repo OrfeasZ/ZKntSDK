@@ -96,11 +96,11 @@ namespace zknt {
          * Get a setting string value for the given name.
          * @param p_Section The section of the setting in the INI file.
          * @param p_Name The name of the setting.
-         * @param p_DefaultValue The default value to return if the setting does not exist.
-         * @return The value of the setting, or the default value if the setting does not exist.
+         * @param p_DefaultValue The default value to use if the setting does not exist.
+         * @param p_OutValue Receives the value of the setting, or p_DefaultValue if the setting does not exist.
          */
-        ZString GetSetting(const ZString& p_Section, const ZString& p_Name, const ZString& p_DefaultValue) {
-            return SDK()->GetPluginSetting(this, p_Section, p_Name, p_DefaultValue);
+        void GetSetting(const ZString& p_Section, const ZString& p_Name, const ZString& p_DefaultValue, ZString& p_OutValue) {
+            SDK()->GetPluginSetting(this, p_Section, p_Name, p_DefaultValue, p_OutValue);
         }
 
         /**
@@ -110,7 +110,7 @@ namespace zknt {
          * @param p_DefaultValue The default value to return if the setting does not exist or is not an integer.
          * @return The value of the setting, or the default value if the setting does not exist or is not an integer.
          */
-        int64 GetSettingInt(const ZString& p_Section, const ZString& p_Name, int64_t p_DefaultValue) {
+        int64_t GetSettingInt(const ZString& p_Section, const ZString& p_Name, int64_t p_DefaultValue) {
             return SDK()->GetPluginSettingInt(this, p_Section, p_Name, p_DefaultValue);
         }
 
@@ -121,7 +121,7 @@ namespace zknt {
          * @param p_DefaultValue The default value to return if the setting does not exist or is not an unsigned integer.
          * @return The value of the setting, or the default value if the setting does not exist or is not an unsigned integer.
          */
-        uint64 GetSettingUInt(const ZString& p_Section, const ZString& p_Name, uint64_t p_DefaultValue) {
+        uint64_t GetSettingUInt(const ZString& p_Section, const ZString& p_Name, uint64_t p_DefaultValue) {
             return SDK()->GetPluginSettingUInt(this, p_Section, p_Name, p_DefaultValue);
         }
 
