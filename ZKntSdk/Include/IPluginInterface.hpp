@@ -21,6 +21,7 @@ namespace zknt {
             }
 
             ImGui::SetCurrentContext(s_Context);
+            ImGui::SetAllocatorFunctions(SDK()->GetImGuiAlloc(), SDK()->GetImGuiFree(), SDK()->GetImGuiAllocatorUserData());
         }
 
       public:

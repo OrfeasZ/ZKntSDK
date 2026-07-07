@@ -58,6 +58,9 @@ namespace zknt {
 
         // IModSDK (mod-facing) methods.
         ImGuiContext* GetImGuiContext() override;
+        ImGuiMemAllocFunc GetImGuiAlloc() override;
+        ImGuiMemFreeFunc GetImGuiFree() override;
+        void* GetImGuiAllocatorUserData() override;
         ::zknt::Hooks* Hooks() override;
         ::zknt::Functions* Functions() override;
         ::zknt::Globals* Globals() override;

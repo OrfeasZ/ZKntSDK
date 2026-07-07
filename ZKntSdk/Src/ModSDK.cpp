@@ -228,6 +228,33 @@ namespace zknt {
         return m_ImGuiRenderer ? m_ImGuiRenderer->GetImGuiContext() : nullptr;
     }
 
+    ImGuiMemAllocFunc ModSDK::GetImGuiAlloc() {
+        ImGuiMemAllocFunc s_AllocFunc;
+        ImGuiMemFreeFunc s_FreeFunc;
+        void* s_UserData;
+        ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
+
+        return s_AllocFunc;
+    }
+
+    ImGuiMemFreeFunc ModSDK::GetImGuiFree() {
+        ImGuiMemAllocFunc s_AllocFunc;
+        ImGuiMemFreeFunc s_FreeFunc;
+        void* s_UserData;
+        ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
+
+        return s_FreeFunc;
+    }
+
+    void* ModSDK::GetImGuiAllocatorUserData() {
+        ImGuiMemAllocFunc s_AllocFunc;
+        ImGuiMemFreeFunc s_FreeFunc;
+        void* s_UserData;
+        ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
+
+        return s_UserData;
+    }
+
     zknt::Hooks* ModSDK::Hooks() {
         return m_Hooks.get();
     }
