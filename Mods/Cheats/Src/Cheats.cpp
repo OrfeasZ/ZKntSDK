@@ -178,7 +178,7 @@ void Cheats::DrawOutfitsTab() {
 
     ImGui::BeginDisabled(!m_KntLoadoutCollectionEntity || m_OutfitCategories.empty());
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Outfit category##OutfitCategory", s_OutfitCategory, sizeof(s_OutfitCategory), m_OutfitCategoryToOutfits,
         [](const auto& p_Pair) -> const std::string& { return p_Pair.first; }, [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
         [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
@@ -190,7 +190,7 @@ void Cheats::DrawOutfitsTab() {
         }
     );
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Outfit##Outfit", s_Outfit, sizeof(s_Outfit), s_CategoryOutfits ? *s_CategoryOutfits : std::set<std::string>{},
         [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
         [&](const std::string&, const std::string& p_Name, const auto&) {
@@ -201,7 +201,7 @@ void Cheats::DrawOutfitsTab() {
         }
     );
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Outfit variation##OutfitVariation", s_OutfitVariation, sizeof(s_OutfitVariation),
         s_OutfitInfo ? s_OutfitInfo->m_Variations : std::vector<std::pair<std::string, size_t>>{},
         [](const auto& p_Pair) -> const std::string& { return p_Pair.first; }, [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
@@ -220,7 +220,7 @@ void Cheats::DrawOutfitsTab() {
 
     ImGui::BeginDisabled(m_AllOutfitSets.empty());
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Outfit set##OutfitSets", s_Outfit2, sizeof(s_Outfit2), m_AllOutfitSets, [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
         [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
         [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
@@ -235,7 +235,7 @@ void Cheats::DrawOutfitsTab() {
 
     ImGui::BeginDisabled(m_AllOutfitSets.empty() || !s_OutfitInfo2);
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Outfit variation##OutfitVariations", s_OutfitVariation2, sizeof(s_OutfitVariation2),
         s_OutfitInfo2 ? s_OutfitInfo2->m_Variations : std::vector<std::pair<std::string, size_t>>{},
         [](auto& p_Pair) -> std::string { return p_Pair.first; }, [](auto& p_Pair) -> std::string { return p_Pair.first; },
@@ -269,7 +269,7 @@ void Cheats::DrawGadgetsTab() {
 
     ImGui::BeginDisabled(m_Gadgets.empty());
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Slot 1##Slot1", s_Slot1Gadget, sizeof(s_Slot1Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
         [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
         [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
@@ -277,7 +277,7 @@ void Cheats::DrawGadgetsTab() {
         }
     );
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Slot 2##Slot2", s_Slot2Gadget, sizeof(s_Slot2Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
         [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
         [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
@@ -285,7 +285,7 @@ void Cheats::DrawGadgetsTab() {
         }
     );
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Slot 3##Slot3", s_Slot3Gadget, sizeof(s_Slot3Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
         [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
         [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
@@ -293,7 +293,7 @@ void Cheats::DrawGadgetsTab() {
         }
     );
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Slot 4##Slot4", s_Slot4Gadget, sizeof(s_Slot4Gadget), m_Gadgets, [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
         [](auto& p_GadgetInfo) -> std::string { return p_GadgetInfo.m_Name; },
         [&](const std::string&, const std::string& p_Name, const GadgetInfo& p_GadgetInfo) {
@@ -313,7 +313,7 @@ void Cheats::DrawFirearmsTab() {
 
     ImGui::BeginDisabled(m_FirearmCategoryToFirearmNames.empty());
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Firearm category##FirearmCategory", s_FireamCategory, sizeof(s_FireamCategory), m_FirearmCategoryToFirearmNames,
         [](const auto& p_Pair) -> const std::string& { return p_Pair.first; }, [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
         [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
@@ -322,7 +322,7 @@ void Cheats::DrawFirearmsTab() {
         }
     );
 
-    Util::ImGuiUtils::InputWithAutocomplete(
+    knt::util::InputWithAutocomplete(
         "Firearm##Firearm", s_Firearm, sizeof(s_Firearm), s_CategoryFirearms ? *s_CategoryFirearms : std::set<std::string>{},
         [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
         [&](const std::string&, const std::string& p_Name, const auto&) { SpawnFirearm(m_FirearmNameToItemResource[p_Name]); }
