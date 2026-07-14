@@ -26,8 +26,8 @@ class Cheats : public zknt::IPluginInterface {
 
     void Init() override;
     void OnEngineInitialized() override;
-    void OnDrawMenu() override;
-    void OnDrawUI(bool p_HasFocus) override;
+    void OnDrawMenu(zknt::IImGuiRenderer* p_Renderer) override;
+    void OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) override;
 
   private:
     struct OutfitInfo {

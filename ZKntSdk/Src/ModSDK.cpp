@@ -270,7 +270,7 @@ namespace zknt {
                     if (!s_Plugin) {
                         continue;
                     }
-                    s_Plugin->OnDrawUI(p_HasFocus);
+                    s_Plugin->OnDrawUI(m_ImGuiRenderer.get(), p_HasFocus);
                 }
             }
         });
@@ -282,37 +282,6 @@ namespace zknt {
             Logger::Info("Engine was already initialized before SDK load; replaying engine-init flow.");
             HandleEngineInitialized(false);
         }
-    }
-
-    ImGuiContext* ModSDK::GetImGuiContext() {
-        return m_ImGuiRenderer ? m_ImGuiRenderer->GetImGuiContext() : nullptr;
-    }
-
-    ImGuiMemAllocFunc ModSDK::GetImGuiAlloc() {
-        ImGuiMemAllocFunc s_AllocFunc;
-        ImGuiMemFreeFunc s_FreeFunc;
-        void* s_UserData;
-        ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
-
-        return s_AllocFunc;
-    }
-
-    ImGuiMemFreeFunc ModSDK::GetImGuiFree() {
-        ImGuiMemAllocFunc s_AllocFunc;
-        ImGuiMemFreeFunc s_FreeFunc;
-        void* s_UserData;
-        ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
-
-        return s_FreeFunc;
-    }
-
-    void* ModSDK::GetImGuiAllocatorUserData() {
-        ImGuiMemAllocFunc s_AllocFunc;
-        ImGuiMemFreeFunc s_FreeFunc;
-        void* s_UserData;
-        ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
-
-        return s_UserData;
     }
 
     zknt::Hooks* ModSDK::Hooks() {
@@ -339,26 +308,6 @@ namespace zknt {
         const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
     ) {
         return PatchCodeInternal(p_Pattern, p_Mask, p_NewCode, p_CodeSize, p_TargetOffset, p_OriginalCode);
-    }
-
-    ImFont* ModSDK::GetImGuiLightFont() {
-        return m_ImGuiRenderer ? m_ImGuiRenderer->GetLightFont() : nullptr;
-    }
-
-    ImFont* ModSDK::GetImGuiRegularFont() {
-        return m_ImGuiRenderer ? m_ImGuiRenderer->GetRegularFont() : nullptr;
-    }
-
-    ImFont* ModSDK::GetImGuiMediumFont() {
-        return m_ImGuiRenderer ? m_ImGuiRenderer->GetMediumFont() : nullptr;
-    }
-
-    ImFont* ModSDK::GetImGuiBoldFont() {
-        return m_ImGuiRenderer ? m_ImGuiRenderer->GetBoldFont() : nullptr;
-    }
-
-    ImFont* ModSDK::GetImGuiBlackFont() {
-        return m_ImGuiRenderer ? m_ImGuiRenderer->GetBlackFont() : nullptr;
     }
 
     void ModSDK::AllocateZString(ZString* p_Target, const char* p_Str, uint32_t p_Size) {
@@ -672,7 +621,7 @@ namespace zknt {
     void ModSDK::OnModLoaded(const std::string& p_Name, IPluginInterface* p_Plugin, bool /*p_LiveLoad*/) const {
         Logger::Info("Mod '{}' loaded.", p_Name);
 
-        p_Plugin->SetupUI();
+        p_Plugin->SetupUI(m_ImGuiRenderer.get());
 
         if (m_EngineInitialized && p_Plugin) {
             p_Plugin->OnEngineInitialized();

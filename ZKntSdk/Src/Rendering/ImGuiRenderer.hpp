@@ -47,8 +47,35 @@ namespace zknt::rendering {
             return m_ImguiVisible;
         }
 
-        ImGuiContext* GetImGuiContext() const override {
+        ImGuiContext* GetContext() const override {
             return m_ImGuiContext;
+        }
+
+        ImGuiMemAllocFunc GetMemAlloc() const override {
+            ImGuiMemAllocFunc s_AllocFunc;
+            ImGuiMemFreeFunc s_FreeFunc;
+            void* s_UserData;
+            ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
+
+            return s_AllocFunc;
+        }
+
+        ImGuiMemFreeFunc GetMemFree() const override {
+            ImGuiMemAllocFunc s_AllocFunc;
+            ImGuiMemFreeFunc s_FreeFunc;
+            void* s_UserData;
+            ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
+
+            return s_FreeFunc;
+        }
+
+        void* GetAllocatorUserData() const override {
+            ImGuiMemAllocFunc s_AllocFunc;
+            ImGuiMemFreeFunc s_FreeFunc;
+            void* s_UserData;
+            ImGui::GetAllocatorFunctions(&s_AllocFunc, &s_FreeFunc, &s_UserData);
+
+            return s_UserData;
         }
 
         ImFont* GetLightFont() const override {

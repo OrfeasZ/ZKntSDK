@@ -58,25 +58,20 @@ namespace zknt {
         void InvokeUiCallbacks(bool p_HasFocus);
 
         // IModSDK (mod-facing) methods.
-        ImGuiContext* GetImGuiContext() override;
-        ImGuiMemAllocFunc GetImGuiAlloc() override;
-        ImGuiMemFreeFunc GetImGuiFree() override;
-        void* GetImGuiAllocatorUserData() override;
         ::zknt::Hooks* Hooks() override;
         ::zknt::Functions* Functions() override;
         ::zknt::Globals* Globals() override;
-        ImFont* GetImGuiLightFont() override;
-        ImFont* GetImGuiRegularFont() override;
-        ImFont* GetImGuiMediumFont() override;
-        ImFont* GetImGuiBoldFont() override;
-        ImFont* GetImGuiBlackFont() override;
+
         void Log(spdlog::level::level_enum p_Level, std::string_view p_Msg) override;
+
         bool PatchCode(const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_Offsp_TargetOffsetet) override;
         bool PatchCodeStoreOriginal(
             const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
         ) override;
+
         void AllocateZString(ZString* p_Target, const char* p_Str, uint32_t p_Size) override;
         void FreeZString(ZString* p_Target) override;
+
         bool LoadCppEntity(
             const ZString& p_BlueprintJson, const ZString& p_BlueprintMetaJson, const ZString& p_EntityJson, const ZString& p_EntityMetaJson,
             TResourcePtr<ZCppEntityBlueprintFactory>& p_BlueprintFactoryOut, TResourcePtr<ZCppEntityFactory>& p_TemplateFactoryOut

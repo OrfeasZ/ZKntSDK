@@ -3,6 +3,7 @@
 #include "Common.hpp"
 #include "Hooks.hpp"
 #include "IModSDK.hpp"
+#include "IImGuiRenderer.hpp"
 #include "IDirectXTKRenderer.hpp"
 
 #include <cr.h>
@@ -14,15 +15,15 @@ namespace zknt {
         virtual ~IPluginInterface() = default;
 
       private:
-        virtual void SetupUI() {
-            auto* s_Context = SDK()->GetImGuiContext();
+        virtual void SetupUI(IImGuiRenderer* p_Renderer) {
+            auto* s_Context = p_Renderer->GetContext();
 
             if (!s_Context) {
                 return;
             }
 
             ImGui::SetCurrentContext(s_Context);
-            ImGui::SetAllocatorFunctions(SDK()->GetImGuiAlloc(), SDK()->GetImGuiFree(), SDK()->GetImGuiAllocatorUserData());
+            ImGui::SetAllocatorFunctions(p_Renderer->GetMemAlloc(), p_Renderer->GetMemFree(), p_Renderer->GetAllocatorUserData());
         }
 
       public:
@@ -33,9 +34,9 @@ namespace zknt {
         virtual void OnEngineInitialized() {}
 
         // Invoked on the render thread.
-        virtual void OnDrawUI(bool p_HasFocus) {}
+        virtual void OnDrawUI(IImGuiRenderer* p_Renderer, bool p_HasFocus) {}
 
-        virtual void OnDrawMenu() {}
+        virtual void OnDrawMenu(IImGuiRenderer* p_Renderer) {}
 
         // Invoked on the render thread.
         virtual void OnDraw3D(IDirectXTKRenderer* p_Renderer) {}

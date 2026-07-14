@@ -94,13 +94,13 @@ void Cheats::OnEngineInitialized() {
     SDK()->Functions()->AddBindings->Call(s_Bindings, s_InputContext);
 }
 
-void Cheats::OnDrawMenu() {
+void Cheats::OnDrawMenu(zknt::IImGuiRenderer* p_Renderer) {
     if (ImGui::Button("CHEATS")) {
         m_ShowPanel = !m_ShowPanel;
     }
 }
 
-void Cheats::OnDrawUI(bool p_HasFocus) {
+void Cheats::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
     if (!m_ShowPanel || !p_HasFocus) {
         return;
     }

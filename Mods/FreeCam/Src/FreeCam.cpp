@@ -144,20 +144,20 @@ void FreeCam::OnEngineInitialized() {
     SDK()->Functions()->AddBindings->Call(s_Bindings, s_InputContext);
 }
 
-void FreeCam::OnDrawMenu() {
+void FreeCam::OnDrawMenu(zknt::IImGuiRenderer* p_Renderer) {
     if (ImGui::Button(ICON_MD_PHOTO_CAMERA " FREECAM")) {
         m_MenuVisible = !m_MenuVisible;
     }
 }
 
-void FreeCam::OnDrawUI(bool p_HasFocus) {
+void FreeCam::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
     if (m_MenuVisible) {
         const auto s_Center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(s_Center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-        ImGui::PushFont(SDK()->GetImGuiBlackFont());
+        ImGui::PushFont(p_Renderer->GetBlackFont());
         const auto s_MenuExpanded = ImGui::Begin(ICON_MD_PHOTO_CAMERA " FreeCam", &m_MenuVisible);
-        ImGui::PushFont(SDK()->GetImGuiRegularFont());
+        ImGui::PushFont(p_Renderer->GetRegularFont());
 
         if (s_MenuExpanded) {
             bool s_IsFreeCamActive = m_IsFreeCamActive;
@@ -204,9 +204,9 @@ void FreeCam::OnDrawUI(bool p_HasFocus) {
     }
 
     if (m_ControlsVisible) {
-        ImGui::PushFont(SDK()->GetImGuiBlackFont());
+        ImGui::PushFont(p_Renderer->GetBlackFont());
         const auto s_ControlsExpanded = ImGui::Begin(ICON_MD_PHOTO_CAMERA " FreeCam Controls", &m_ControlsVisible);
-        ImGui::PushFont(SDK()->GetImGuiRegularFont());
+        ImGui::PushFont(p_Renderer->GetRegularFont());
 
         if (s_ControlsExpanded) {
             ImGui::TextUnformatted("PC Controls");

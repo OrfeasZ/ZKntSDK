@@ -47,7 +47,7 @@ namespace zknt::ui {
         if (auto* s_Loader = ModSDK::GetInstance()->GetModLoader(); s_Loader) {
             for (auto* s_Plugin : s_Loader->GetLoadedMods()) {
                 if (s_Plugin) {
-                    s_Plugin->OnDrawMenu();
+                    s_Plugin->OnDrawMenu(ModSDK::GetInstance()->GetImGuiRenderer());
                 }
             }
         }

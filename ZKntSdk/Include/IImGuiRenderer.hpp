@@ -8,9 +8,6 @@
 
 #include "Glacier/ZMath.hpp"
 
-struct ImFont;
-struct ImGuiContext;
-
 namespace zknt {
     struct ImGuiTexture {
         std::uint64_t m_Id = 0;
@@ -23,7 +20,13 @@ namespace zknt {
         virtual ~IImGuiRenderer() = default;
 
         virtual bool IsVisible() const = 0;
-        virtual ImGuiContext* GetImGuiContext() const = 0;
+
+        virtual ImGuiContext* GetContext() const = 0;
+
+        virtual ImGuiMemAllocFunc GetMemAlloc() const = 0;
+        virtual ImGuiMemFreeFunc GetMemFree() const = 0;
+        virtual void* GetAllocatorUserData() const = 0;
+
         virtual ImFont* GetLightFont() const = 0;
         virtual ImFont* GetRegularFont() const = 0;
         virtual ImFont* GetMediumFont() const = 0;
