@@ -103,6 +103,15 @@ class ZString {
         return *this;
     }
 
+    ZString& operator+=(const char* p_Other) {
+        *this = Append(p_Other);
+        return *this;
+    }
+
+    ZString& operator+=(const ZString& p_Other) {
+        return operator+=(p_Other.c_str());
+    }
+
     [[nodiscard]]
     uint32_t size() const {
         return m_nLength & 0x3FFFFFFF;
@@ -182,6 +191,30 @@ class ZString {
 
     uint32_t GetHashCode() const {
         return Hash::Fnv1a(c_str(), size());
+    }
+
+    ZString Append(const char* p_Other) const {
+        const uint32_t s_LeftLength = size();
+        const uint32_t s_RightLength = static_cast<uint32_t>(std::strlen(p_Other));
+
+        if (s_LeftLength == 0) {
+            return AllocateFromCStr(p_Other, s_RightLength);
+        }
+
+        if (s_RightLength == 0) {
+            return *this;
+        }
+
+        std::string s_Result;
+        s_Result.reserve(s_LeftLength + s_RightLength);
+        s_Result.append(c_str(), s_LeftLength);
+        s_Result.append(p_Other, s_RightLength);
+
+        return AllocateFromCStr(s_Result.c_str(), static_cast<uint32_t>(s_Result.size()));
+    }
+
+    ZString Append(const ZString& p_Other) const {
+        return Append(p_Other.c_str());
     }
 
   public:
