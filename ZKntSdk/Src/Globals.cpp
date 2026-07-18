@@ -132,4 +132,6 @@ zknt::Globals::Globals() {
     );
 
     PATTERN_RELATIVE_GLOBAL("\x4C\x8B\x0D\x00\x00\x00\x00\x4C\x8B\xD2", "xxx????xxx", 3, SPrimDrawData**, PrimDrawData);
+
+    PATTERN_RELATIVE_GLOBAL("\x48\x8B\x05\x00\x00\x00\x00\x8B\xCA\x41\xB8", "xxx????xxxx", 3, SEntitySlotMetadata**, EntitySlotMetadata);
 }

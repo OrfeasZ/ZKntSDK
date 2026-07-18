@@ -20,6 +20,7 @@ class ZComponentManager;
 class ZRenderManager;
 struct SD3D12ObjectPools;
 struct SPrimDrawData;
+struct SEntitySlotMetadata;
 
 namespace zknt {
     class Globals {
@@ -67,5 +68,6 @@ namespace zknt {
         ZRenderManager* RenderManager = nullptr;
         SD3D12ObjectPools** D3D12ObjectPools = nullptr;
         SPrimDrawData** PrimDrawData = nullptr;
+        SEntitySlotMetadata** EntitySlotMetadata = nullptr;
     };
 }

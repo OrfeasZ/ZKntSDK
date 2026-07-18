@@ -717,7 +717,7 @@ void Cheats::LoadPlayerOutfitSets() {
                     const ZEntityRef s_SubEntity = s_TemplateEntityBlueprintFactory->GetSubEntity(s_OutfitSetEntityResource->entityRef.m_pObj, i);
                     ZHumanoidOutfitReference* s_HumanoidOutfitReference = s_SubEntity.QueryInterface<ZHumanoidOutfitReference>();
 
-                    if (s_HumanoidOutfitReferenceInterfaceRef.m_pInterface == s_HumanoidOutfitReference) {
+                    if (s_HumanoidOutfitReferenceInterfaceRef.m_pInterfaceRef == s_HumanoidOutfitReference) {
                         s_OutfitInfo.m_Variations.push_back(
                             {s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->subEntities[i].entityName.c_str(),
                              s_OutfitInfo.m_Variations.size()}
@@ -770,7 +770,7 @@ void Cheats::LoadAllOutfitSets() {
                         const ZEntityRef s_SubEntity = s_TemplateEntityBlueprintFactory->GetSubEntity(s_EntityResource->entityRef.m_pObj, i);
                         ZHumanoidOutfitReference* s_HumanoidOutfitReference = s_SubEntity.QueryInterface<ZHumanoidOutfitReference>();
 
-                        if (s_HumanoidOutfitReferenceInterfaceRef.m_pInterface == s_HumanoidOutfitReference) {
+                        if (s_HumanoidOutfitReferenceInterfaceRef.m_pInterfaceRef == s_HumanoidOutfitReference) {
                             s_OutfitInfo.m_Variations.push_back(
                                 {s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->subEntities[i].entityName.c_str(),
                                  s_OutfitInfo.m_Variations.size()}

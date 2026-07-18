@@ -21,6 +21,18 @@ class ZEntityManager : public IComponentInterface {
     THashMap<uint64_t, TPair<ZEntityRef, TResourcePtr<IEntityFactory>>> m_Entities; // 0x18
 };
 
+struct SEntitySlotMetadata {
+    uint32_t GetGeneration() const {
+        return m_Value & 0x7FFFFFFF;
+    }
+
+    bool GetStateFlag() const {
+        return (m_Value & 0x80000000) != 0;
+    }
+
+    uint32_t m_Value;
+};
+
 struct SPropertyData {
     SNamedPropertyInfo* GetPropertyInfo() const {
         return reinterpret_cast<SNamedPropertyInfo*>(reinterpret_cast<uintptr_t>(m_pPropertyInfo) - offsetof(SNamedPropertyInfo, m_propertyInfo));
@@ -174,14 +186,14 @@ class ZEntityRef {
 
         // Mirrors the logic of ZEntityImpl::GetID.
         const auto s_EntityImpl = reinterpret_cast<ZEntityImpl*>(reinterpret_cast<uintptr_t>(p_EntityRef) - sizeof(uintptr_t));
-        const uint64_t s_EntityRefData = *reinterpret_cast<uint64_t*>(
+
+        m_Packed = *reinterpret_cast<const uint64_t*>(
             reinterpret_cast<uintptr_t>(s_EntityImpl) + sizeof(ZEntityImpl) + static_cast<int32_t>(s_EntityImpl->m_nEntityPtrIndex)
         );
-
-        std::memcpy(&m_EntityIndex, &s_EntityRefData, sizeof(s_EntityRefData));
     }
 
-    ZEntityRef(ZEntityType** p_EntityRef, uint32_t p_EntityIndex, uint32_t p_Unk) : m_pObj(p_EntityRef), m_EntityIndex(p_EntityIndex), m_Unk(p_Unk) {}
+    ZEntityRef(ZEntityType** p_EntityRef, uint32_t p_EntityIndex, uint32_t p_Validation)
+        : m_pObj(p_EntityRef), m_EntityIndex(p_EntityIndex), m_Validation(p_Validation) {}
 
     bool operator==(const ZEntityRef& p_Other) const {
         return GetEntity() == p_Other.GetEntity();
@@ -189,6 +201,16 @@ class ZEntityRef {
 
     operator bool() const {
         return GetEntity() != nullptr;
+    }
+
+    bool IsValid() const {
+        if (!m_pObj) {
+            return false;
+        }
+
+        const auto* p_EntitySlotMetadata = *SDK()->Globals()->EntitySlotMetadata;
+
+        return m_Validation == p_EntitySlotMetadata[m_EntityIndex].GetGeneration();
     }
 
     ZEntityImpl* GetEntity() const {
@@ -494,8 +516,15 @@ class ZEntityRef {
     }
 
     ZEntityType** m_pObj = nullptr; // 0x0
-    uint32_t m_EntityIndex = 0;     // 0x8
-    uint32_t m_Unk = 0;             // 0xC
+
+    union {
+        struct {
+            uint32_t m_EntityIndex; // 0x8
+            uint32_t m_Validation;  // 0xC
+        };
+
+        uint64_t m_Packed = 0; // 0x8
+    };
 };
 
 template<> struct std::hash<ZEntityRef> {
@@ -559,24 +588,30 @@ template<typename T> class TEntityRef {
 
 template<typename T> class TInterfaceRef {
   public:
-    // TODO: Verify. Works for now but not 100% sure on the two ints.
-    static TInterfaceRef FromEntityRef(ZEntityRef p_Ref) {
-        const auto s_pInterface = p_Ref.QueryInterface<T>();
+    static TInterfaceRef FromEntityRef(ZEntityRef p_EntityRef) {
+        const auto s_pInterfaceRef = p_EntityRef.QueryInterface<T>();
 
-        if (s_pInterface != nullptr) {
-            return {.m_pInterface = s_pInterface, .m_EntityIndex = p_Ref.m_EntityIndex, .m_Unk = p_Ref.m_Unk};
+        if (s_pInterfaceRef != nullptr) {
+            return {.m_pInterfaceRef = s_pInterfaceRef, .m_EntityIndex = p_EntityRef.m_EntityIndex, .m_Validation = p_EntityRef.m_Validation};
         }
 
         return {};
     }
 
     operator bool() const {
-        return m_pInterface != nullptr;
+        return m_pInterfaceRef != nullptr;
     }
 
-    T* m_pInterface = nullptr;
-    uint32_t m_EntityIndex = 0;
-    uint32_t m_Unk = 0;
+    T* m_pInterfaceRef = nullptr; // 0x0
+
+    union {
+        struct {
+            uint32_t m_EntityIndex; // 0x8
+            uint32_t m_Validation;  // 0xC
+        };
+
+        uint64_t m_Packed; // 0x8
+    };
 };
 
 class IEntityRefValue : public IComponentInterface {};
