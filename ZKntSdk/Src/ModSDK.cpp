@@ -556,8 +556,8 @@ namespace zknt {
         return m_DirectXTKRenderer->WorldToScreen(p_WorldPos, p_Out);
     }
 
-    bool ModSDK::ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_WorldPosOut, SVector3& p_DirectionOut) {
-        return m_DirectXTKRenderer->ScreenToWorld(p_ScreenPos, p_WorldPosOut, p_DirectionOut);
+    bool ModSDK::ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_OutWorldPos, SVector3& p_OutDirection) {
+        return m_DirectXTKRenderer->ScreenToWorld(p_ScreenPos, p_OutWorldPos, p_OutDirection);
     }
 
     SMatrix ModSDK::GetViewMatrix() const {

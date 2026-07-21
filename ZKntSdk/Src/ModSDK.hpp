@@ -74,7 +74,7 @@ namespace zknt {
 
         bool LoadCppEntity(
             const ZString& p_BlueprintJson, const ZString& p_BlueprintMetaJson, const ZString& p_EntityJson, const ZString& p_EntityMetaJson,
-            TResourcePtr<ZCppEntityBlueprintFactory>& p_BlueprintFactoryOut, TResourcePtr<ZCppEntityFactory>& p_TemplateFactoryOut
+            TResourcePtr<ZCppEntityBlueprintFactory>& p_OutBlueprintFactory, TResourcePtr<ZCppEntityFactory>& p_OutTemplateFactory
         ) override;
 
         // Plugin settings
@@ -105,7 +105,7 @@ namespace zknt {
         void ReloadPluginSettings(IPluginInterface* p_Plugin) override;
 
         bool WorldToScreen(const SVector3& p_WorldPos, SVector2& p_Out) override;
-        bool ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_WorldPosOut, SVector3& p_DirectionOut) override;
+        bool ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_OutWorldPos, SVector3& p_OutDirection) override;
 
         SMatrix GetViewMatrix() const override;
         SMatrix GetProjectionMatrix() const override;

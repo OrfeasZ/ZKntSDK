@@ -79,13 +79,13 @@ namespace zknt {
          * @param p_BlueprintMetaJson The C++ entity blueprint metadata JSON string.
          * @param p_EntityJson The C++ entity JSON string.
          * @param p_EntityMetaJson The C++ entity metadata JSON string.
-         * @param p_BlueprintFactoryOut The resulting C++ entity blueprint factory resource.
-         * @param p_TemplateFactoryOut The resulting C++ entity factory resource.
+         * @param p_OutBlueprintFactory The resulting C++ entity blueprint factory resource.
+         * @param p_OutTemplateFactory The resulting C++ entity factory resource.
          * @return True if the resources were loaded successfully, false otherwise.
          */
         virtual bool LoadCppEntity(
             const ZString& p_BlueprintJson, const ZString& p_BlueprintMetaJson, const ZString& p_EntityJson, const ZString& p_EntityMetaJson,
-            TResourcePtr<ZCppEntityBlueprintFactory>& p_BlueprintFactoryOut, TResourcePtr<ZCppEntityFactory>& p_TemplateFactoryOut
+            TResourcePtr<ZCppEntityBlueprintFactory>& p_OutBlueprintFactory, TResourcePtr<ZCppEntityFactory>& p_OutTemplateFactory
         ) = 0;
 
         /**
@@ -220,11 +220,11 @@ namespace zknt {
         /**
          * Convert a 2D position on the screen to a 3D world position.
          * @param p_ScreenPos The 2D position on the screen.
-         * @param p_WorldPosOut The output 3D world position.
-         * @param p_DirectionOut The output direction of the ray.
+         * @param p_OutWorldPos The output 3D world position.
+         * @param p_OutDirection The output direction of the ray.
          * @return True if the conversion was successful, false otherwise (eg. if the position is outside the screen bounds).
          */
-        virtual bool ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_WorldPosOut, SVector3& p_DirectionOut) = 0;
+        virtual bool ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_OutWorldPos, SVector3& p_OutDirection) = 0;
 
         /**
          * Get the current camera view matrix.

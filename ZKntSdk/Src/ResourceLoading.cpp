@@ -116,7 +116,7 @@ namespace zknt {
 
     bool ModSDK::LoadCppEntity(
         const ZString& p_BlueprintJson, const ZString& p_BlueprintMetaJson, const ZString& p_EntityJson, const ZString& p_EntityMetaJson,
-        TResourcePtr<ZCppEntityBlueprintFactory>& p_BlueprintFactoryOut, TResourcePtr<ZCppEntityFactory>& p_TemplateFactoryOut
+        TResourcePtr<ZCppEntityBlueprintFactory>& p_OutBlueprintFactory, TResourcePtr<ZCppEntityFactory>& p_OutTemplateFactory
     ) {
         Logger::Debug("Generating BIN1 resources from RT JSON...");
 
@@ -138,11 +138,11 @@ namespace zknt {
         Logger::Debug("Creating CBLU resource...");
 
         auto [s_CbluIndex, s_CbluId] =
-            LoadResourceFromBIN1(s_ResourceCbluMem, s_BlueprintMetaJson, [&p_BlueprintFactoryOut, s_ResourceCbluMem](ZResourcePending* r) {
+            LoadResourceFromBIN1(s_ResourceCbluMem, s_BlueprintMetaJson, [&p_OutBlueprintFactory, s_ResourceCbluMem](ZResourcePending* r) {
                 const bool s_IsInstalled = SDK()->Functions()->ZCppEntityBlueprintInstaller_Install->Call(nullptr, r);
 
                 if (s_IsInstalled) {
-                    p_BlueprintFactoryOut.m_ResourceIndex.val = r->m_pResource.m_ResourceIndex.val;
+                    p_OutBlueprintFactory.m_ResourceIndex.val = r->m_pResource.m_ResourceIndex.val;
                 }
 
                 KNT_GetGeneratorForResource("CBLU")->FreeResourceMem(s_ResourceCbluMem);
@@ -153,11 +153,11 @@ namespace zknt {
         Logger::Debug("Creating CPPT resource...");
 
         auto [s_CpptIndex, s_CpptId] =
-            LoadResourceFromBIN1(s_ResourceCpptMem, s_FactoryMetaJson, [&p_TemplateFactoryOut, s_ResourceCpptMem](ZResourcePending* r) {
+            LoadResourceFromBIN1(s_ResourceCpptMem, s_FactoryMetaJson, [&p_OutTemplateFactory, s_ResourceCpptMem](ZResourcePending* r) {
                 const bool s_IsInstalled = SDK()->Functions()->ZCppEntityTypeInstaller_Install->Call(nullptr, r);
 
                 if (s_IsInstalled) {
-                    p_TemplateFactoryOut.m_ResourceIndex.val = r->m_pResource.m_ResourceIndex.val;
+                    p_OutTemplateFactory.m_ResourceIndex.val = r->m_pResource.m_ResourceIndex.val;
                 }
 
                 KNT_GetGeneratorForResource("CPPT")->FreeResourceMem(s_ResourceCpptMem);

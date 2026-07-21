@@ -927,7 +927,7 @@ namespace zknt::rendering {
         return true;
     }
 
-    bool DirectXTKRenderer::ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_WorldPosOut, SVector3& p_DirectionOut) {
+    bool DirectXTKRenderer::ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_OutWorldPos, SVector3& p_OutDirection) {
         if (!m_RendererSetup) {
             return false;
         }
@@ -951,13 +951,13 @@ namespace zknt::rendering {
         DirectX::SimpleMath::Vector4 s_RayWorld = DirectX::XMVector4Transform(s_RayEye, m_View.Invert());
         s_RayWorld.Normalize();
 
-        p_WorldPosOut.x = s_CameraTrans.Trans.x + s_RayWorld.x;
-        p_WorldPosOut.y = s_CameraTrans.Trans.y + s_RayWorld.y;
-        p_WorldPosOut.z = s_CameraTrans.Trans.z + s_RayWorld.z;
+        p_OutWorldPos.x = s_CameraTrans.Trans.x + s_RayWorld.x;
+        p_OutWorldPos.y = s_CameraTrans.Trans.y + s_RayWorld.y;
+        p_OutWorldPos.z = s_CameraTrans.Trans.z + s_RayWorld.z;
 
-        p_DirectionOut.x = s_RayWorld.x;
-        p_DirectionOut.y = s_RayWorld.y;
-        p_DirectionOut.z = s_RayWorld.z;
+        p_OutDirection.x = s_RayWorld.x;
+        p_OutDirection.y = s_RayWorld.y;
+        p_OutDirection.z = s_RayWorld.z;
 
         return true;
     }
