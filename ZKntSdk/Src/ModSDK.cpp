@@ -568,6 +568,147 @@ namespace zknt {
         return m_DirectXTKRenderer->GetProjectionMatrix();
     }
 
+    void ModSDK::GetEntityName(const ZEntityRef& p_EntityRef, ZString& p_OutEntityName) const {
+        uint64_t s_EntityIndex;
+        const auto s_ContainingBlueprintFactory = GetContainingBlueprintFactory(p_EntityRef, s_EntityIndex);
+
+        if (s_ContainingBlueprintFactory && s_ContainingBlueprintFactory->IsTemplateEntityBlueprintFactory()) {
+            const auto s_TemplateEntityBlueprintFactory = static_cast<ZTemplateEntityBlueprintFactory*>(s_ContainingBlueprintFactory);
+
+            p_OutEntityName = s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->subEntities[s_EntityIndex].entityName;
+        }
+    }
+
+    IEntityBlueprintFactory* ModSDK::GetBlueprintFactory(const ZEntityRef& p_EntityRef) const {
+        uint64_t s_EntityIndex;
+        auto* s_ContainingBlueprintFactory = GetContainingBlueprintFactory(p_EntityRef, s_EntityIndex);
+
+        return s_ContainingBlueprintFactory ? s_ContainingBlueprintFactory->GetSubEntityBlueprint(s_EntityIndex) : nullptr;
+    }
+
+    IEntityBlueprintFactory* ModSDK::GetContainingBlueprintFactory(const ZEntityRef& p_EntityRef, uint64_t& p_OutSubEntityIndex) const {
+        p_OutSubEntityIndex = static_cast<uint64_t>(-1);
+
+        ZEntityRef s_OwningEntity = p_EntityRef.GetOwningEntity();
+
+        if (s_OwningEntity) {
+            std::unordered_map<ZEntityRef, IEntityBlueprintFactory*> s_EntityRefToEntityBlueprintFactory;
+
+            const auto s_EntitySceneContext = SDK()->Globals()->GameSceneflowModule->m_pEntitySceneContext;
+
+            for (const auto& s_Brick : s_EntitySceneContext->m_SceneConfig->m_aMainBricks) {
+                if (!s_Brick.m_EntityType) {
+                    continue;
+                }
+
+                s_EntityRefToEntityBlueprintFactory.emplace(s_Brick.m_EntityType, s_Brick.m_BrickFactory->GetBlueprint());
+            }
+
+            for (const auto& s_Brick : s_EntitySceneContext->m_aDynamicBrickEntities) {
+                if (!s_Brick.second) {
+                    continue;
+                }
+
+                s_EntityRefToEntityBlueprintFactory.emplace(s_Brick.second, s_EntitySceneContext->m_aDynamicBrickBlueprintFactories[s_Brick.first]);
+            }
+
+            std::vector<ZEntityRef> s_Path;
+
+            ZEntityRef s_CurrentEntity = p_EntityRef;
+            ZEntityRef s_BrickEntity;
+            IEntityBlueprintFactory* s_BrickBlueprintFactory = nullptr;
+
+            while (true) {
+                ZEntityRef s_ParentEntity = s_CurrentEntity.GetLogicalParent();
+
+                if (!s_ParentEntity) {
+                    break;
+                }
+
+                s_Path.push_back(s_ParentEntity);
+
+                auto s_EntityIt = s_EntityRefToEntityBlueprintFactory.find(s_ParentEntity);
+
+                if (s_EntityIt != s_EntityRefToEntityBlueprintFactory.end()) {
+                    s_BrickEntity = s_ParentEntity;
+                    s_BrickBlueprintFactory = s_EntityIt->second;
+                    break;
+                }
+
+                s_CurrentEntity = s_ParentEntity;
+            }
+
+            if (!s_BrickBlueprintFactory) {
+                return nullptr;
+            }
+
+            IEntityBlueprintFactory* s_ContainingBlueprintFactory = nullptr;
+            IEntityBlueprintFactory* s_CurrentBlueprintFactory = s_BrickBlueprintFactory;
+
+            s_CurrentEntity = s_BrickEntity;
+
+            for (auto s_PathIt = s_Path.rbegin(); s_PathIt != s_Path.rend();) {
+                for (uint64_t i = 0; i < s_CurrentBlueprintFactory->GetSubEntitiesCount(); ++i) {
+                    ZEntityRef s_SubEntity = s_CurrentBlueprintFactory->GetSubEntity(s_CurrentEntity.m_pObj, i);
+
+                    if (s_SubEntity == p_EntityRef) {
+                        p_OutSubEntityIndex = i;
+                        return s_CurrentBlueprintFactory;
+                    }
+                }
+
+                ++s_PathIt;
+
+                if (s_PathIt == s_Path.rend()) {
+                    break;
+                }
+
+                ZEntityRef s_NextEntity = *s_PathIt;
+
+                bool s_Found = false;
+
+                for (uint64_t i = 0; i < s_CurrentBlueprintFactory->GetSubEntitiesCount(); ++i) {
+                    ZEntityRef s_SubEntity = s_CurrentBlueprintFactory->GetSubEntity(s_CurrentEntity.m_pObj, i);
+
+                    if (s_SubEntity == s_NextEntity) {
+                        IEntityBlueprintFactory* s_SubBlueprintFactory = s_CurrentBlueprintFactory->GetSubEntityBlueprint(i);
+
+                        if (!s_SubBlueprintFactory) {
+                            return nullptr;
+                        }
+
+                        s_CurrentBlueprintFactory = s_SubBlueprintFactory;
+                        s_CurrentEntity = s_SubEntity;
+                        s_Found = true;
+                        break;
+                    }
+                }
+
+                if (!s_Found) {
+                    return nullptr;
+                }
+            }
+
+            return nullptr;
+        }
+
+        auto s_DynamicEntityIt = SDK()->Globals()->EntityManager->m_DynamicEntities.find(p_EntityRef->GetType()->m_nEntityID);
+
+        if (s_DynamicEntityIt == SDK()->Globals()->EntityManager->m_DynamicEntities.end()) {
+            return nullptr;
+        }
+
+        auto* s_BlueprintFactory = s_DynamicEntityIt->second.second.GetResource()->GetBlueprint();
+
+        if (s_BlueprintFactory && s_BlueprintFactory->IsTemplateEntityBlueprintFactory()) {
+            const auto* s_TemplateBlueprintFactory = static_cast<ZTemplateEntityBlueprintFactory*>(s_BlueprintFactory);
+
+            p_OutSubEntityIndex = s_TemplateBlueprintFactory->m_pTemplateEntityBlueprint->rootEntityIndex;
+        }
+
+        return s_BlueprintFactory;
+    }
+
     zknt::IImGuiRenderer* ModSDK::GetImGuiRenderer() const {
         return m_ImGuiRenderer.get();
     }

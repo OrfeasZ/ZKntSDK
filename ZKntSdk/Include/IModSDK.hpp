@@ -11,6 +11,8 @@ class ZTemplateEntityBlueprintFactory;
 class ZTemplateEntityFactory;
 class ZCppEntityBlueprintFactory;
 class ZCppEntityFactory;
+class ZEntityRef;
+class IEntityBlueprintFactory;
 
 struct ImGuiContext;
 
@@ -237,6 +239,34 @@ namespace zknt {
          * @return The camera projection matrix used for the current frame.
          */
         virtual SMatrix GetProjectionMatrix() const = 0;
+
+        /**
+         * Get the name of the specified entity.
+         *
+         * The name is retrieved from the entity blueprint that contains the entity.
+         *
+         * @param p_EntityRef The entity to get the name for.
+         * @param p_OutEntityName Receives the entity name.
+         */
+        virtual void GetEntityName(const ZEntityRef& p_EntityRef, ZString& p_OutEntityName) const = 0;
+
+        /**
+         * Get the blueprint factory that defines the specified entity.
+         *
+         * @param p_EntityRef The entity to get the blueprint factory for.
+         * @return The entity's blueprint factory, or nullptr if it cannot be found.
+         */
+        virtual IEntityBlueprintFactory* GetBlueprintFactory(const ZEntityRef& p_EntityRef) const = 0;
+
+        /**
+         * Get the blueprint factory that directly contains the specified entity.
+         *
+         * @param p_EntityRef The entity to locate.
+         * @param p_OutSubEntityIndex Receives the index of the entity within the
+         *        containing blueprint's subentity list.
+         * @return The containing blueprint factory, or nullptr if it cannot be found.
+         */
+        virtual IEntityBlueprintFactory* GetContainingBlueprintFactory(const ZEntityRef& p_EntityRef, uint64_t& p_OutSubEntityIndex) const = 0;
     };
 }
 

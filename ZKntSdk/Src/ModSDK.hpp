@@ -110,6 +110,10 @@ namespace zknt {
         SMatrix GetViewMatrix() const override;
         SMatrix GetProjectionMatrix() const override;
 
+        void GetEntityName(const ZEntityRef& p_EntityRef, ZString& p_OutEntityName) const override;
+        IEntityBlueprintFactory* GetBlueprintFactory(const ZEntityRef& p_EntityRef) const override;
+        IEntityBlueprintFactory* GetContainingBlueprintFactory(const ZEntityRef& p_EntityRef, uint64_t& p_OutSubEntityIndex) const override;
+
         // SDK-internal methods.
         IImGuiRenderer* GetImGuiRenderer() const;
         IDirectXTKRenderer* GetDirectXTKRenderer() const;
