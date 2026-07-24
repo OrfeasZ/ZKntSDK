@@ -21,9 +21,8 @@ zknt::Hooks::Hooks() {
     );
 
     PATTERN_HOOK(
-        "\x48\x89\x5C\x24\x08\x48\x89\x6C\x24\x10\x48\x89\x74\x24\x18\x48\x89\x7C\x24\x20\x41\x54\x41\x56\x41\x57\x48\x81\xEC\x00\x00\x00\x00\x48"
-        "\x8B\xF9",
-        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx????xxx", ZApplicationEngineWin32_MainWindowProc, LRESULT(ZApplicationEngineWin32*, HWND, UINT, WPARAM, LPARAM)
+        "\x48\x89\x5C\x24\x08\x48\x89\x6C\x24\x10\x48\x89\x74\x24\x18\x57\x41\x56\x41\x57\x48\x81\xEC\x00\x00\x00\x00\x48\x8B\xF9",
+        "xxxxxxxxxxxxxxxxxxxxxxx????xxx", ZApplicationEngineWin32_MainWindowProc, LRESULT(ZApplicationEngineWin32*, HWND, UINT, WPARAM, LPARAM)
     );
 
     PATTERN_RELATIVE_CALL_HOOK(
