@@ -1,8 +1,11 @@
 #include "Cheats.hpp"
+
 #include <Glacier/ZPlayer.hpp>
 #include <Glacier/ZGameLoopManager.hpp>
 #include <Glacier/ZMath.hpp>
 #include <Glacier/ZLoadout.hpp>
+#include <Glacier/ZStore.hpp>
+
 #include <Logging.hpp>
 #include <Util/ImGuiUtils.hpp>
 
@@ -253,6 +256,28 @@ void Cheats::DrawOutfitsTab() {
     }
 
     ImGui::EndDisabled();
+
+    if (ImGui::Button("Get nearest humanoids's outfit")) {
+        const auto s_LocalPlayer = SDK()->Globals()->LocalPlayerData->m_pCharacterImpl->m_pCharacter;
+
+        if (s_LocalPlayer) {
+            const auto& s_HumanoidRegistry = SDK()->Globals()->GPWTransientStores->m_pTransientStoreRegistries->m_HumanoidRegistry;
+
+            for (const auto& s_Entry : s_HumanoidRegistry.m_Entries) {
+                if (s_Entry.m_pInterfaceRef == s_LocalPlayer.m_pInterfaceRef) {
+                    continue;
+                }
+
+                const SVector3 s_Offset = s_Entry.m_pInterfaceRef->m_mTransform.Trans - s_LocalPlayer.m_pInterfaceRef->m_mTransform.Trans;
+                const float s_Distance = sqrt(s_Offset.x * s_Offset.x + s_Offset.y * s_Offset.y + s_Offset.z * s_Offset.z);
+
+                if (s_Distance <= 3.0f) {
+                    SetPlayerOutfit(s_Entry.m_pInterfaceRef->m_outfitSet.GetResourceInfo().rid, s_Entry.m_pInterfaceRef->m_selectedOutfit);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void Cheats::DrawGadgetsTab() {
