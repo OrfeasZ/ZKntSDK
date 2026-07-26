@@ -6,9 +6,7 @@ class IValueChanged : public IComponentInterface {};
 
 class IReplicatedCLValue : public IComponentInterface {};
 
-class ZCLValue : public ZEntityImpl, public IValueChanged {
-  public:
-};
+class ZCLValue : public ZEntityImpl, public IValueChanged {};
 
 class ZCLSimpleValue : public ZCLValue, public IReplicatedCLValue {
   public:
@@ -35,3 +33,10 @@ class IIntValue : public IComponentInterface {
 };
 
 class ZCLValueIntEntity : public ZCLSimpleValue, public IIntValue {};
+
+class IEntityRefValue : public IComponentInterface {};
+
+template<typename T> class ITEntityRefValue : public IEntityRefValue {
+  public:
+    virtual ZEntityRef* GetValue(ZEntityRef& result) = 0;
+};

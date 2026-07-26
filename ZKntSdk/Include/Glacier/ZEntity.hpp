@@ -614,13 +614,6 @@ template<typename T> class TInterfaceRef {
     };
 };
 
-class IEntityRefValue : public IComponentInterface {};
-
-template<typename T> class ITEntityRefValue : public IEntityRefValue {
-  public:
-    virtual ZEntityRef* GetEntity(ZEntityRef& result) = 0;
-};
-
 class IEntityFactory : public IComponentInterface {
   public:
     virtual void IEntityFactory_unk5() = 0;
