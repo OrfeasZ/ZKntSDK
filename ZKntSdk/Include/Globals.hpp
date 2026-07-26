@@ -22,6 +22,10 @@ struct SD3D12ObjectPools;
 struct SPrimDrawData;
 struct SEntitySlotMetadata;
 
+namespace Gameplay {
+    class ZGPWTransientStores;
+}
+
 namespace zknt {
     class Globals {
       public:
@@ -69,5 +73,6 @@ namespace zknt {
         SD3D12ObjectPools** D3D12ObjectPools = nullptr;
         SPrimDrawData** PrimDrawData = nullptr;
         SEntitySlotMetadata** EntitySlotMetadata = nullptr;
+        Gameplay::ZGPWTransientStores* GPWTransientStores = nullptr;
     };
 }
