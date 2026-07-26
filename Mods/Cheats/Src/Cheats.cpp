@@ -529,7 +529,7 @@ bool Cheats::EnsureEntitiesSpawned() {
         || !m_GadgetSpawner || !m_GadgetSpawnerItemEntry || !m_GadgetAttacher || !m_GadgetSlotAssigner || !m_FirearmSpawner
         || !m_FirearmSpawnerItemEntry || !m_EquippedItemSetter || !s_AreAmmunitionGettersSpawned || !s_AreAmmunitionSettersSpawned) {
         Logger::Error(
-            "Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
+            "[Cheats] Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
             "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, InvisibleModifier: {}, LocalPlayerIDGetter: {}, "
             "SetHumanoidOutfit: {}, ImmuneBoolValue: {}, UnkillableBoolValue: {}, InvisibleBoolValue: {}, CurrentElectricityGetter: {}, "
             "CurrentChemicalGetter: {}, MaximumElectricityGetter: {}, MaximumChemicalGetter: {}, ElectricityGiver: {}, ChemicalGiver: {}, "
@@ -553,7 +553,7 @@ bool Cheats::EnsureEntitiesSpawned() {
     const auto s_HumanoidRef = TInterfaceRef<ITEntityRefValue<ZHumanoidCharacterEntity>>::FromEntityRef(m_LocalPlayerHumanoidGetter.m_entityRef);
 
     if (!s_HumanoidRef) {
-        Logger::Error("Failed to get ITEntityRefValue for player.");
+        Logger::Error("[Cheats] Failed to get ITEntityRefValue for player.");
         CleanupSpawnedEntities();
         return false;
     }
@@ -561,7 +561,7 @@ bool Cheats::EnsureEntitiesSpawned() {
     const auto s_PlayerIDRef = TInterfaceRef<IIntValue>::FromEntityRef(m_LocalPlayerIDGetter.m_entityRef);
 
     if (!s_HumanoidRef) {
-        Logger::Error("Failed to get IIntValue for player.");
+        Logger::Error("[Cheats] Failed to get IIntValue for player.");
         CleanupSpawnedEntities();
         return false;
     }
@@ -593,7 +593,7 @@ bool Cheats::EnsureEntitiesSpawned() {
     const auto s_InvisibleBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_InvisibleBoolValue.m_entityRef);
 
     if (!s_ImmuneBoolRef || !s_UnkillableBoolRef || !s_InvisibleBoolRef) {
-        Logger::Error("Failed to get IBoolValue ref for modifiers.");
+        Logger::Error("[Cheats] Failed to get IBoolValue ref for modifiers.");
         CleanupSpawnedEntities();
         return false;
     }
@@ -625,7 +625,7 @@ bool Cheats::EnsureEntitiesSpawned() {
     const auto s_ChemicalAmountFloatRef = TInterfaceRef<IFloatValue>::FromEntityRef(s_ChemicalAmountFloatValue.m_entityRef);
 
     if (!s_ElectricityAmountFloatRef || !s_ChemicalAmountFloatRef) {
-        Logger::Error("Failed to get IFloatValue ref for electricity and chemical resource amounts.");
+        Logger::Error("[Cheats] Failed to get IFloatValue ref for electricity and chemical resource amounts.");
         CleanupSpawnedEntities();
         return false;
     }
@@ -644,7 +644,7 @@ bool Cheats::EnsureEntitiesSpawned() {
     // Make sure the freshly spawned entities pick up the current toggle states.
     m_StateDirty = true;
 
-    Logger::Info("Cheat entities spawned!");
+    Logger::Info("[Cheats] Cheat entities spawned!");
 
     return true;
 }
@@ -793,7 +793,7 @@ void Cheats::SetPlayerOutfit(const ZRuntimeResourceID& p_OutfitSetRuntimeResourc
     const auto s_HumanoidRef = TInterfaceRef<ITEntityRefValue<ZHumanoidCharacterEntity>>::FromEntityRef(m_LocalPlayerHumanoidGetter.m_entityRef);
 
     if (!s_HumanoidRef) {
-        Logger::Error("Failed to get ITEntityRefValue for player.");
+        Logger::Error("[Cheats] Failed to get ITEntityRefValue for player.");
         CleanupSpawnedEntities();
         return;
     }

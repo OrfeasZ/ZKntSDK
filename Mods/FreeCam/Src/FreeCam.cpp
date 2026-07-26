@@ -298,11 +298,11 @@ void FreeCam::ToggleFreecam() {
 
 void FreeCam::EnableFreecam() {
     CleanupSpawnedEntities();
-    Logger::Info("Enabling free camera.");
+    Logger::Info("[FreeCam] Enabling free camera.");
 
     m_FreeCamera = TEntityRef<ZCameraEntity>::SpawnEntity(ResId<"[modules:/zcameraentity.class].entitytype">);
     if (!m_FreeCamera) {
-        Logger::Error("Failed to create free camera entity.");
+        Logger::Error("[FreeCam] Failed to create free camera entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -311,7 +311,7 @@ void FreeCam::EnableFreecam() {
         m_FreeCameraControlEditorStyle =
             TEntityRef<ZFreeCameraControlEditorStyleEntity>::SpawnEntity(ResId<"[modules:/zfreecameracontroleditorstyleentity.class].entitytype">);
         if (!m_FreeCameraControlEditorStyle) {
-            Logger::Error("Failed to create free camera control editor style entity.");
+            Logger::Error("[FreeCam] Failed to create free camera control editor style entity.");
             CleanupSpawnedEntities();
             return;
         }
@@ -319,7 +319,7 @@ void FreeCam::EnableFreecam() {
     else {
         m_FreeCameraControl = TEntityRef<ZFreeCameraControlEntity>::SpawnEntity(ResId<"[modules:/zfreecameracontrolentity.class].entitytype">);
         if (!m_FreeCameraControl) {
-            Logger::Error("Failed to create free camera control entity.");
+            Logger::Error("[FreeCam] Failed to create free camera control entity.");
             CleanupSpawnedEntities();
             return;
         }
@@ -328,7 +328,7 @@ void FreeCam::EnableFreecam() {
     m_BlockHumanoidPlayerMoveInput =
         TEntityRef<ZCLBlockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayermoveinput.class].entitytype">);
     if (!m_BlockHumanoidPlayerMoveInput) {
-        Logger::Error("Failed to create block humanoid player move input entity.");
+        Logger::Error("[FreeCam] Failed to create block humanoid player move input entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -336,14 +336,14 @@ void FreeCam::EnableFreecam() {
     m_UnblockHumanoidPlayerMoveInput =
         TEntityRef<ZCLUnblockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclunblockhumanoidplayermoveinput.class].entitytype">);
     if (!m_UnblockHumanoidPlayerMoveInput) {
-        Logger::Error("Failed to create unblock humanoid player move input entity.");
+        Logger::Error("[FreeCam] Failed to create unblock humanoid player move input entity.");
         CleanupSpawnedEntities();
         return;
     }
 
     m_BlockPlayerGadgetInput = TEntityRef<ZCLBlockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclblockplayergadgetinput.class].entitytype">);
     if (!m_BlockPlayerGadgetInput) {
-        Logger::Error("Failed to create block player gadget input entity.");
+        Logger::Error("[FreeCam] Failed to create block player gadget input entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -351,7 +351,7 @@ void FreeCam::EnableFreecam() {
     m_UnblockPlayerGadgetInput =
         TEntityRef<ZCLUnblockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclunblockplayergadgetinput.class].entitytype">);
     if (!m_UnblockPlayerGadgetInput) {
-        Logger::Error("Failed to create unblock player gadget input entity.");
+        Logger::Error("[FreeCam] Failed to create unblock player gadget input entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -359,7 +359,7 @@ void FreeCam::EnableFreecam() {
     m_BlockHumanoidPlayerCloseCombatInput =
         TEntityRef<ZCLBlockHumanoidPlayerCloseCombatInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayerclosecombatinput.class].entitytype">);
     if (!m_BlockHumanoidPlayerCloseCombatInput) {
-        Logger::Error("Failed to create block humanoid player close combat input entity.");
+        Logger::Error("[FreeCam] Failed to create block humanoid player close combat input entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -368,28 +368,28 @@ void FreeCam::EnableFreecam() {
         ResId<"[modules:/zclunblockhumanoidplayerclosecombatinput.class].entitytype">
     );
     if (!m_UnblockHumanoidPlayerCloseCombatInput) {
-        Logger::Error("Failed to create unblock humanoid player close combat input entity.");
+        Logger::Error("[FreeCam] Failed to create unblock humanoid player close combat input entity.");
         CleanupSpawnedEntities();
         return;
     }
 
     m_GetLocalPlayer = TEntityRef<ZCLGetLocalPlayerID>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerid.class].entitytype">);
     if (!m_GetLocalPlayer) {
-        Logger::Error("Failed to create get player entity.");
+        Logger::Error("[FreeCam] Failed to create get player entity.");
         CleanupSpawnedEntities();
         return;
     }
 
     m_TeleportHumanoidEntity = TEntityRef<ZCLTeleportHumanoidEntity>::SpawnEntity(ResId<"[modules:/zclteleporthumanoidentity.class].entitytype">);
     if (!m_TeleportHumanoidEntity) {
-        Logger::Error("Failed to create teleport humanoid entity.");
+        Logger::Error("[FreeCam] Failed to create teleport humanoid entity.");
         CleanupSpawnedEntities();
         return;
     }
 
     m_TeleportTarget = TEntityRef<ZSpatialEntity>::SpawnEntity(ResId<"[modules:/zspatialentity.class].entitytype">);
     if (!m_TeleportTarget) {
-        Logger::Error("Failed to create spatial entity for teleport target.");
+        Logger::Error("[FreeCam] Failed to create spatial entity for teleport target.");
         CleanupSpawnedEntities();
         return;
     }
@@ -397,7 +397,7 @@ void FreeCam::EnableFreecam() {
     m_GetLocalPlayerHumanoidCharacter =
         TEntityRef<ZCLGetLocalPlayerHumanoidCharacter>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerhumanoidcharacter.class].entitytype">);
     if (!m_GetLocalPlayerHumanoidCharacter) {
-        Logger::Error("Failed to create get local player humanoid character entity.");
+        Logger::Error("[FreeCam] Failed to create get local player humanoid character entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -415,7 +415,7 @@ void FreeCam::EnableFreecam() {
     SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
     const auto s_CurrentCamera = SDK()->Functions()->GetCurrentCamera->Call();
     if (!s_CurrentCamera || !s_RenderDest) {
-        Logger::Error("Failed to retrieve active camera or render destination.");
+        Logger::Error("[FreeCam] Failed to retrieve active camera or render destination.");
         CleanupSpawnedEntities();
         return;
     }
@@ -423,7 +423,7 @@ void FreeCam::EnableFreecam() {
     m_FreeCamera->SetObjectToWorldMatrixFromEditor(s_CurrentCamera->GetObjectToWorldMatrix());
     m_PreviousCameraSource = s_RenderDest->GetSource();
     s_RenderDest->SetSource(m_FreeCamera.m_entityRef);
-    Logger::Info("Enabled free camera!");
+    Logger::Info("[FreeCam] Enabled free camera!");
 
     // Set up player input (un)blocking entities and block player input.
     const auto s_IntRef = TInterfaceRef<IIntValue>::FromEntityRef(m_GetLocalPlayer.m_entityRef);
@@ -455,7 +455,7 @@ void FreeCam::EnableFreecam() {
 
 void FreeCam::DisableFreecam() {
     if (HasSpawnedEntities()) {
-        Logger::Info("Disabling existing free camera.");
+        Logger::Info("[FreeCam] Disabling existing free camera.");
         TEntityRef<IRenderDestinationEntity> s_RenderDest;
         SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
 
@@ -463,11 +463,11 @@ void FreeCam::DisableFreecam() {
             s_RenderDest->SetSource(m_PreviousCameraSource);
         }
         else {
-            Logger::Warn("No stored previous camera source while toggling off.");
+            Logger::Warn("[FreeCam] No stored previous camera source while toggling off.");
         }
 
         CleanupSpawnedEntities();
-        Logger::Info("Disabled free camera and restored previous camera source.");
+        Logger::Info("[FreeCam] Disabled free camera and restored previous camera source.");
     }
 
     SDK()->Globals()->GameTimeManager->m_bPaused = false;
@@ -552,7 +552,7 @@ void FreeCam::TeleportPlayer() {
     ZRayQueryOutput s_RayQueryOutput = {};
 
     if (!SDK()->Globals()->CollisionManager->RayCastClosestHit(&s_RayQueryOutput, s_RayQueryInput)) {
-        Logger::Error("Raycast failed.");
+        Logger::Error("[FreeCam] Raycast failed.");
         return;
     }
 
