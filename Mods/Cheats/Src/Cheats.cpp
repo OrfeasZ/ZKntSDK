@@ -218,13 +218,13 @@ void Cheats::DrawOutfitsTab() {
     static char s_OutfitVariation2[1024]{""};
     static const OutfitInfo* s_OutfitInfo2 = nullptr;
 
-    ImGui::BeginDisabled(m_AllOutfitSets.empty());
+    ImGui::BeginDisabled(m_OutfitSetToOutfitInfo.empty());
 
     knt::util::InputWithAutocomplete(
-        "Outfit set##OutfitSets", s_Outfit2, sizeof(s_Outfit2), m_AllOutfitSets, [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
-        [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
+        "Outfit set##OutfitSet", s_Outfit2, sizeof(s_Outfit2), m_OutfitSetToOutfitInfo,
+        [](auto& p_Pair) -> const std::string& { return p_Pair.first; }, [](auto& p_Pair) -> const std::string& { return p_Pair.first; },
         [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
-            if (const auto it = m_AllOutfitSets.find(p_Name); it != m_AllOutfitSets.end()) {
+            if (const auto it = m_OutfitSetToOutfitInfo.find(p_Name); it != m_OutfitSetToOutfitInfo.end()) {
                 s_OutfitInfo2 = &it->second;
                 s_OutfitVariation2[0] = '\0';
             }
@@ -233,10 +233,10 @@ void Cheats::DrawOutfitsTab() {
 
     ImGui::EndDisabled();
 
-    ImGui::BeginDisabled(m_AllOutfitSets.empty() || !s_OutfitInfo2);
+    ImGui::BeginDisabled(m_OutfitSetToOutfitInfo.empty() || !s_OutfitInfo2);
 
     knt::util::InputWithAutocomplete(
-        "Outfit variation##OutfitVariations", s_OutfitVariation2, sizeof(s_OutfitVariation2),
+        "Outfit variation##OutfitVariation", s_OutfitVariation2, sizeof(s_OutfitVariation2),
         s_OutfitInfo2 ? s_OutfitInfo2->m_Variations : std::vector<std::pair<std::string, size_t>>{},
         [](auto& p_Pair) -> std::string { return p_Pair.first; }, [](auto& p_Pair) -> std::string { return p_Pair.first; },
         [&](const std::string&, const std::string& p_Name, const std::pair<std::string, size_t>& p_Value) {
@@ -246,7 +246,7 @@ void Cheats::DrawOutfitsTab() {
 
     ImGui::EndDisabled();
 
-    ImGui::BeginDisabled(!m_AllOutfitSets.empty());
+    ImGui::BeginDisabled(!m_OutfitSetToOutfitInfo.empty());
 
     if (ImGui::Button("Get all outfits")) {
         LoadAllOutfitSets();
@@ -756,7 +756,7 @@ void Cheats::LoadAllOutfitSets() {
                                                    ->subEntities[s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->rootEntityIndex]
                                                    .entityName.c_str();
 
-                OutfitInfo& s_OutfitInfo = m_AllOutfitSets[s_RootEntityName];
+                OutfitInfo& s_OutfitInfo = m_OutfitSetToOutfitInfo[s_RootEntityName];
                 s_OutfitInfo.m_OutfitSet = s_ResourceInfo.rid;
 
                 const auto s_SubEntityCount = s_TemplateEntityBlueprintFactory->GetSubEntitiesCount();

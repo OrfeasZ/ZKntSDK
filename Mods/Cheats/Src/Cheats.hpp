@@ -129,7 +129,7 @@ class Cheats : public zknt::IPluginInterface {
     std::unordered_map<std::string, std::set<std::string>> m_OutfitCategoryToOutfits;
     std::unordered_map<std::string, OutfitInfo> m_OutfitNameToOutfitInfo;
 
-    std::map<std::string, OutfitInfo> m_AllOutfitSets;
+    std::map<std::string, OutfitInfo> m_OutfitSetToOutfitInfo;
 
     std::vector<GadgetInfo> m_Gadgets;
     bool m_AssignGadgetToSlot = false;
