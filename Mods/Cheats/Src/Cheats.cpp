@@ -146,7 +146,9 @@ void Cheats::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
         }
     }
 
+    ImGui::PopFont();
     ImGui::End();
+    ImGui::PopFont();
 }
 
 void Cheats::DrawGeneralTab() {
