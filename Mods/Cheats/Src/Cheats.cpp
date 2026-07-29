@@ -35,7 +35,7 @@ void Cheats::CleanupSpawnedEntities() {
         *p_Ref = {};
     };
 
-    s_Delete(&m_Teleporter);
+    s_Delete(&m_HumanoidTeleporter);
     s_Delete(&m_TeleportTarget);
     s_Delete(&m_LocalPlayerHumanoidGetter);
     s_Delete(&m_CollisionModifier);
@@ -411,7 +411,7 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
         return;
     }
 
-    if (m_StateDirty && m_Teleporter) {
+    if (m_StateDirty && m_HumanoidTeleporter) {
         ApplyPlayerModifiers();
         m_StateDirty = false;
     }
@@ -487,15 +487,15 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
     }
 
     m_TeleportTarget->SetObjectToWorldMatrixFromEditor(m_PlayerPosition);
-    m_Teleporter.m_entityRef.SignalInputPin("Do");
+    m_HumanoidTeleporter.m_entityRef.SignalInputPin("Do");
 }
 
 bool Cheats::EnsureEntitiesSpawned() {
-    if (m_Teleporter) {
+    if (m_HumanoidTeleporter) {
         return true;
     }
 
-    m_Teleporter = TEntityRef<ZCLTeleportHumanoidEntity>::SpawnEntity(ResId<"[modules:/zclteleporthumanoidentity.class].entitytype">);
+    m_HumanoidTeleporter = TEntityRef<ZCLTeleportHumanoidEntity>::SpawnEntity(ResId<"[modules:/zclteleporthumanoidentity.class].entitytype">);
     m_TeleportTarget = TEntityRef<ZSpatialEntity>::SpawnEntity(ResId<"[modules:/zspatialentity.class].entitytype">);
     m_LocalPlayerHumanoidGetter =
         TEntityRef<ZCLGetLocalPlayerHumanoidCharacter>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerhumanoidcharacter.class].entitytype">);
@@ -547,12 +547,13 @@ bool Cheats::EnsureEntitiesSpawned() {
     const bool s_AreAmmunitionSettersSpawned =
         std::ranges::all_of(m_AmmunitionSetters, [](const auto& p_AmmunitionSetter) { return static_cast<bool>(p_AmmunitionSetter); });
 
-    if (!m_Teleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier || !m_UnkillableModifier
-        || !m_InfiniteAmmoModifier || !m_InvisibleModifier || !m_LocalPlayerIDGetter || !m_SetHumanoidOutfit || !m_ImmuneBoolValue
-        || !m_UnkillableBoolValue || !m_InvisibleBoolValue || !m_CurrentElectricityGetter || !m_CurrentChemicalGetter || !m_MaximumElectricityGetter
-        || !m_MaximumChemicalGetter || !m_ElectricityGiver || !m_ChemicalGiver || !s_ElectricityAmountFloatValue || !s_ChemicalAmountFloatValue
-        || !m_GadgetSpawner || !m_GadgetSpawnerItemEntry || !m_GadgetAttacher || !m_GadgetSlotAssigner || !m_FirearmSpawner
-        || !m_FirearmSpawnerItemEntry || !m_EquippedItemSetter || !s_AreAmmunitionGettersSpawned || !s_AreAmmunitionSettersSpawned) {
+    if (!m_HumanoidTeleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier
+        || !m_UnkillableModifier || !m_InfiniteAmmoModifier || !m_InvisibleModifier || !m_LocalPlayerIDGetter || !m_SetHumanoidOutfit
+        || !m_ImmuneBoolValue || !m_UnkillableBoolValue || !m_InvisibleBoolValue || !m_CurrentElectricityGetter || !m_CurrentChemicalGetter
+        || !m_MaximumElectricityGetter || !m_MaximumChemicalGetter || !m_ElectricityGiver || !m_ChemicalGiver || !s_ElectricityAmountFloatValue
+        || !s_ChemicalAmountFloatValue || !m_GadgetSpawner || !m_GadgetSpawnerItemEntry || !m_GadgetAttacher || !m_GadgetSlotAssigner
+        || !m_FirearmSpawner || !m_FirearmSpawnerItemEntry || !m_EquippedItemSetter || !s_AreAmmunitionGettersSpawned
+        || !s_AreAmmunitionSettersSpawned) {
         Logger::Error(
             "[Cheats] Failed to spawn some cheat entities. Teleporter: {}, TeleportTarget: {}, LocalPlayerHumanoidGetter: {}, CollisionModifier: {}, "
             "ImmuneModifier: {}, UnkillableModifier: {}, InfiniteAmmoModifier: {}, InvisibleModifier: {}, LocalPlayerIDGetter: {}, "
@@ -560,7 +561,7 @@ bool Cheats::EnsureEntitiesSpawned() {
             "CurrentChemicalGetter: {}, MaximumElectricityGetter: {}, MaximumChemicalGetter: {}, ElectricityGiver: {}, ChemicalGiver: {}, "
             "ElectricityAmountFloatValue: {}, ChemicalAmountFloatValue: {}, GadgetSpawner: {}, GadgetSpawnerItemEntry: {}, GadgetAttacher: {}, "
             "GadgetSlotAssigner: {}, EquippedItemSetter: {}, AreAmmunitionGettersSpawned: {}, AreAmmunitionSettersSpawned: {}",
-            static_cast<bool>(m_Teleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
+            static_cast<bool>(m_HumanoidTeleporter), static_cast<bool>(m_TeleportTarget), static_cast<bool>(m_LocalPlayerHumanoidGetter),
             static_cast<bool>(m_CollisionModifier), static_cast<bool>(m_ImmuneModifier), static_cast<bool>(m_UnkillableModifier),
             static_cast<bool>(m_InfiniteAmmoModifier), static_cast<bool>(m_InvisibleModifier), static_cast<bool>(m_LocalPlayerIDGetter),
             static_cast<bool>(m_SetHumanoidOutfit), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue),
@@ -592,8 +593,8 @@ bool Cheats::EnsureEntitiesSpawned() {
     }
 
     // Point every humanoid-targeting modifier at the local player.
-    m_Teleporter.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
-    m_Teleporter.m_entityRef.SetProperty("m_targetSpatial", m_TeleportTarget);
+    m_HumanoidTeleporter.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
+    m_HumanoidTeleporter.m_entityRef.SetProperty("m_targetSpatial", m_TeleportTarget);
     m_CollisionModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_ImmuneModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_UnkillableModifier.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);

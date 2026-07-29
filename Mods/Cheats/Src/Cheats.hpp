@@ -76,7 +76,7 @@ class Cheats : public zknt::IPluginInterface {
     SMatrix m_PlayerPosition = {};
 
     // Cheats helpers.
-    TEntityRef<ZCLTeleportHumanoidEntity> m_Teleporter;
+    TEntityRef<ZCLTeleportHumanoidEntity> m_HumanoidTeleporter;
     TEntityRef<ZSpatialEntity> m_TeleportTarget;
     TEntityRef<ZCLGetLocalPlayerHumanoidCharacter> m_LocalPlayerHumanoidGetter;
     TEntityRef<ZCLEnableDisableHumanoidCollision> m_CollisionModifier;
