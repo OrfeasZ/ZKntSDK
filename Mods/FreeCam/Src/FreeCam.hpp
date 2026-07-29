@@ -75,7 +75,7 @@ class FreeCam : public zknt::IPluginInterface {
     TEntityRef<ZCLBlockHumanoidPlayerCloseCombatInput> m_BlockHumanoidPlayerCloseCombatInput;
     TEntityRef<ZCLUnblockHumanoidPlayerCloseCombatInput> m_UnblockHumanoidPlayerCloseCombatInput;
     TEntityRef<ZCLGetLocalPlayerID> m_GetLocalPlayer;
-    TEntityRef<ZCLTeleportHumanoidEntity> m_TeleportHumanoidEntity;
+    TEntityRef<ZCLTeleportHumanoidEntity> m_HumanoidTeleporter;
     TEntityRef<ZSpatialEntity> m_TeleportTarget;
     TEntityRef<ZCLGetLocalPlayerHumanoidCharacter> m_GetLocalPlayerHumanoidCharacter;
     ZEntityRef m_PreviousCameraSource;
