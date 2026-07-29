@@ -27,8 +27,8 @@ FreeCam::FreeCam()
     , m_ActivateGameControlAction("ActivateGameControl")
     , m_TogglePauseGameAction("TogglePauseGame")
     , m_TeleportPlayerAction("TeleportPlayer")
-    , m_MenuVisible(false)
-    , m_ControlsVisible(false) {
+    , m_ShowFreeCamMenu(false)
+    , m_ShowControlsMenu(false) {
     m_PcControls = {
         {"K", "Toggle freecam"},
         {"F3", "Freeze camera and enable player input"},
@@ -146,20 +146,24 @@ void FreeCam::OnEngineInitialized() {
 
 void FreeCam::OnDrawMenu(zknt::IImGuiRenderer* p_Renderer) {
     if (ImGui::Button(ICON_MD_PHOTO_CAMERA " FREECAM")) {
-        m_MenuVisible = !m_MenuVisible;
+        m_ShowFreeCamMenu = !m_ShowFreeCamMenu;
     }
 }
 
 void FreeCam::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
-    if (m_MenuVisible) {
+    if (!p_HasFocus) {
+        return;
+    }
+
+    if (m_ShowFreeCamMenu) {
         const auto s_Center = ImGui::GetMainViewport()->GetCenter();
         ImGui::SetNextWindowPos(s_Center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
         ImGui::PushFont(p_Renderer->GetBlackFont());
-        const auto s_MenuExpanded = ImGui::Begin(ICON_MD_PHOTO_CAMERA " FreeCam", &m_MenuVisible);
+        const auto s_IsWindowExpanded = ImGui::Begin(ICON_MD_PHOTO_CAMERA " FreeCam", &m_ShowFreeCamMenu);
         ImGui::PushFont(p_Renderer->GetRegularFont());
 
-        if (s_MenuExpanded) {
+        if (s_IsWindowExpanded) {
             bool s_IsFreeCamActive = m_IsFreeCamActive;
 
             if (ImGui::Checkbox("Enable freecam", &s_IsFreeCamActive)) {
@@ -194,7 +198,7 @@ void FreeCam::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
             }
 
             if (ImGui::Button(ICON_MD_SPORTS_ESPORTS " Show freecam controls")) {
-                m_ControlsVisible = !m_ControlsVisible;
+                m_ShowControlsMenu = !m_ShowControlsMenu;
             }
         }
 
@@ -203,9 +207,9 @@ void FreeCam::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
         ImGui::PopFont();
     }
 
-    if (m_ControlsVisible) {
+    if (m_ShowControlsMenu) {
         ImGui::PushFont(p_Renderer->GetBlackFont());
-        const auto s_ControlsExpanded = ImGui::Begin(ICON_MD_PHOTO_CAMERA " FreeCam Controls", &m_ControlsVisible);
+        const auto s_ControlsExpanded = ImGui::Begin(ICON_MD_PHOTO_CAMERA " FreeCam Controls", &m_ShowControlsMenu);
         ImGui::PushFont(p_Renderer->GetRegularFont());
 
         if (s_ControlsExpanded) {

@@ -59,8 +59,8 @@ class FreeCam : public zknt::IPluginInterface {
     ZInputAction m_TogglePauseGameAction;
     ZInputAction m_TeleportPlayerAction;
 
-    bool m_MenuVisible;
-    bool m_ControlsVisible;
+    bool m_ShowFreeCamMenu;
+    bool m_ShowControlsMenu;
     std::unordered_map<std::string, std::string> m_PcControls;
     std::unordered_map<std::string, std::string> m_PcControlsEditorStyle;
     std::unordered_map<std::string, std::string> m_ControllerControls;
