@@ -239,7 +239,7 @@ void Cheats::DrawOutfitsTab() {
     ImGui::BeginDisabled(m_OutfitSetToOutfitInfo.empty() || !s_OutfitInfo2);
 
     knt::util::InputWithAutocomplete(
-        "Outfit variation##OutfitVariation", s_OutfitVariation2, sizeof(s_OutfitVariation2),
+        "Outfit variation##OutfitVariation2", s_OutfitVariation2, sizeof(s_OutfitVariation2),
         s_OutfitInfo2 ? s_OutfitInfo2->m_Variations : std::vector<std::pair<std::string, size_t>>{},
         [](auto& p_Pair) -> std::string { return p_Pair.first; }, [](auto& p_Pair) -> std::string { return p_Pair.first; },
         [&](const std::string&, const std::string& p_Name, const std::pair<std::string, size_t>& p_Value) {
