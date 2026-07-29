@@ -1,5 +1,7 @@
 #include "Cheats.hpp"
 
+#include <IconsMaterialDesign.h>
+
 #include <Glacier/ZPlayer.hpp>
 #include <Glacier/ZGameLoopManager.hpp>
 #include <Glacier/ZMath.hpp>
@@ -98,19 +100,23 @@ void Cheats::OnEngineInitialized() {
 }
 
 void Cheats::OnDrawMenu(zknt::IImGuiRenderer* p_Renderer) {
-    if (ImGui::Button("CHEATS")) {
-        m_ShowPanel = !m_ShowPanel;
+    if (ImGui::Button(ICON_MD_MAN " CHEATS")) {
+        m_ShowMenu = !m_ShowMenu;
     }
 }
 
 void Cheats::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
-    if (!m_ShowPanel || !p_HasFocus) {
+    if (!m_ShowMenu || !p_HasFocus) {
         return;
     }
 
     ImGui::SetNextWindowSize({500, 500}, ImGuiCond_FirstUseEver);
 
-    if (ImGui::Begin("Cheats", &m_ShowPanel)) {
+    ImGui::PushFont(p_Renderer->GetBlackFont());
+    const auto s_IsWindowExpanded = ImGui::Begin(ICON_MD_MAN " Cheats", &m_ShowMenu);
+    ImGui::PushFont(p_Renderer->GetRegularFont());
+
+    if (s_IsWindowExpanded) {
         if (ImGui::BeginTabBar("CheatsTabs")) {
             if (ImGui::BeginTabItem("General")) {
                 DrawGeneralTab();
