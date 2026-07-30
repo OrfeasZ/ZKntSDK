@@ -30,48 +30,48 @@ Cheats::~Cheats() {
 }
 
 void Cheats::CleanupSpawnedEntities() {
-    const auto s_Delete = [](auto* p_Ref) {
+    const auto s_DeleteEntity = [](auto* p_Ref) {
         if (*p_Ref) {
             SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, p_Ref->m_entityRef);
         }
         *p_Ref = {};
     };
 
-    s_Delete(&m_HumanoidTeleporter);
-    s_Delete(&m_TeleportTarget);
-    s_Delete(&m_LocalPlayerHumanoidGetter);
-    s_Delete(&m_CollisionModifier);
-    s_Delete(&m_ImmuneModifier);
-    s_Delete(&m_UnkillableModifier);
-    s_Delete(&m_InfiniteAmmoModifier);
-    s_Delete(&m_InvisibleModifier);
-    s_Delete(&m_LocalPlayerIDGetter);
-    s_Delete(&m_SetHumanoidOutfit);
-    s_Delete(&m_ImmuneBoolValue);
-    s_Delete(&m_UnkillableBoolValue);
-    s_Delete(&m_InvisibleBoolValue);
-    s_Delete(&m_CurrentElectricityGetter);
-    s_Delete(&m_CurrentChemicalGetter);
-    s_Delete(&m_MaximumElectricityGetter);
-    s_Delete(&m_MaximumChemicalGetter);
-    s_Delete(&m_ElectricityGiver);
-    s_Delete(&m_ChemicalGiver);
-    s_Delete(&s_ElectricityAmountFloatValue);
-    s_Delete(&s_ChemicalAmountFloatValue);
-    s_Delete(&m_GadgetSpawner);
-    s_Delete(&m_GadgetSpawnerItemEntry);
-    s_Delete(&m_GadgetAttacher);
-    s_Delete(&m_GadgetSlotAssigner);
-    s_Delete(&m_FirearmSpawner);
-    s_Delete(&m_FirearmSpawnerItemEntry);
-    s_Delete(&m_EquippedItemSetter);
+    s_DeleteEntity(&m_HumanoidTeleporter);
+    s_DeleteEntity(&m_TeleportTarget);
+    s_DeleteEntity(&m_LocalPlayerHumanoidGetter);
+    s_DeleteEntity(&m_CollisionModifier);
+    s_DeleteEntity(&m_ImmuneModifier);
+    s_DeleteEntity(&m_UnkillableModifier);
+    s_DeleteEntity(&m_InfiniteAmmoModifier);
+    s_DeleteEntity(&m_InvisibleModifier);
+    s_DeleteEntity(&m_LocalPlayerIDGetter);
+    s_DeleteEntity(&m_SetHumanoidOutfit);
+    s_DeleteEntity(&m_ImmuneBoolValue);
+    s_DeleteEntity(&m_UnkillableBoolValue);
+    s_DeleteEntity(&m_InvisibleBoolValue);
+    s_DeleteEntity(&m_CurrentElectricityGetter);
+    s_DeleteEntity(&m_CurrentChemicalGetter);
+    s_DeleteEntity(&m_MaximumElectricityGetter);
+    s_DeleteEntity(&m_MaximumChemicalGetter);
+    s_DeleteEntity(&m_ElectricityGiver);
+    s_DeleteEntity(&m_ChemicalGiver);
+    s_DeleteEntity(&s_ElectricityAmountFloatValue);
+    s_DeleteEntity(&s_ChemicalAmountFloatValue);
+    s_DeleteEntity(&m_GadgetSpawner);
+    s_DeleteEntity(&m_GadgetSpawnerItemEntry);
+    s_DeleteEntity(&m_GadgetAttacher);
+    s_DeleteEntity(&m_GadgetSlotAssigner);
+    s_DeleteEntity(&m_FirearmSpawner);
+    s_DeleteEntity(&m_FirearmSpawnerItemEntry);
+    s_DeleteEntity(&m_EquippedItemSetter);
 
     for (auto& s_AmmunitionGetter : m_AmmunitionGetters) {
-        s_Delete(&s_AmmunitionGetter);
+        s_DeleteEntity(&s_AmmunitionGetter);
     }
 
     for (auto& s_AmmunitionSetter : m_AmmunitionSetters) {
-        s_Delete(&s_AmmunitionSetter);
+        s_DeleteEntity(&s_AmmunitionSetter);
     }
 }
 
