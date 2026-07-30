@@ -11,6 +11,7 @@
 #include <IconsMaterialDesign.h>
 
 #include <Glacier/ZComponent.hpp>
+#include <Glacier/ZValue.hpp>
 
 namespace zknt::rendering {
     ImGuiRenderer::ImGuiRenderer() {
@@ -79,8 +80,12 @@ namespace zknt::rendering {
     }
 
     ImGuiRenderer::~ImGuiRenderer() {
+        CleanupSpawnedEntities();
+
         TeardownRenderer();
+
         ImGui::DestroyContext(m_ImGuiContext);
+
         m_ImGuiContext = nullptr;
     }
 
@@ -297,6 +302,59 @@ namespace zknt::rendering {
             BreakIfFailed(m_Fence->SetEventOnCompletion(s_Fence, m_FenceEvent.m_Handle));
             WaitForSingleObject(m_FenceEvent.m_Handle, INFINITE);
         }
+    }
+
+    bool ImGuiRenderer::SpawnEntities() {
+        if (m_BlockPlayerCameraInput) {
+            return true;
+        }
+
+        m_BlockPlayerCameraInput = TEntityRef<ZCLBlockPlayerCameraInput>::SpawnEntity(ResId<"[modules:/zclblockplayercamerainput.class].entitytype">);
+
+        if (!m_BlockPlayerCameraInput) {
+            Logger::Error("[ImGuiRenderer] Failed to create block player camera input entity.");
+            return false;
+        }
+
+        m_UnblockPlayerCameraInput =
+            TEntityRef<ZCLUnblockPlayerCameraInput>::SpawnEntity(ResId<"[modules:/zclunblockplayercamerainput.class].entitytype">);
+
+        if (!m_BlockPlayerCameraInput) {
+            Logger::Error("[ImGuiRenderer] Failed to create unblock player camera input entity.");
+            return false;
+        }
+
+        m_GetLocalPlayer = TEntityRef<ZCLGetLocalPlayerID>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerid.class].entitytype">);
+
+        if (!m_BlockPlayerCameraInput) {
+            Logger::Error("[ImGuiRenderer] Failed to create zget local player id entity.");
+            return false;
+        }
+
+        const auto s_PlayerIDRef = TInterfaceRef<IIntValue>::FromEntityRef(m_GetLocalPlayer.m_entityRef);
+
+        if (!s_PlayerIDRef) {
+            Logger::Error("[ImGuiRenderer] Failed to get IIntValue for player.");
+            return false;
+        }
+
+        m_BlockPlayerCameraInput.m_entityRef.SetProperty("m_PlayerID", s_PlayerIDRef);
+        m_UnblockPlayerCameraInput.m_entityRef.SetProperty("m_PlayerID", s_PlayerIDRef);
+
+        return true;
+    }
+
+    void ImGuiRenderer::CleanupSpawnedEntities() {
+        const auto s_DeleteEntity = [](auto* p_Ref) {
+            if (*p_Ref) {
+                SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, p_Ref->m_entityRef);
+            }
+            *p_Ref = {};
+        };
+
+        s_DeleteEntity(&m_BlockPlayerCameraInput);
+        s_DeleteEntity(&m_UnblockPlayerCameraInput);
+        s_DeleteEntity(&m_GetLocalPlayer);
     }
 
     bool ImGuiRenderer::SetupRenderer(IDXGISwapChain3* p_SwapChain) {
@@ -843,6 +901,15 @@ namespace zknt::rendering {
             m_ImguiHasFocus.store(s_NewFocus, std::memory_order_release);
             if (s_NewFocus) {
                 m_ImguiVisible.store(true, std::memory_order_release);
+            }
+
+            if (SpawnEntities()) {
+                if (m_ImguiHasFocus) {
+                    m_BlockPlayerCameraInput.m_entityRef.SignalInputPin("Do");
+                }
+                else {
+                    m_UnblockPlayerCameraInput.m_entityRef.SignalInputPin("Do");
+                }
             }
         }
 

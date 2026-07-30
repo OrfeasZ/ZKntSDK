@@ -11,6 +11,12 @@
 
 #include <imgui.h>
 
+#include <Glacier/ZEntity.hpp>
+
+class ZCLBlockPlayerCameraInput;
+class ZCLUnblockPlayerCameraInput;
+class ZCLGetLocalPlayerID;
+
 namespace zknt::rendering {
     class ImGuiRenderer final : public IImGuiRenderer {
       public:
@@ -105,6 +111,9 @@ namespace zknt::rendering {
         void SetupStyles();
         void WaitForCurrentFrameToFinish() const;
 
+        bool SpawnEntities();
+        void CleanupSpawnedEntities();
+
         // Input plumbing helpers (ported from ZHM's WndProc handler).
         static ImGuiMouseSource GetMouseSourceFromMessageExtraInfo();
         static bool IsVkDown(int p_Vk);
@@ -161,5 +170,9 @@ namespace zknt::rendering {
         int m_MouseTrackedArea = 0; // 0: not tracked, 1: client area, 2: non-client area
         int m_MouseButtonsDown = 0;
         UINT32 m_KeyboardCodePage = CP_ACP;
+
+        TEntityRef<ZCLBlockPlayerCameraInput> m_BlockPlayerCameraInput;
+        TEntityRef<ZCLUnblockPlayerCameraInput> m_UnblockPlayerCameraInput;
+        TEntityRef<ZCLGetLocalPlayerID> m_GetLocalPlayer;
     };
 }
