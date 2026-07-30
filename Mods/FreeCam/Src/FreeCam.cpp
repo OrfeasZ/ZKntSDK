@@ -417,7 +417,9 @@ void FreeCam::EnableFreecam() {
 
     TEntityRef<IRenderDestinationEntity> s_RenderDest;
     SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
+
     const auto s_CurrentCamera = SDK()->Functions()->GetCurrentCamera->Call();
+
     if (!s_CurrentCamera || !s_RenderDest) {
         Logger::Error("[FreeCam] Failed to retrieve active camera or render destination.");
         CleanupSpawnedEntities();
@@ -430,18 +432,30 @@ void FreeCam::EnableFreecam() {
     Logger::Info("[FreeCam] Enabled free camera!");
 
     // Set up player input (un)blocking entities and block player input.
-    const auto s_IntRef = TInterfaceRef<IIntValue>::FromEntityRef(m_GetLocalPlayer.m_entityRef);
-
-    const auto s_LocalPlayerHumanoidCharacter =
+    const auto s_HumanoidRef =
         TInterfaceRef<ITEntityRefValue<ZHumanoidCharacterEntity>>::FromEntityRef(m_GetLocalPlayerHumanoidCharacter.m_entityRef);
 
-    m_BlockHumanoidPlayerMoveInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
-    m_UnblockHumanoidPlayerMoveInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
-    m_BlockPlayerGadgetInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
-    m_UnblockPlayerGadgetInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
-    m_BlockHumanoidPlayerCloseCombatInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
-    m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef.SetProperty("m_playerID", s_IntRef);
-    m_HumanoidTeleporter.m_entityRef.SetProperty("m_humanoid", s_LocalPlayerHumanoidCharacter);
+    if (!s_HumanoidRef) {
+        Logger::Error("[Cheats] Failed to get ITEntityRefValue for player.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    const auto s_PlayerIDRef = TInterfaceRef<IIntValue>::FromEntityRef(m_GetLocalPlayer.m_entityRef);
+
+    if (!s_PlayerIDRef) {
+        Logger::Error("[Cheats] Failed to get IIntValue for player.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_BlockHumanoidPlayerMoveInput.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_UnblockHumanoidPlayerMoveInput.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_BlockPlayerGadgetInput.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_UnblockPlayerGadgetInput.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_BlockHumanoidPlayerCloseCombatInput.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef.SetProperty("m_playerID", s_PlayerIDRef);
+    m_HumanoidTeleporter.m_entityRef.SetProperty("m_humanoid", s_HumanoidRef);
     m_HumanoidTeleporter.m_entityRef.SetProperty("m_targetSpatial", m_TeleportTarget);
 
     if (!m_IsPlayerInputEnabled) {
