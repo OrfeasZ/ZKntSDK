@@ -594,7 +594,7 @@ bool Cheats::EnsureEntitiesSpawned() {
 
     const auto s_PlayerIDRef = TInterfaceRef<IIntValue>::FromEntityRef(m_LocalPlayerIDGetter.m_entityRef);
 
-    if (!s_HumanoidRef) {
+    if (!s_PlayerIDRef) {
         Logger::Error("[Cheats] Failed to get IIntValue for player.");
         CleanupSpawnedEntities();
         return false;
