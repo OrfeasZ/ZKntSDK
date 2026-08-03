@@ -7,7 +7,9 @@
 
 #include <vector>
 
-template<class T> class TArray {
+struct SDefaultAllocatorProvider {};
+
+template<typename T, typename AllocatorProvider> class TArray {
   public:
     TArray() : m_pBegin(nullptr), m_pEnd(nullptr), m_pAllocationEnd(nullptr) {}
 
