@@ -73,9 +73,8 @@ namespace detail {
         constexpr auto s_StructPrefix = std::string_view("struct ");
         constexpr auto s_EnumPrefix = std::string_view("enum ");
 
-        auto s_ZHMTypeNameStorage = std::array<char, N>();
-
-        std::size_t s_FinalSize = 0;
+        auto s_Normalized = std::array<char, N>();
+        std::size_t s_NormalizedSize = 0;
 
         for (std::size_t i = 0; i < N; ++i) {
             if (p_TypeName[i] == 'c' && i + s_ClassPrefix.size() < N && p_TypeName.substr(i, s_ClassPrefix.size()) == s_ClassPrefix) {
@@ -93,30 +92,47 @@ namespace detail {
                 continue;
             }
 
+            if (p_TypeName[i] == ':' && i + 1 < N && p_TypeName[i + 1] == ':') {
+                ++i;
+                s_Normalized[s_NormalizedSize++] = '.';
+                continue;
+            }
+
             // MSVC: "T<A<B> >" -> "T<A<B>>"
             if (p_TypeName[i] == ' ' && i > 0 && p_TypeName[i - 1] == '>' && i + 1 < N && p_TypeName[i + 1] == '>') {
                 continue;
             }
 
-            if (p_TypeName[i] == ':' && i + 1 < N && p_TypeName[i + 1] == ':') {
-                ++i;
-                s_ZHMTypeNameStorage[s_FinalSize++] = '.';
+            s_Normalized[s_NormalizedSize++] = p_TypeName[i];
+        }
+
+        constexpr auto s_DefaultAllocatorProvider = std::string_view(",SDefaultAllocatorProvider");
+
+        auto s_Result = std::array<char, N>();
+        std::size_t s_ResultSize = 0;
+
+        // Remove the default allocator provider from TArray type names.
+        for (std::size_t i = 0; i < s_NormalizedSize; ++i) {
+            std::string_view s_View(s_Normalized.data() + i, s_NormalizedSize - i);
+
+            if (s_View.starts_with(s_DefaultAllocatorProvider)) {
+                i += s_DefaultAllocatorProvider.size() - 1;
                 continue;
             }
 
-            s_ZHMTypeNameStorage[s_FinalSize++] = p_TypeName[i];
+            s_Result[s_ResultSize++] = s_Normalized[i];
         }
 
         if (p_IsEnum) {
-            for (std::size_t i = s_FinalSize; i-- > 0;) {
-                if (s_ZHMTypeNameStorage[i] == '_') {
-                    s_ZHMTypeNameStorage[i] = '.';
+            for (std::size_t i = s_ResultSize; i-- > 0;) {
+                if (s_Result[i] == '_') {
+                    s_Result[i] = '.';
                     break;
                 }
             }
         }
 
-        return ZHMTypeNameData<N>{s_ZHMTypeNameStorage, s_FinalSize};
+        return ZHMTypeNameData<N>{s_Result, s_ResultSize};
     }
 
     template<class T>
