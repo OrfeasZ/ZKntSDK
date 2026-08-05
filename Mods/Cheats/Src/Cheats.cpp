@@ -203,7 +203,7 @@ void Cheats::DrawOutfitsTab() {
 
     knt::util::InputWithAutocomplete(
         "Outfit##Outfit", s_Outfit, sizeof(s_Outfit), s_CategoryOutfits ? *s_CategoryOutfits : std::set<std::string>{},
-        [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
+        [](const auto& p_Outfit) -> std::string { return p_Outfit; }, [](const auto& p_Outfit) -> std::string { return p_Outfit; },
         [&](const std::string&, const std::string& p_Name, const auto&) {
             if (const auto it = m_OutfitNameToOutfitInfo.find(p_Name); it != m_OutfitNameToOutfitInfo.end()) {
                 s_OutfitInfo = &it->second;
@@ -338,27 +338,45 @@ void Cheats::DrawGadgetsTab() {
 }
 
 void Cheats::DrawFirearmsTab() {
-    static char s_FireamCategory[1024]{};
+    static char s_Category[1024]{};
     static char s_Firearm[1024]{};
+    static char s_Variation[1024]{};
+
     static const std::set<std::string>* s_CategoryFirearms = nullptr;
+    static const std::vector<FirearmInfo>* s_FirearmVariations = nullptr;
 
     ImGui::Text("Spawn firearms");
 
     ImGui::BeginDisabled(m_FirearmCategoryToFirearmNames.empty());
 
     knt::util::InputWithAutocomplete(
-        "Firearm category##FirearmCategory", s_FireamCategory, sizeof(s_FireamCategory), m_FirearmCategoryToFirearmNames,
+        "Category##FirearmCategory", s_Category, sizeof(s_Category), m_FirearmCategoryToFirearmNames,
         [](const auto& p_Pair) -> const std::string& { return p_Pair.first; }, [](const auto& p_Pair) -> const std::string& { return p_Pair.first; },
         [&](const std::string&, const std::string& p_Name, const auto& p_Pair) {
             s_CategoryFirearms = &p_Pair.second;
             s_Firearm[0] = '\0';
+            s_Variation[0] = '\0';
         }
     );
 
     knt::util::InputWithAutocomplete(
         "Firearm##Firearm", s_Firearm, sizeof(s_Firearm), s_CategoryFirearms ? *s_CategoryFirearms : std::set<std::string>{},
-        [](const auto& p_Outfit) -> const std::string { return p_Outfit; }, [](const auto& p_Outfit) -> const std::string { return p_Outfit; },
-        [&](const std::string&, const std::string& p_Name, const auto&) { SpawnFirearm(m_FirearmNameToItemResource[p_Name]); }
+        [](const auto& p_Outfit) -> std::string { return p_Outfit; }, [](const auto& p_Outfit) -> std::string { return p_Outfit; },
+        [&](const std::string&, const std::string& p_Name, const auto&) {
+            auto it = m_FirearmNameToFirearms.find(p_Name);
+
+            if (it != m_FirearmNameToFirearms.end()) {
+                s_FirearmVariations = &it->second;
+                s_Variation[0] = '\0';
+            }
+        }
+    );
+
+    knt::util::InputWithAutocomplete(
+        "Variation##FirearmVariation", s_Variation, sizeof(s_Variation), s_FirearmVariations ? *s_FirearmVariations : std::vector<FirearmInfo>{},
+        [](const FirearmInfo& p_Info) -> std::string { return p_Info.m_RootEntityName; },
+        [](const FirearmInfo& p_Info) -> std::string { return p_Info.m_RootEntityName; },
+        [&](const std::string&, const std::string&, const FirearmInfo& p_Info) { SpawnFirearm(p_Info.m_ItemTemplate); }
     );
 
     if (ImGui::RadioButton("Add To World", m_SpawnMode == SpawnMode::AddToWorld)) {
@@ -737,6 +755,14 @@ void Cheats::LoadPlayerOutfitSets() {
                 static_cast<IEntityFactory*>(s_OutfitSetEntityResource->factoryResource.GetResourceData())->GetBlueprint()
             );
 
+            if (!s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint) {
+                Logger::Error(
+                    "[Cheats] ZTemplateEntityBlueprintFactory::m_pTemplateEntityBlueprint is null for resource {:016x}.",
+                    s_TemplateEntityBlueprintFactory->m_ridResource.GetID()
+                );
+                return;
+            }
+
             OutfitInfo& s_OutfitInfo = m_OutfitNameToOutfitInfo[s_Name.c_str()];
             s_OutfitInfo.m_OutfitSet = s_OutfitDefinitionEntity->m_outfitSet.GetResourceInfo().rid;
 
@@ -785,6 +811,14 @@ void Cheats::LoadAllOutfitSets() {
                 ZTemplateEntityBlueprintFactory* s_TemplateEntityBlueprintFactory = static_cast<ZTemplateEntityBlueprintFactory*>(
                     static_cast<IEntityFactory*>(s_EntityResource->factoryResource.GetResourceData())->GetBlueprint()
                 );
+
+                if (!s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint) {
+                    Logger::Error(
+                        "[Cheats] ZTemplateEntityBlueprintFactory::m_pTemplateEntityBlueprint is null for resource {:016x}.",
+                        s_TemplateEntityBlueprintFactory->m_ridResource.GetID()
+                    );
+                    return;
+                }
 
                 std::string s_RootEntityName = s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint
                                                    ->subEntities[s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->rootEntityIndex]
@@ -1013,10 +1047,35 @@ void Cheats::LoadFirearms() {
                     s_Name = s_FirearmDefinition->m_itemDisplayNameRaw;
                 }
 
-                std::string s_Category = FirearmClassToString(s_FirearmDefinition->m_firearmClass);
+                const std::string s_Category = FirearmClassToString(s_FirearmDefinition->m_firearmClass);
+
+                TResourcePtr<IEntityFactory> s_FirearmResourcePtr;
+                SDK()->Globals()->ResourceManager->LoadResource(s_FirearmResourcePtr, s_ItemResource);
+
+                ZTemplateEntityBlueprintFactory* s_TemplateEntityBlueprintFactory =
+                    static_cast<ZTemplateEntityBlueprintFactory*>(s_FirearmResourcePtr.GetResource()->GetBlueprint());
+
+                if (!s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint) {
+                    Logger::Error(
+                        "[Cheats] ZTemplateEntityBlueprintFactory::m_pTemplateEntityBlueprint is null for resource {:016x}.",
+                        s_TemplateEntityBlueprintFactory->m_ridResource.GetID()
+                    );
+                    return;
+                }
+
+                const std::string s_RootEntityName = s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint
+                                                         ->subEntities[s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint->rootEntityIndex]
+                                                         .entityName.c_str();
 
                 m_FirearmCategoryToFirearmNames[s_Category].insert(s_Name.c_str());
-                m_FirearmNameToItemResource[s_Name.c_str()] = s_ItemResource;
+
+                auto& s_Firearms = m_FirearmNameToFirearms[s_Name.c_str()];
+
+                const auto s_FirearmIt = std::ranges::find(s_Firearms, s_RootEntityName, &FirearmInfo::m_RootEntityName);
+
+                if (s_FirearmIt == s_Firearms.end()) {
+                    s_Firearms.push_back({s_RootEntityName, s_ItemResource});
+                }
             }
         }
     }
@@ -1045,6 +1104,7 @@ void Cheats::SpawnFirearm(const ZRuntimeResourceID& p_ItemResource) {
     }
 
     m_FirearmSpawner.m_entityRef.SetProperty("m_entries", s_Entries);
+
     m_FirearmSpawner.m_entityRef.SignalInputPin("Spawn");
 }
 

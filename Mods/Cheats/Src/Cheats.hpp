@@ -41,6 +41,11 @@ class Cheats : public zknt::IPluginInterface {
         ZRuntimeResourceID m_ItemTemplate;
     };
 
+    struct FirearmInfo {
+        std::string m_RootEntityName;
+        ZRuntimeResourceID m_ItemTemplate;
+    };
+
     enum class SpawnMode { AddToWorld, AddToInventory };
 
     void DrawGeneralTab();
@@ -135,7 +140,7 @@ class Cheats : public zknt::IPluginInterface {
     bool m_AssignGadgetToSlot = false;
 
     std::map<std::string, std::set<std::string>> m_FirearmCategoryToFirearmNames;
-    std::unordered_map<std::string, ZRuntimeResourceID> m_FirearmNameToItemResource;
+    std::unordered_map<std::string, std::vector<FirearmInfo>> m_FirearmNameToFirearms;
     SpawnMode m_SpawnMode = SpawnMode::AddToWorld;
     bool m_EquipFirearm = false;
 };
