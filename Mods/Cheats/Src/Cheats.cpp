@@ -101,19 +101,19 @@ void Cheats::OnEngineInitialized() {
 
 void Cheats::OnDrawMenu(zknt::IImGuiRenderer* p_Renderer) {
     if (ImGui::Button(ICON_MD_MAN " CHEATS")) {
-        m_ShowMenu = !m_ShowMenu;
+        m_ShowWindow = !m_ShowWindow;
     }
 }
 
 void Cheats::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
-    if (!m_ShowMenu || !p_HasFocus) {
+    if (!m_ShowWindow || !p_HasFocus) {
         return;
     }
 
     ImGui::SetNextWindowSize({500, 500}, ImGuiCond_FirstUseEver);
 
     ImGui::PushFont(p_Renderer->GetBlackFont());
-    const auto s_IsWindowExpanded = ImGui::Begin(ICON_MD_MAN " Cheats", &m_ShowMenu);
+    const auto s_IsWindowExpanded = ImGui::Begin(ICON_MD_MAN " Cheats", &m_ShowWindow);
     ImGui::PushFont(p_Renderer->GetRegularFont());
 
     if (s_IsWindowExpanded) {

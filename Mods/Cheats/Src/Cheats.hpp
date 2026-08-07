@@ -112,7 +112,7 @@ class Cheats : public zknt::IPluginInterface {
     std::array<TEntityRef<ZCLGetPlayerInventoryAmmunition>, 8> m_AmmunitionGetters;
     std::array<TEntityRef<ZCLGiveHumanoidPlayerAmmunition>, 8> m_AmmunitionSetters;
 
-    bool m_ShowMenu = false;
+    bool m_ShowWindow = false;
     bool m_DisableCollision = false;
     bool m_GodMode = false;
     bool m_Unkillable = false;
