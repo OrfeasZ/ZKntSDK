@@ -612,6 +612,21 @@ namespace zknt {
                 s_EntityRefToEntityBlueprintFactory.emplace(s_Brick.second, s_EntitySceneContext->m_aDynamicBrickBlueprintFactories[s_Brick.first]);
             }
 
+            auto s_EntityIt = s_EntityRefToEntityBlueprintFactory.find(s_OwningEntity);
+
+            if (s_EntityIt != s_EntityRefToEntityBlueprintFactory.end()) {
+                IEntityBlueprintFactory* s_BlueprintFactory = s_EntityIt->second;
+
+                for (uint64_t i = 0; i < s_BlueprintFactory->GetSubEntitiesCount(); ++i) {
+                    ZEntityRef s_SubEntity = s_BlueprintFactory->GetSubEntity(s_OwningEntity.m_pObj, i);
+
+                    if (s_SubEntity == p_EntityRef) {
+                        p_OutSubEntityIndex = i;
+                        return s_BlueprintFactory;
+                    }
+                }
+            }
+
             std::vector<ZEntityRef> s_Path;
 
             ZEntityRef s_CurrentEntity = p_EntityRef;
@@ -625,8 +640,6 @@ namespace zknt {
                     break;
                 }
 
-                s_Path.push_back(s_ParentEntity);
-
                 auto s_EntityIt = s_EntityRefToEntityBlueprintFactory.find(s_ParentEntity);
 
                 if (s_EntityIt != s_EntityRefToEntityBlueprintFactory.end()) {
@@ -635,6 +648,7 @@ namespace zknt {
                     break;
                 }
 
+                s_Path.push_back(s_ParentEntity);
                 s_CurrentEntity = s_ParentEntity;
             }
 
@@ -642,43 +656,57 @@ namespace zknt {
                 return nullptr;
             }
 
-            IEntityBlueprintFactory* s_ContainingBlueprintFactory = nullptr;
             IEntityBlueprintFactory* s_CurrentBlueprintFactory = s_BrickBlueprintFactory;
+            ZEntityRef s_CurrentBlueprintEntity = s_BrickEntity;
 
-            s_CurrentEntity = s_BrickEntity;
+            ZEntityRef s_PreviousEntity;
+            uint64_t s_PreviousSubEntityIndex = static_cast<uint64_t>(-1);
 
-            for (auto s_PathIt = s_Path.rbegin(); s_PathIt != s_Path.rend();) {
-                for (uint64_t i = 0; i < s_CurrentBlueprintFactory->GetSubEntitiesCount(); ++i) {
-                    ZEntityRef s_SubEntity = s_CurrentBlueprintFactory->GetSubEntity(s_CurrentEntity.m_pObj, i);
-
-                    if (s_SubEntity == p_EntityRef) {
-                        p_OutSubEntityIndex = i;
-                        return s_CurrentBlueprintFactory;
-                    }
-                }
-
-                ++s_PathIt;
-
-                if (s_PathIt == s_Path.rend()) {
-                    break;
-                }
-
-                ZEntityRef s_NextEntity = *s_PathIt;
+            // Walk from the brick towards the entity.
+            for (auto s_PathIt = s_Path.rbegin(); s_PathIt != s_Path.rend(); ++s_PathIt) {
+                ZEntityRef s_PathEntity = *s_PathIt;
 
                 bool s_Found = false;
 
                 for (uint64_t i = 0; i < s_CurrentBlueprintFactory->GetSubEntitiesCount(); ++i) {
-                    ZEntityRef s_SubEntity = s_CurrentBlueprintFactory->GetSubEntity(s_CurrentEntity.m_pObj, i);
+                    ZEntityRef s_SubEntity = s_CurrentBlueprintFactory->GetSubEntity(s_CurrentBlueprintEntity.m_pObj, i);
 
-                    if (s_SubEntity == s_NextEntity) {
-                        IEntityBlueprintFactory* s_SubBlueprintFactory = s_CurrentBlueprintFactory->GetSubEntityBlueprint(i);
+                    if (s_SubEntity == s_PathEntity) {
+                        s_PreviousEntity = s_SubEntity;
+                        s_PreviousSubEntityIndex = i;
+                        s_Found = true;
+                        break;
+                    }
+                }
 
-                        if (!s_SubBlueprintFactory) {
-                            return nullptr;
-                        }
+                if (s_Found) {
+                    continue;
+                }
 
-                        s_CurrentBlueprintFactory = s_SubBlueprintFactory;
-                        s_CurrentEntity = s_SubEntity;
+                // The next logical parent isn't in the current blueprint.
+                // Try entering the blueprint referenced by the previous entity.
+                if (s_PreviousSubEntityIndex == static_cast<uint64_t>(-1)) {
+                    return nullptr;
+                }
+
+                IEntityBlueprintFactory* s_SubBlueprintFactory = s_CurrentBlueprintFactory->GetSubEntityBlueprint(s_PreviousSubEntityIndex);
+
+                if (!s_SubBlueprintFactory) {
+                    return nullptr;
+                }
+
+                s_CurrentBlueprintFactory = s_SubBlueprintFactory;
+                s_CurrentBlueprintEntity = s_PreviousEntity;
+                s_PreviousEntity = {};
+                s_PreviousSubEntityIndex = static_cast<uint64_t>(-1);
+
+                // Resolve the same path entity again, now inside the referenced blueprint.
+                for (uint64_t i = 0; i < s_CurrentBlueprintFactory->GetSubEntitiesCount(); ++i) {
+                    ZEntityRef s_SubEntity = s_CurrentBlueprintFactory->GetSubEntity(s_CurrentBlueprintEntity.m_pObj, i);
+
+                    if (s_SubEntity == s_PathEntity) {
+                        s_PreviousEntity = s_SubEntity;
+                        s_PreviousSubEntityIndex = i;
                         s_Found = true;
                         break;
                     }
@@ -686,6 +714,32 @@ namespace zknt {
 
                 if (!s_Found) {
                     return nullptr;
+                }
+            }
+
+            // Check whether the target belongs to the current blueprint.
+            for (uint64_t i = 0; i < s_CurrentBlueprintFactory->GetSubEntitiesCount(); ++i) {
+                ZEntityRef s_SubEntity = s_CurrentBlueprintFactory->GetSubEntity(s_CurrentBlueprintEntity.m_pObj, i);
+
+                if (s_SubEntity == p_EntityRef) {
+                    p_OutSubEntityIndex = i;
+                    return s_CurrentBlueprintFactory;
+                }
+            }
+
+            // Check whether the target belongs to the blueprint referenced by its logical parent.
+            if (s_PreviousSubEntityIndex != static_cast<uint64_t>(-1)) {
+                IEntityBlueprintFactory* s_SubBlueprintFactory = s_CurrentBlueprintFactory->GetSubEntityBlueprint(s_PreviousSubEntityIndex);
+
+                if (s_SubBlueprintFactory) {
+                    for (uint64_t i = 0; i < s_SubBlueprintFactory->GetSubEntitiesCount(); ++i) {
+                        ZEntityRef s_SubEntity = s_SubBlueprintFactory->GetSubEntity(s_PreviousEntity.m_pObj, i);
+
+                        if (s_SubEntity == p_EntityRef) {
+                            p_OutSubEntityIndex = i;
+                            return s_SubBlueprintFactory;
+                        }
+                    }
                 }
             }
 
