@@ -171,6 +171,8 @@ namespace zknt::rendering {
             return;
         }
 
+        m_GraphicsMemory->Commit(m_CommandQueue);
+
         auto& s_FrameCtx = m_FrameContext[m_FrameCounter.load(std::memory_order_acquire) % c_MaxRenderedFrames];
         const std::uint64_t s_NewFence = ++m_FenceValue;
         s_FrameCtx.m_FenceValue.store(s_NewFence, std::memory_order_release);
