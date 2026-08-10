@@ -651,13 +651,8 @@ namespace zknt::rendering {
         m_SpriteBatch->End();
     }
 
-    void DirectXTKRenderer::DepthDraw() {
-        const auto s_BackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
-
-        const auto s_RtvHandle = m_RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-        const CD3DX12_CPU_DESCRIPTOR_HANDLE s_RtvDescriptor(s_RtvHandle, s_BackBufferIndex, m_RtvDescriptorSize);
-
-        bool s_HasDepth = false;
+    void DirectXTKRenderer::CopyDepthBuffer(ID3D12GraphicsCommandList* p_CommandList) {
+        m_DepthBufferCopiedThisFrame = false;
 
         ScopedD3DRef<ID3D12Resource> s_DepthBuffer;
         {
@@ -665,7 +660,7 @@ namespace zknt::rendering {
             s_DepthBuffer = m_DepthBufferResource;
         }
 
-        if (s_DepthBuffer && m_DepthDrewLastFrame) {
+        if (s_DepthBuffer) {
             // Instead of using the game's depth buffer directly, we create our own copy.
             // For some reason, using it directly causes our 3D models to not render correctly
             // on some machines, instead showing weird blocky artifacts.
@@ -674,7 +669,8 @@ namespace zknt::rendering {
                 const D3D12_RESOURCE_DESC s_SrcDesc = s_DepthBuffer->GetDesc();
 
                 // Create or recreate our depth buffer copy if dimensions changed
-                if (m_DepthBufferCopyWidth != s_SrcDesc.Width || m_DepthBufferCopyHeight != s_SrcDesc.Height) {
+                if ((m_DepthBufferCopyWidth != s_SrcDesc.Width || m_DepthBufferCopyHeight != s_SrcDesc.Height) && s_SrcDesc.Width == m_WindowWidth
+                    && s_SrcDesc.Height == m_WindowHeight) {
                     m_DepthBufferCopy.Reset();
                     m_DepthBufferCopyDsvHeap.Reset();
 
@@ -744,11 +740,11 @@ namespace zknt::rendering {
                         s_Barriers[1] =
                             CD3DX12_RESOURCE_BARRIER::Transition(m_DepthBufferCopy, D3D12_RESOURCE_STATE_DEPTH_READ, D3D12_RESOURCE_STATE_COPY_DEST);
 
-                        m_CommandList->ResourceBarrier(2, s_Barriers);
+                        p_CommandList->ResourceBarrier(2, s_Barriers);
                     }
 
                     // Copy the depth buffer
-                    m_CommandList->CopyResource(m_DepthBufferCopy, s_DepthBuffer);
+                    p_CommandList->CopyResource(m_DepthBufferCopy, s_DepthBuffer);
 
                     // Transition back.
                     {
@@ -758,18 +754,26 @@ namespace zknt::rendering {
                         s_Barriers[1] =
                             CD3DX12_RESOURCE_BARRIER::Transition(m_DepthBufferCopy, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_DEPTH_READ);
 
-                        m_CommandList->ResourceBarrier(2, s_Barriers);
+                        p_CommandList->ResourceBarrier(2, s_Barriers);
                     }
 
-                    // Use our depth buffer copy for rendering
-                    const auto s_DsvDescriptor = m_DepthBufferCopyDsvHeap->GetCPUDescriptorHandleForHeapStart();
-                    m_CommandList->OMSetRenderTargets(1, &s_RtvDescriptor, false, &s_DsvDescriptor);
-                    s_HasDepth = true;
+                    m_DepthBufferCopiedThisFrame = true;
                 }
             }
         }
+    }
 
-        if (!s_HasDepth) {
+    void DirectXTKRenderer::DepthDraw() {
+        const auto s_BackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
+
+        const auto s_RtvHandle = m_RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        const CD3DX12_CPU_DESCRIPTOR_HANDLE s_RtvDescriptor(s_RtvHandle, s_BackBufferIndex, m_RtvDescriptorSize);
+
+        if (m_DepthBufferCopiedThisFrame) {
+            const auto s_DsvDescriptor = m_DepthBufferCopyDsvHeap->GetCPUDescriptorHandleForHeapStart();
+            m_CommandList->OMSetRenderTargets(1, &s_RtvDescriptor, false, &s_DsvDescriptor);
+        }
+        else {
             // Fall back to depth-less rendering
             m_CommandList->OMSetRenderTargets(1, &s_RtvDescriptor, false, nullptr);
         }
@@ -796,8 +800,6 @@ namespace zknt::rendering {
         m_TriangleBatch->End();
         m_LineBatch->End();
         m_TextBatch->End();
-
-        m_DepthDrewLastFrame = GetTotalDrawCount() != s_DrawCountBefore;
     }
 
     void DirectXTKRenderer::WaitForCurrentFrameToFinish() const {

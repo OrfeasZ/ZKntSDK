@@ -68,6 +68,8 @@ namespace zknt::rendering {
             }
         }
 
+        void CopyDepthBuffer(ID3D12GraphicsCommandList* p_CommandList);
+
         bool WorldToScreen(const SVector3& p_WorldPos, SVector2& p_Out) override;
         bool ScreenToWorld(const SVector2& p_ScreenPos, SVector3& p_WorldPosOut, SVector3& p_DirectionOut) override;
 
@@ -207,8 +209,6 @@ namespace zknt::rendering {
         ID3D12Resource* m_DepthBufferResource = nullptr;
         std::mutex m_DepthBufferMutex;
 
-        // Whether the previous frame's depth pass actually submitted any geometry.
-        bool m_DepthDrewLastFrame = false;
         uint64_t m_MeshDrawCount = 0;
         uint64_t m_SpriteDrawCount = 0;
 
@@ -217,6 +217,7 @@ namespace zknt::rendering {
         ScopedD3DRef<ID3D12DescriptorHeap> m_DepthBufferCopyDsvHeap;
         uint32_t m_DepthBufferCopyWidth = 0;
         uint32_t m_DepthBufferCopyHeight = 0;
+        bool m_DepthBufferCopiedThisFrame = false;
 
         std::unique_ptr<DirectX::CommonStates> m_CommonStates;
         ScopedD3DRef<ID3D12Resource> m_FontDistanceFieldTexture;

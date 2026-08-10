@@ -896,7 +896,11 @@ namespace zknt {
     DEFINE_DETOUR_WITH_CONTEXT(ModSDK, void, SPassExecution_ExecutePass, SPassExecution* th, int32_t renderDeviceContextIndex) {
         if (th->m_pPassExecutionContext->m_pPassNode && th->m_pPassExecutionContext->m_pPassNode->m_DepthStencil
             && th->m_pPassExecutionContext->m_pPassNode->m_DepthStencil->m_pTexture->m_pResource && m_DirectXTKRenderer) {
-            m_DirectXTKRenderer->SetDepthBuffer(th->m_pPassExecutionContext->m_pPassNode->m_DepthStencil->m_pTexture->m_pResource);
+            // Copy the depth buffer after the OpaqueAdvanced pass.
+            if (std::string(th->m_pPassExecutionContext->m_pPassNode->m_ShortName) == "Decals") {
+                m_DirectXTKRenderer->SetDepthBuffer(th->m_pPassExecutionContext->m_pPassNode->m_DepthStencil->m_pTexture->m_pResource);
+                m_DirectXTKRenderer->CopyDepthBuffer(th->m_pPassExecutionContext->m_pRenderDeviceContexts[renderDeviceContextIndex]->m_pCommandList);
+            }
         }
 
         return {HookAction::Continue()};
