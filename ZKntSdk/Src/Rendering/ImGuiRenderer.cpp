@@ -20,6 +20,7 @@ namespace zknt::rendering {
 
         IMGUI_CHECKVERSION();
         m_ImGuiContext = ImGui::CreateContext();
+        m_ImPlotContext = ImPlot::CreateContext();
 
         ImGuiIO& s_ImGuiIO = ImGui::GetIO();
         s_ImGuiIO.IniFilename = nullptr;
@@ -85,8 +86,10 @@ namespace zknt::rendering {
         TeardownRenderer();
 
         ImGui::DestroyContext(m_ImGuiContext);
+        ImPlot::DestroyContext(m_ImPlotContext);
 
         m_ImGuiContext = nullptr;
+        m_ImPlotContext = nullptr;
     }
 
     void ImGuiRenderer::SetupStyles() {

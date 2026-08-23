@@ -57,6 +57,10 @@ namespace zknt::rendering {
             return m_ImGuiContext;
         }
 
+        ImPlotContext* GetImPlotContext() const override {
+            return m_ImPlotContext;
+        }
+
         ImGuiMemAllocFunc GetMemAlloc() const override {
             ImGuiMemAllocFunc s_AllocFunc;
             ImGuiMemFreeFunc s_FreeFunc;
@@ -155,6 +159,7 @@ namespace zknt::rendering {
         std::int64_t m_TicksPerSecond = 0;
 
         ImGuiContext* m_ImGuiContext = nullptr;
+        ImPlotContext* m_ImPlotContext = nullptr;
 
         ImFont* m_FontLight = nullptr;
         ImFont* m_FontRegular = nullptr;

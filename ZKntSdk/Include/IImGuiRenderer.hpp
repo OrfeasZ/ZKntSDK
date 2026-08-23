@@ -4,6 +4,8 @@
 
 #include "imgui.h"
 
+#include <implot.h>
+
 #include "Common.hpp"
 
 #include "Glacier/ZMath.hpp"
@@ -22,6 +24,7 @@ namespace zknt {
         virtual bool IsVisible() const = 0;
 
         virtual ImGuiContext* GetContext() const = 0;
+        virtual ImPlotContext* GetImPlotContext() const = 0;
 
         virtual ImGuiMemAllocFunc GetMemAlloc() const = 0;
         virtual ImGuiMemFreeFunc GetMemFree() const = 0;
