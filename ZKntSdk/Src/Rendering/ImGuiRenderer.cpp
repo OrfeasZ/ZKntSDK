@@ -155,6 +155,8 @@ namespace zknt::rendering {
         s_Colors[ImGuiCol_PlotLinesHovered] = s_Accent;
         s_Colors[ImGuiCol_PlotHistogramHovered] = s_Accent;
 
+        s_Colors[ImGuiCol_CheckboxSelectedBg] = ImVec4(0.18f, 0.19f, 0.22f, 1.00f);
+
         s_Colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
         s_Colors[ImGuiCol_TextDisabled] = ImVec4(0.60f, 0.60f, 0.60f, 1.00f);
 
