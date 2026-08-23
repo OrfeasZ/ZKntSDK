@@ -1,5 +1,10 @@
 #pragma once
 
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
+
 #include "IModSDK.hpp"
 #include "Hooks.hpp"
 #include "Functions.hpp"
@@ -7,11 +12,6 @@
 #include "Rendering/ImGuiRenderer.hpp"
 #include "Rendering/DirectXTKRenderer.hpp"
 #include "HostServices.hpp"
-
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <unordered_map>
 
 class ZResourcePending;
 
@@ -61,6 +61,7 @@ namespace zknt {
         ::zknt::Hooks* Hooks() override;
         ::zknt::Functions* Functions() override;
         ::zknt::Globals* Globals() override;
+        ::zknt::Events* Events() override;
 
         void Log(spdlog::level::level_enum p_Level, std::string_view p_Msg) override;
 
@@ -160,6 +161,7 @@ namespace zknt {
         std::unique_ptr<::zknt::Hooks> m_Hooks;
         std::unique_ptr<::zknt::Functions> m_Functions;
         std::unique_ptr<::zknt::Globals> m_Globals;
+        std::unique_ptr<::zknt::Events> m_Events;
         std::unique_ptr<rendering::ImGuiRenderer> m_ImGuiRenderer;
         std::shared_ptr<rendering::DirectXTKRenderer> m_DirectXTKRenderer;
         std::unique_ptr<ModLoader> m_ModLoader;

@@ -4,6 +4,7 @@
 
 #include <Glacier/ZModule.hpp>
 #include <Glacier/ZResource.hpp>
+#include <Glacier/ZRender.hpp>
 
 #include "HookImpl.hpp"
 #include "IPluginInterface.hpp"
@@ -13,7 +14,7 @@
 #include "UI/ModSelector.hpp"
 #include "Util/ProcessUtils.hpp"
 #include "Globals.hpp"
-#include <Glacier/ZRender.hpp>
+#include "Events.hpp"
 
 extern void SetupLogging(spdlog::level::level_enum p_LogLevel);
 extern void FlushLoggers();
@@ -196,6 +197,7 @@ namespace zknt {
 
         m_Functions.reset();
         m_Globals.reset();
+        m_Events.reset();
 
         Trampolines::ClearTrampolines();
 
@@ -238,6 +240,7 @@ namespace zknt {
 
         m_Globals = std::make_unique<zknt::Globals>();
         m_Functions = std::make_unique<zknt::Functions>();
+        m_Events = std::make_unique<zknt::Events>();
         m_ImGuiRenderer = std::make_unique<zknt::rendering::ImGuiRenderer>();
         m_DirectXTKRenderer = std::make_unique<zknt::rendering::DirectXTKRenderer>();
 
@@ -294,6 +297,10 @@ namespace zknt {
 
     zknt::Globals* ModSDK::Globals() {
         return m_Globals.get();
+    }
+
+    ::zknt::Events* ModSDK::Events() {
+        return m_Events.get();
     }
 
     void ModSDK::Log(spdlog::level::level_enum p_Level, std::string_view p_Msg) {
