@@ -441,7 +441,7 @@ class ZEntityRef {
             auto* s_Data = (*SDK()->Globals()->MemoryManager)->m_pNormalAllocator->AllocateAligned(s_TypeSize, s_TypeAlignment);
 
             if (s_PropertyInfo->m_propertyInfo.m_Flags & EPropertyInfoFlags::E_HAS_GETTER_SETTER) {
-                s_PropertyInfo->m_propertyInfo.m_PropetyGetter(
+                s_PropertyInfo->m_propertyInfo.m_PropertyGetter(
                     reinterpret_cast<void*>(s_PropertyAddress), s_Data, s_PropertyInfo->m_propertyInfo.m_nExtraData
                 );
             }
