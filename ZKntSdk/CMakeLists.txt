@@ -56,6 +56,7 @@ target_link_libraries(ZKntSdk PRIVATE
         simdjson::simdjson
         ResourceLib_KNT
         Microsoft::DirectXTK12
+        implot::implot
 )
 
 # Header-only interface exposed to mods.

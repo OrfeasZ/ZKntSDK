@@ -16,6 +16,10 @@ namespace zknt {
 
       private:
         virtual void SetupUI(IImGuiRenderer* p_Renderer) {
+            if (!p_Renderer) {
+                return;
+            }
+
             auto* s_Context = p_Renderer->GetContext();
 
             if (!s_Context) {
@@ -24,6 +28,10 @@ namespace zknt {
 
             ImGui::SetCurrentContext(s_Context);
             ImGui::SetAllocatorFunctions(p_Renderer->GetMemAlloc(), p_Renderer->GetMemFree(), p_Renderer->GetAllocatorUserData());
+
+#ifdef ZKNT_HAS_IMPLOT
+            ImPlot::SetCurrentContext(p_Renderer->GetImPlotContext());
+#endif
         }
 
       public:
