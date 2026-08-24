@@ -27,6 +27,7 @@ namespace zknt {
 namespace zknt::ui {
     class ModSelector;
     class MainMenu;
+    class Console;
 }
 
 namespace zknt {
@@ -125,6 +126,7 @@ namespace zknt {
         IDirectXTKRenderer* GetDirectXTKRenderer() const;
         ModLoader* GetModLoader() const;
         ui::ModSelector* GetUIModSelector() const;
+        ui::Console* GetUIConsole() const;
 
         [[nodiscard]] bool IsEngineInitialized() const {
             return m_EngineInitialized;
@@ -165,6 +167,8 @@ namespace zknt {
 
         void LoadConfiguration();
 
+        static void OnConsoleCommand(void* p_Context, TArray<ZString>& p_Args);
+
         static std::tuple<ZResourceIndex, ZRuntimeResourceID>
         LoadResourceFromBIN1(ResourceMem* p_ResourceMem, std::string_view p_MetaJson, std::function<void(ZResourcePending*)> p_Install);
 
@@ -194,6 +198,7 @@ namespace zknt {
         std::unique_ptr<ModLoader> m_ModLoader;
         std::unique_ptr<ui::ModSelector> m_ModSelector;
         std::unique_ptr<ui::MainMenu> m_MainMenu;
+        std::unique_ptr<ui::Console> m_Console;
 
         std::mutex m_UICallbacksMutex;
         std::unordered_map<void*, UICallback> m_UICallbacks;

@@ -8,11 +8,11 @@
 #include "spdlog/sinks/msvc_sink.h"
 
 #include <ModSDK.hpp>
-// #include <UI/Console.h>
+#include <UI/Console.hpp>
 
 static std::vector<spdlog::logger*>* g_Loggers;
 
-/*template<class Mutex> class ConsoleSink : public spdlog::sinks::base_sink<Mutex> {
+template<class Mutex> class ConsoleSink : public spdlog::sinks::base_sink<Mutex> {
     using MyType = ConsoleSink<Mutex>;
 
   public:
@@ -27,14 +27,14 @@ static std::vector<spdlog::logger*>* g_Loggers;
         spdlog::memory_buf_t s_Formatted;
         spdlog::sinks::base_sink<Mutex>::formatter_->format(p_Message, s_Formatted);
 
-        ModSDK::GetInstance()->GetUIConsole()->AddLogLine(p_Message.level, std::string(s_Formatted.data(), s_Formatted.size()));
+        zknt::ModSDK::GetInstance()->GetUIConsole()->AddLogLine(p_Message.level, std::string(s_Formatted.data(), s_Formatted.size()));
     }
 
     void flush_() override {}
 };
 
 typedef ConsoleSink<spdlog::details::null_mutex> ConsoleSink_st;
-typedef ConsoleSink<std::mutex> ConsoleSink_mt;*/
+typedef ConsoleSink<std::mutex> ConsoleSink_mt;
 
 void DispatchLog(spdlog::level::level_enum p_Level, std::string_view p_Msg) {
     if (g_Loggers == nullptr) {
@@ -70,7 +70,7 @@ void SetupLogging(spdlog::level::level_enum p_LogLevel) {
 
     auto s_ConsoleDistSink = std::make_shared<spdlog::sinks::dist_sink_mt>();
     auto s_StdoutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-    // auto s_UiConsoleSink = std::make_shared<ConsoleSink_mt>();
+    auto s_UiConsoleSink = std::make_shared<ConsoleSink_mt>();
 
 #if _DEBUG
     auto s_DebugSink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
@@ -78,7 +78,7 @@ void SetupLogging(spdlog::level::level_enum p_LogLevel) {
 #endif
 
     s_ConsoleDistSink->add_sink(s_StdoutSink);
-    // s_ConsoleDistSink->add_sink(s_UiConsoleSink);
+    s_ConsoleDistSink->add_sink(s_UiConsoleSink);
 
     auto s_ConsoleLogger = new spdlog::logger("con", s_ConsoleDistSink);
 

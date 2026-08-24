@@ -14,5 +14,7 @@ namespace zknt {
 
         Events(const Events&) = delete;
         Events& operator=(const Events&) = delete;
+
+        EventDispatcher<TArray<ZString>&>* OnConsoleCommand = nullptr;
     };
 }

@@ -4,6 +4,10 @@
 
 std::unordered_set<EventDispatcherBase*>* zknt::EventDispatcherRegistry::g_Dispatchers = nullptr;
 
-zknt::Events::Events() {}
+zknt::Events::Events() {
+    DEFINE_EVENT(OnConsoleCommand, TArray<ZString>&);
+}
 
-zknt::Events::~Events() {}
+zknt::Events::~Events() {
+    delete OnConsoleCommand;
+}

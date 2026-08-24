@@ -5,6 +5,7 @@
 #include <Glacier/ZModule.hpp>
 #include <Glacier/ZResource.hpp>
 #include <Glacier/ZRender.hpp>
+#include <Glacier/ZConfigCommand.h>
 
 #include "HookImpl.hpp"
 #include "IPluginInterface.hpp"
@@ -12,6 +13,7 @@
 #include "ModLoader.hpp"
 #include "UI/MainMenu.hpp"
 #include "UI/ModSelector.hpp"
+#include "UI/Console.hpp"
 #include "Util/ProcessUtils.hpp"
 #include "Globals.hpp"
 #include "Events.hpp"
@@ -212,6 +214,8 @@ namespace zknt {
             return;
         }
 
+        m_Console = std::make_unique<zknt::ui::Console>();
+
         Logger::Info("Applying startup patches...");
 
         uint8_t s_Nop[0x59] = {};
@@ -272,6 +276,10 @@ namespace zknt {
                 m_ModSelector->Draw(p_HasFocus);
             }
 
+            if (m_Console) {
+                m_Console->Draw(GetImGuiRenderer(), p_HasFocus);
+            }
+
             if (m_ModLoader) {
                 for (auto* s_Plugin : m_ModLoader->GetLoadedMods()) {
                     if (!s_Plugin) {
@@ -284,6 +292,8 @@ namespace zknt {
 
         Hooks()->Engine_Init->AddDetour(this, &ModSDK::Engine_Init);
         Hooks()->SPassExecution_ExecutePass->AddDetour(this, &ModSDK::SPassExecution_ExecutePass);
+
+        Events()->OnConsoleCommand->AddListener(this, &OnConsoleCommand);
 
         if (m_EngineInitialized) {
             Logger::Info("Engine was already initialized before SDK load; replaying engine-init flow.");
@@ -806,6 +816,10 @@ namespace zknt {
         return m_ModSelector.get();
     }
 
+    ui::Console* ModSDK::GetUIConsole() const {
+        return m_Console.get();
+    }
+
     void ModSDK::SetHasShownUIToggleWarning() {
         m_HasShownUIToggleWarning.store(true, std::memory_order_release);
 
@@ -995,6 +1009,127 @@ namespace zknt {
 
         if (s_UI.has("shown_ui_toggle_warning")) {
             m_HasShownUIToggleWarning = true;
+        }
+    }
+
+    void ModSDK::OnConsoleCommand(void* p_Context, TArray<ZString>& p_Args) {
+        if (p_Args.size() == 1) {
+            if (p_Args[0] == "unloadall") {
+                ModSDK::GetInstance()->GetModLoader()->UnloadAllMods();
+            }
+            else if (p_Args[0] == "reloadall") {
+                ModSDK::GetInstance()->GetModLoader()->ReloadAllMods();
+            }
+        }
+
+        if (p_Args.size() == 2) {
+            if (p_Args[0] == "load") {
+                ModSDK::GetInstance()->GetModLoader()->LoadMod(p_Args[1].c_str(), true);
+            }
+            else if (p_Args[0] == "unload") {
+                ModSDK::GetInstance()->GetModLoader()->UnloadMod(p_Args[1].c_str());
+            }
+            else if (p_Args[0] == "reload") {
+                ModSDK::GetInstance()->GetModLoader()->ReloadMod(p_Args[1].c_str());
+            }
+            else if (p_Args[0] == "config") {
+                ZConfigCommand* s_ConfigCommand = ZConfigCommand::Get(p_Args[1]);
+
+                if (!s_ConfigCommand) {
+                    Logger::Error("[ZConfigCommand] Invalid command.");
+                    return;
+                }
+
+                switch (s_ConfigCommand->GetType()) {
+                case ZConfigCommand::ECLASSTYPE::ECLASS_FLOAT:
+                    Logger::Info("[ZConfigCommand] {} - float - {}", p_Args[1], s_ConfigCommand->As<ZConfigFloat>()->m_Value);
+                    return;
+                case ZConfigCommand::ECLASSTYPE::ECLASS_INT:
+                    Logger::Info("[ZConfigCommand] {} - int - {}", p_Args[1], s_ConfigCommand->As<ZConfigInt>()->m_Value);
+                    return;
+                case ZConfigCommand::ECLASSTYPE::ECLASS_STRING:
+                    Logger::Info("[ZConfigCommand] {} - string - \"{}\"", p_Args[1], s_ConfigCommand->As<ZConfigString>()->m_szValue);
+                    return;
+                case ZConfigCommand::ECLASSTYPE::ECLASS_UNKNOWN:
+                    Logger::Error("[ZConfigCommand] Unsupported command type (ECLASS_UNKNOWN).");
+                    return;
+                }
+            }
+        }
+
+        if (p_Args.size() == 3) {
+            if (p_Args[0] == "config") {
+                ZConfigCommand* s_ConfigCommand = ZConfigCommand::Get(p_Args[1]);
+
+                if (!s_ConfigCommand) {
+                    Logger::Info("[ZConfigCommand] Invalid command.");
+                    return;
+                }
+
+                switch (s_ConfigCommand->GetType()) {
+                case ZConfigCommand::ECLASSTYPE::ECLASS_FLOAT: {
+                    try {
+                        size_t s_ParsedLength;
+                        static_cast<void>(std::stof(p_Args[2].c_str(), &s_ParsedLength));
+
+                        if (s_ParsedLength != p_Args[2].size()) {
+                            Logger::Error("[ZConfigCommand] Invalid input (float), not all characters provided were processed.");
+                            return;
+                        }
+                    }
+                    catch (const std::invalid_argument&) {
+                        Logger::Error("[ZConfigCommand] Invalid input (float), input does not represent a float.");
+                        return;
+                    }
+                    catch (const std::out_of_range&) {
+                        Logger::Error("[ZConfigCommand] Invalid input (float), float is out of range.");
+                        return;
+                    }
+
+                    break;
+                }
+                case ZConfigCommand::ECLASSTYPE::ECLASS_INT: {
+                    try {
+                        size_t s_ParsedLength;
+                        unsigned long s_Value = std::stoul(p_Args[2].c_str(), &s_ParsedLength);
+
+                        if (s_ParsedLength != p_Args[2].size()) {
+                            Logger::Error("[ZConfigCommand] Invalid input (integer), not all characters provided were processed.");
+                            return;
+                        }
+
+                        if (s_Value > (std::numeric_limits<unsigned int>::max)()) {
+                            Logger::Error("[ZConfigCommand] Invalid input (integer), out of u32 range.");
+                            return;
+                        }
+                    }
+                    catch (const std::invalid_argument&) {
+                        Logger::Error("[ZConfigCommand] Invalid input (integer), input does not represent a integer.");
+                        return;
+                    }
+                    catch (const std::out_of_range&) {
+                        Logger::Error("[ZConfigCommand] Invalid input (integer), integer is out of range.");
+                        return;
+                    }
+
+                    break;
+                }
+                case ZConfigCommand::ECLASSTYPE::ECLASS_STRING: {
+                    if (p_Args[2].size() >= 256) {
+                        return Logger::Error("[ZConfigCommand] Invalid input (string), maximum length of 255 exceeded.");
+                    }
+
+                    break;
+                }
+                case ZConfigCommand::ECLASSTYPE::ECLASS_UNKNOWN:
+                    Logger::Error("[ZConfigCommand] Unsupported command type (ECLASS_UNKNOWN).");
+                    return;
+                }
+
+                SDK()->Functions()->ZConfigCommand_ExecuteCommand->Call(p_Args[1].c_str(), p_Args[2].c_str());
+
+                Logger::Info(R"([ZConfigCommand] Set "{}" to "{}")", p_Args[1], p_Args[2]);
+            }
         }
     }
 
