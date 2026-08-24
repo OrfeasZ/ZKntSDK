@@ -21,6 +21,7 @@ class ZRenderManager;
 struct SD3D12ObjectPools;
 struct SPrimDrawData;
 struct SEntitySlotMetadata;
+class ZObjectPool;
 
 namespace Gameplay {
     class ZGPWTransientStores;
@@ -73,6 +74,8 @@ namespace zknt {
         SD3D12ObjectPools** D3D12ObjectPools = nullptr;
         SPrimDrawData** PrimDrawData = nullptr;
         SEntitySlotMetadata** EntitySlotMetadata = nullptr;
+        ZObjectPool* Variant8BytePool;
+        ZObjectPool* Variant32BytePool;
         Gameplay::ZGPWTransientStores* GPWTransientStores = nullptr;
     };
 }

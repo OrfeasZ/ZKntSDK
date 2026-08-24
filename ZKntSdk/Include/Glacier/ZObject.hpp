@@ -3,6 +3,8 @@
 #include "Reflection.hpp"
 #include "ZTypeRegistry.hpp"
 #include "ZMemory.hpp"
+#include "ZObjectPool.hpp"
+
 #include <IModSDK.hpp>
 
 class STypeID;
@@ -11,6 +13,10 @@ class ZString;
 class ZObjectRef {
   public:
     static STypeID* GetVoidType() {
+        if (!SDK()->Globals()->TypeRegistry || !*SDK()->Globals()->TypeRegistry) {
+            return nullptr;
+        }
+
         static STypeID* s_VoidType = (*SDK()->Globals()->TypeRegistry)->GetTypeID("void");
 
         return s_VoidType;
@@ -22,8 +28,7 @@ class ZObjectRef {
 
     ZObjectRef(const ZObjectRef& p_Other) : m_pTypeID(p_Other.m_pTypeID) {
         if (p_Other.m_pTypeID != GetVoidType()) {
-            m_pData = (*SDK()->Globals()->MemoryManager)
-                          ->m_pNormalAllocator->AllocateAligned(m_pTypeID->GetTypeInfo()->m_nTypeSize, m_pTypeID->GetTypeInfo()->m_nTypeAlignment);
+            AllocateMemory();
 
             m_pTypeID->GetTypeInfo()->m_pTypeFunctions->placementCopyConstruct(m_pData, p_Other.m_pData);
         }
@@ -41,10 +46,15 @@ class ZObjectRef {
     template<class T> static ZObjectRef From(const T& p_Variant) {
         ZObjectRef s_Obj;
         s_Obj.Replace(p_Variant);
+
         return s_Obj;
     }
 
     ZObjectRef& operator=(const ZObjectRef& p_Other) {
+        if (this == &p_Other) {
+            return *this;
+        }
+
         Clear();
 
         m_pTypeID = p_Other.m_pTypeID;
@@ -89,52 +99,27 @@ class ZObjectRef {
     }
 
     void Clear() {
-        if (!m_pData) {
-            m_pTypeID = GetVoidType();
-            return;
-        }
-
-        if (m_pTypeID->m_nFlags != 2) {
-            m_pTypeID->m_pType->m_pTypeFunctions->destruct(m_pData);
-        }
+        DestroyMemory();
 
         m_pTypeID = GetVoidType();
-
-        // if (Globals::ZVariantPool1->m_pData && Globals::ZVariantPool1->BelongsToPool(m_pData)) {
-        //     // TODO: Fix resource leak.
-        //     // Globals::ZVariantPool1->Free(m_pData);
-        // }
-        // else if (Globals::ZVariantPool2->m_pData && Globals::ZVariantPool2->BelongsToPool(m_pData)) {
-        //     // TODO: Fix resource leak.
-        //     // Globals::ZVariantPool2->Free(m_pData);
-        // }
-        // else if (m_pTypeID != GetVoidType()) {
-        //     (*SDK()->Globals()->MemoryManager)->m_pNormalAllocator->Free(m_pData);
-        // }
-
-        if (m_pTypeID != GetVoidType()) {
-            (*SDK()->Globals()->MemoryManager)->m_pNormalAllocator->Free(m_pData);
-        }
-
-        m_pData = nullptr;
     }
 
     template<class T> void Replace(const T& p_Value) {
-        Clear();
+        DestroyMemory();
 
         m_pTypeID = (*SDK()->Globals()->TypeRegistry)->GetTypeID(ZHMTypeName<T>);
-        m_pData = (*SDK()->Globals()->MemoryManager)
-                      ->m_pNormalAllocator->AllocateAligned(m_pTypeID->GetTypeInfo()->m_nTypeSize, m_pTypeID->GetTypeInfo()->m_nTypeAlignment);
+
+        AllocateMemory();
 
         m_pTypeID->GetTypeInfo()->m_pTypeFunctions->placementCopyConstruct(m_pData, &p_Value);
     }
 
     void Assign(STypeID* p_Type, void* p_Data) {
-        Clear();
+        DestroyMemory();
 
         m_pTypeID = p_Type;
-        m_pData = (*SDK()->Globals()->MemoryManager)
-                      ->m_pNormalAllocator->AllocateAligned(m_pTypeID->GetTypeInfo()->m_nTypeSize, m_pTypeID->GetTypeInfo()->m_nTypeAlignment);
+
+        AllocateMemory();
 
         m_pTypeID->GetTypeInfo()->m_pTypeFunctions->placementCopyConstruct(m_pData, p_Data);
     }
@@ -163,20 +148,63 @@ class ZObjectRef {
         return m_pTypeID;
     }
 
-    ZObjectRef Clone() const {
-        ZObjectRef s_Obj;
+    void* GetData() const {
+        return m_pData;
+    }
 
-        if (m_pTypeID == GetVoidType()) {
-            return s_Obj;
+    void* AllocateMemory() {
+        uint32_t s_Size;
+
+        if (m_pTypeID->m_nFlags == 2) {
+            s_Size = 8;
+        }
+        else {
+            s_Size = m_pTypeID->GetTypeInfo()->m_nTypeSize;
         }
 
-        s_Obj.m_pTypeID = m_pTypeID;
-        s_Obj.m_pData = (*SDK()->Globals()->MemoryManager)
-                            ->m_pNormalAllocator->AllocateAligned(m_pTypeID->GetTypeInfo()->m_nTypeSize, m_pTypeID->GetTypeInfo()->m_nTypeAlignment);
+        if (s_Size <= 8) {
+            if (SDK()->Globals()->Variant8BytePool && SDK()->Globals()->Variant8BytePool->m_pData) {
+                m_pData = SDK()->Globals()->Variant8BytePool->Alloc();
+            }
+        }
+        else if (s_Size <= 0x20) {
+            if (SDK()->Globals()->Variant32BytePool && SDK()->Globals()->Variant32BytePool->m_pData) {
+                m_pData = SDK()->Globals()->Variant32BytePool->Alloc();
+            }
+        }
 
-        m_pTypeID->GetTypeInfo()->m_pTypeFunctions->placementCopyConstruct(s_Obj.m_pData, m_pData);
+        if (!m_pData) {
+            const uint32_t s_Alignment = m_pTypeID->m_nFlags == 2 ? 8 : m_pTypeID->GetTypeInfo()->m_nTypeAlignment;
 
-        return s_Obj;
+            m_pData = (*SDK()->Globals()->MemoryManager)->m_pNormalAllocator->AllocateAligned(s_Size, s_Alignment);
+        }
+
+        return m_pData;
+    }
+
+    void DestroyMemory() {
+        if (!m_pData) {
+            return;
+        }
+
+        // char[INT32_MAX] has type number 21.
+        if (m_pTypeID->m_nTypeNum != 21) {
+            if (m_pTypeID->m_nFlags != 2) {
+                m_pTypeID->GetTypeInfo()->m_pTypeFunctions->destruct(m_pData);
+            }
+
+            if (SDK()->Globals()->Variant8BytePool && SDK()->Globals()->Variant8BytePool->Contains(m_pData)) {
+                SDK()->Globals()->Variant8BytePool->Free(m_pData);
+            }
+            else if (SDK()->Globals()->Variant32BytePool && SDK()->Globals()->Variant32BytePool->Contains(m_pData)) {
+                SDK()->Globals()->Variant32BytePool->Free(m_pData);
+            }
+            else {
+                (*SDK()->Globals()->MemoryManager)->m_pNormalAllocator->Free(m_pData);
+            }
+        }
+
+        m_pData = nullptr;
     }
 
   protected:
