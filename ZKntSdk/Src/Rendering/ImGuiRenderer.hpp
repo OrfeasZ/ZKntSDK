@@ -53,6 +53,10 @@ namespace zknt::rendering {
             return m_ImguiVisible;
         }
 
+        void SetFocus(bool p_HasFocus) override {
+            m_ImguiHasFocus.store(p_HasFocus, std::memory_order_release);
+        }
+
         ImGuiContext* GetContext() const override {
             return m_ImGuiContext;
         }

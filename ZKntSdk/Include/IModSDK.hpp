@@ -269,6 +269,19 @@ namespace zknt {
          * @return The containing blueprint factory, or nullptr if it cannot be found.
          */
         virtual IEntityBlueprintFactory* GetContainingBlueprintFactory(const ZEntityRef& p_EntityRef, uint64_t& p_OutSubEntityIndex) const = 0;
+
+        /**
+         * Give focus to the SDK UI.
+         * This prevents the user from interacting with the game
+         * and allows the SDK UI to receive input.
+         */
+        virtual void RequestUIFocus() = 0;
+
+        /**
+         * Release focus from the SDK UI.
+         * This allows the user to interact with the game again.
+         */
+        virtual void ReleaseUIFocus() = 0;
     };
 }
 

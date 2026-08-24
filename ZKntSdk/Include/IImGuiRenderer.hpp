@@ -23,6 +23,8 @@ namespace zknt {
 
         virtual bool IsVisible() const = 0;
 
+        virtual void SetFocus(bool p_HasFocus) = 0;
+
         virtual ImGuiContext* GetContext() const = 0;
         virtual ImPlotContext* GetImPlotContext() const = 0;
 

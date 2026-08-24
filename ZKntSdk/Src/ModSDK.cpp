@@ -770,6 +770,22 @@ namespace zknt {
         return s_BlueprintFactory;
     }
 
+    void ModSDK::RequestUIFocus() {
+        if (!m_UIEnabled) {
+            return;
+        }
+
+        m_ImGuiRenderer.get()->SetFocus(true);
+    }
+
+    void ModSDK::ReleaseUIFocus() {
+        if (!m_UIEnabled) {
+            return;
+        }
+
+        m_ImGuiRenderer.get()->SetFocus(false);
+    }
+
     zknt::IImGuiRenderer* ModSDK::GetImGuiRenderer() const {
         return m_ImGuiRenderer.get();
     }

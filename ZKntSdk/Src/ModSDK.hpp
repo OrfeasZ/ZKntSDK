@@ -115,6 +115,9 @@ namespace zknt {
         IEntityBlueprintFactory* GetBlueprintFactory(const ZEntityRef& p_EntityRef) const override;
         IEntityBlueprintFactory* GetContainingBlueprintFactory(const ZEntityRef& p_EntityRef, uint64_t& p_OutSubEntityIndex) const override;
 
+        void RequestUIFocus() override;
+        void ReleaseUIFocus() override;
+
         // SDK-internal methods.
         IImGuiRenderer* GetImGuiRenderer() const;
         IDirectXTKRenderer* GetDirectXTKRenderer() const;
