@@ -54,6 +54,8 @@ namespace zknt {
 
         SetSDK(this);
 
+        LoadConfiguration();
+
 #if _DEBUG
         SetupLogging(spdlog::level::trace);
 #else
@@ -261,13 +263,15 @@ namespace zknt {
         // menu + mod selector) and each loaded plugin's OnDrawUI. The main
         // menu itself is responsible for invoking per-plugin OnDrawMenu so
         // they're laid out inside its horizontal bar.
-        RegisterUiCallback(this, [this](bool p_HasFocus) {
+        RegisterUICallback(this, [this](bool p_HasFocus) {
             if (m_MainMenu) {
                 m_MainMenu->Draw(p_HasFocus);
             }
+
             if (m_ModSelector) {
                 m_ModSelector->Draw(p_HasFocus);
             }
+
             if (m_ModLoader) {
                 for (auto* s_Plugin : m_ModLoader->GetLoadedMods()) {
                     if (!s_Plugin) {
@@ -802,6 +806,12 @@ namespace zknt {
         return m_ModSelector.get();
     }
 
+    void ModSDK::SetHasShownUIToggleWarning() {
+        m_HasShownUIToggleWarning.store(true, std::memory_order_release);
+
+        UpdateSDKIni("ui", "shown_ui_toggle_warning", "true");
+    }
+
     bool ModSDK::PatchCodeInternal(
         const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
     ) {
@@ -836,6 +846,30 @@ namespace zknt {
         return true;
     }
 
+    void ModSDK::UpdateSDKIni(const std::string& p_Section, const std::string& p_Key, const std::string& p_Value) {
+        char s_ExePathStr[MAX_PATH];
+        const auto s_PathSize = GetModuleFileNameA(nullptr, s_ExePathStr, MAX_PATH);
+
+        if (s_PathSize == 0) {
+            return;
+        }
+
+        const std::filesystem::path s_ExePath(s_ExePathStr);
+        const auto s_ExeDir = s_ExePath.parent_path();
+        const auto s_IniPath = absolute(s_ExeDir / "sdk.ini");
+
+        mINI::INIFile s_File(s_IniPath.string());
+        mINI::INIStructure s_Ini;
+
+        if (is_regular_file(s_IniPath)) {
+            s_File.read(s_Ini);
+        }
+
+        s_Ini[p_Section].set(p_Key, p_Value);
+
+        s_File.generate(s_Ini, true);
+    }
+
     void ModSDK::OnModLoaded(const std::string& p_Name, IPluginInterface* p_Plugin, bool /*p_LiveLoad*/) const {
         Logger::Info("Mod '{}' loaded.", p_Name);
 
@@ -861,23 +895,23 @@ namespace zknt {
         }
     }
 
-    void ModSDK::RegisterUiCallback(void* p_Token, UiCallback p_Callback) {
-        std::lock_guard s_Lock(m_UiCallbacksMutex);
-        m_UiCallbacks[p_Token] = std::move(p_Callback);
+    void ModSDK::RegisterUICallback(void* p_Token, UICallback p_Callback) {
+        std::lock_guard s_Lock(m_UICallbacksMutex);
+        m_UICallbacks[p_Token] = std::move(p_Callback);
     }
 
-    void ModSDK::UnregisterUiCallback(void* p_Token) {
-        std::lock_guard s_Lock(m_UiCallbacksMutex);
-        m_UiCallbacks.erase(p_Token);
+    void ModSDK::UnregisterUICallback(void* p_Token) {
+        std::lock_guard s_Lock(m_UICallbacksMutex);
+        m_UICallbacks.erase(p_Token);
     }
 
-    void ModSDK::InvokeUiCallbacks(bool p_HasFocus) {
+    void ModSDK::InvokeUICallbacks(bool p_HasFocus) {
         // Snapshot under the lock so callbacks can (un)register safely.
-        std::vector<UiCallback> s_Callbacks;
+        std::vector<UICallback> s_Callbacks;
         {
-            std::lock_guard s_Lock(m_UiCallbacksMutex);
-            s_Callbacks.reserve(m_UiCallbacks.size());
-            for (auto& [s_Token, s_Cb] : m_UiCallbacks) {
+            std::lock_guard s_Lock(m_UICallbacksMutex);
+            s_Callbacks.reserve(m_UICallbacks.size());
+            for (auto& [s_Token, s_Cb] : m_UICallbacks) {
                 s_Callbacks.push_back(s_Cb);
             }
         }
@@ -904,6 +938,63 @@ namespace zknt {
                     s_Plugin->OnEngineInitialized();
                 }
             }
+        }
+    }
+
+    void ModSDK::LoadConfiguration() {
+        char s_ExePathStr[MAX_PATH];
+        const auto s_PathSize = GetModuleFileNameA(nullptr, s_ExePathStr, MAX_PATH);
+
+        if (s_PathSize == 0) {
+            return;
+        }
+
+        const std::filesystem::path s_ExePath(s_ExePathStr);
+        const auto s_IniPath = absolute(s_ExePath.parent_path() / "sdk.ini");
+
+        mINI::INIFile s_File(s_IniPath.string());
+        mINI::INIStructure s_Ini;
+
+        if (!is_regular_file(s_IniPath)) {
+            return;
+        }
+
+        s_File.read(s_Ini);
+
+        const auto& s_UI = s_Ini["ui"];
+
+        if (s_UI.has("noui") && s_UI.get("noui") == "true") {
+            m_UIEnabled = false;
+
+            MessageBoxA(
+                nullptr,
+                "WARNING: The mod SDK UI is currently disabled!\n\n"
+                "If you want to re-enable it, set 'noui = false' in sdk.ini "
+                "and restart your game.",
+                "Mod SDK Warning", MB_OK | MB_ICONWARNING
+            );
+        }
+
+        if (s_UI.has("console_key") && !s_UI.get("console_key").empty()) {
+            try {
+                m_ConsoleScanCode = std::stoul(s_UI.get("console_key"), nullptr, 0);
+            }
+            catch (const std::exception&) {
+                Logger::Error("Could not parse console_key value from sdk.ini. Using default value.");
+            }
+        }
+
+        if (s_UI.has("ui_toggle_key") && !s_UI.get("ui_toggle_key").empty()) {
+            try {
+                m_UIToggleScanCode = std::stoul(s_UI.get("ui_toggle_key"), nullptr, 0);
+            }
+            catch (const std::exception&) {
+                Logger::Error("Could not parse ui_toggle_key value from sdk.ini. Using default value.");
+            }
+        }
+
+        if (s_UI.has("shown_ui_toggle_warning")) {
+            m_HasShownUIToggleWarning = true;
         }
     }
 

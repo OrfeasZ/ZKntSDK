@@ -5,6 +5,8 @@
 #include <mutex>
 #include <unordered_map>
 
+#include <ini.h>
+
 #include "IModSDK.hpp"
 #include "Hooks.hpp"
 #include "Functions.hpp"
@@ -55,7 +57,7 @@ namespace zknt {
         }
 
         // Internal: called by ImGuiRenderer::Draw().
-        void InvokeUiCallbacks(bool p_HasFocus);
+        void InvokeUICallbacks(bool p_HasFocus);
 
         // IModSDK (mod-facing) methods.
         ::zknt::Hooks* Hooks() override;
@@ -123,17 +125,35 @@ namespace zknt {
         IDirectXTKRenderer* GetDirectXTKRenderer() const;
         ModLoader* GetModLoader() const;
         ui::ModSelector* GetUIModSelector() const;
+
         [[nodiscard]] bool IsEngineInitialized() const {
             return m_EngineInitialized;
         }
+
+        uint8_t GetConsoleScanCode() const {
+            return m_ConsoleScanCode;
+        }
+
+        uint8_t GetUIToggleScanCode() const {
+            return m_UIToggleScanCode;
+        }
+
+        bool HasShownUIToggleWarning() const {
+            return m_HasShownUIToggleWarning.load(std::memory_order_acquire);
+        }
+
+        void SetHasShownUIToggleWarning();
+
         bool PatchCodeInternal(
             const char* p_Pattern, const char* p_Mask, void* p_NewCode, size_t p_CodeSize, ptrdiff_t p_TargetOffset, void* p_OriginalCode
         );
 
+        void UpdateSDKIni(const std::string& p_Section, const std::string& p_Key, const std::string& p_Value);
+
         // SDK-internal UI callback registry.
-        using UiCallback = std::function<void(bool p_HasFocus)>;
-        void RegisterUiCallback(void* p_Token, UiCallback p_Callback);
-        void UnregisterUiCallback(void* p_Token);
+        using UICallback = std::function<void(bool p_HasFocus)>;
+        void RegisterUICallback(void* p_Token, UICallback p_Callback);
+        void UnregisterUICallback(void* p_Token);
 
         // Called by ModLoader when a mod completes registration.
         void OnModLoaded(const std::string& p_Name, IPluginInterface* p_Plugin, bool p_LiveLoad) const;
@@ -143,16 +163,20 @@ namespace zknt {
       private:
         void HandleEngineInitialized(bool p_SyncHostState);
 
-      private:
+        void LoadConfiguration();
+
         static std::tuple<ZResourceIndex, ZRuntimeResourceID>
         LoadResourceFromBIN1(ResourceMem* p_ResourceMem, std::string_view p_MetaJson, std::function<void(ZResourcePending*)> p_Install);
 
-      private:
         // Detours
         DECLARE_DETOUR_WITH_CONTEXT(ModSDK, bool, Engine_Init, void* th, void* a2);
         DECLARE_DETOUR_WITH_CONTEXT(ModSDK, void, SPassExecution_ExecutePass, SPassExecution* th, int32_t renderDeviceContextIndex);
 
-      private:
+        bool m_UIEnabled = true;
+        uint8_t m_ConsoleScanCode = 0x29;  // Grave / Tilde key
+        uint8_t m_UIToggleScanCode = 0x57; // F11
+        std::atomic<bool> m_HasShownUIToggleWarning = false;
+
         uintptr_t m_ModuleBase;
         uint32_t m_SizeOfCode;
         uint32_t m_ImageSize;
@@ -171,7 +195,7 @@ namespace zknt {
         std::unique_ptr<ui::ModSelector> m_ModSelector;
         std::unique_ptr<ui::MainMenu> m_MainMenu;
 
-        std::mutex m_UiCallbacksMutex;
-        std::unordered_map<void*, UiCallback> m_UiCallbacks;
+        std::mutex m_UICallbacksMutex;
+        std::unordered_map<void*, UICallback> m_UICallbacks;
     };
 }

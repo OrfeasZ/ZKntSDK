@@ -228,7 +228,7 @@ namespace zknt::rendering {
             return;
         }
 
-        if (!m_ImguiVisible) {
+        if (!m_IsImGuiVisible.load(std::memory_order_acquire)) {
             return;
         }
 
@@ -582,9 +582,61 @@ namespace zknt::rendering {
         ProcessKeyEventsWorkarounds(s_Io);
 
         ImGui::NewFrame();
-        ImGui::GetStyle().Alpha = m_ImguiHasFocus ? 1.f : 0.3f;
 
-        ModSDK::GetInstance()->InvokeUiCallbacks(m_ImguiHasFocus.load(std::memory_order_acquire));
+        const bool s_HasFocus = m_ImGuiHasFocus.load(std::memory_order_acquire);
+
+        ImGui::GetStyle().Alpha = s_HasFocus ? 1.f : 0.3f;
+
+        ModSDK::GetInstance()->InvokeUICallbacks(s_HasFocus);
+
+        if (m_UIToggleWarningRequested.exchange(false, std::memory_order_acquire)) {
+            m_ShowingUIToggleWarning = true;
+        }
+
+        if (m_ShowingUIToggleWarning) {
+            const auto s_Center = ImGui::GetMainViewport()->GetCenter();
+            ImGui::SetNextWindowPos(s_Center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+            ImGui::PushFont(m_FontBlack);
+            const auto s_Expanded = ImGui::Begin("Warning", &m_ShowingUIToggleWarning);
+            ImGui::PushFont(m_FontRegular);
+
+            if (s_Expanded) {
+                ImGui::Text("You have pressed the UI toggle key (F11 by default), which will HIDE the SDK UI.");
+                ImGui::Text("You must press this key again to show the SDK UI.");
+                ImGui::Text("If you want to change this key, you can do so in the mods.ini file.");
+                ImGui::Text("See the SDK readme for more information. This warning will not appear again.");
+
+                ImGui::NewLine();
+
+                static bool s_HasConfirmed = false;
+
+                ImGui::Checkbox("I understand I'm hiding the UI and that I must press this key to show it again", &s_HasConfirmed);
+
+                ImGui::NewLine();
+
+                ImGui::BeginDisabled(!s_HasConfirmed);
+
+                if (ImGui::Button("Continue")) {
+                    ModSDK::GetInstance()->SetHasShownUIToggleWarning();
+                    m_IsImGuiVisible.store(false, std::memory_order_release);
+                    m_ShowingUIToggleWarning = false;
+                    m_ImGuiHasFocus.store(false, std::memory_order_release);
+                }
+
+                ImGui::EndDisabled();
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Cancel")) {
+                    m_ShowingUIToggleWarning = false;
+                }
+            }
+
+            ImGui::PopFont();
+            ImGui::End();
+            ImGui::PopFont();
+        }
     }
 
     ImGuiMouseSource ImGuiRenderer::GetMouseSourceFromMessageExtraInfo() {
@@ -901,15 +953,17 @@ namespace zknt::rendering {
         // Layout-independent tilde toggle: compare the hardware scancode
         // (lParam bits 16-23) rather than VK_OEM_3, which moves per layout.
         const uint8_t s_ScanCode = static_cast<uint8_t>(p_Lparam >> 16);
-        if ((p_Msg == WM_KEYDOWN || p_Msg == WM_SYSKEYDOWN) && s_ScanCode == 0x29) {
-            const bool s_NewFocus = !m_ImguiHasFocus.load(std::memory_order_acquire);
-            m_ImguiHasFocus.store(s_NewFocus, std::memory_order_release);
+
+        if (s_ScanCode == ModSDK::GetInstance()->GetConsoleScanCode() && (p_Msg == WM_KEYDOWN || p_Msg == WM_SYSKEYDOWN)) {
+            const bool s_NewFocus = !m_ImGuiHasFocus.load(std::memory_order_relaxed);
+            m_ImGuiHasFocus.store(s_NewFocus, std::memory_order_release);
+
             if (s_NewFocus) {
-                m_ImguiVisible.store(true, std::memory_order_release);
+                m_IsImGuiVisible.store(true, std::memory_order_release);
             }
 
             if (SpawnEntities()) {
-                if (m_ImguiHasFocus) {
+                if (s_NewFocus) {
                     m_BlockPlayerCameraInput.m_entityRef.SignalInputPin("Do");
                 }
                 else {
@@ -918,14 +972,31 @@ namespace zknt::rendering {
             }
         }
 
-        (*SDK()->Globals()->ComponentManager)->m_pApplication->SetOption("DisableHardwareInput", m_ImguiHasFocus ? "1" : "0");
+        if (s_ScanCode == ModSDK::GetInstance()->GetUIToggleScanCode() && (p_Msg == WM_KEYDOWN || p_Msg == WM_SYSKEYDOWN)) {
+            if (!ModSDK::GetInstance()->HasShownUIToggleWarning()) {
+                m_UIToggleWarningRequested.store(true, std::memory_order_release);
+                m_ImGuiHasFocus.store(true, std::memory_order_release);
+            }
+            else {
+                const bool s_NewVisible = !m_IsImGuiVisible.load(std::memory_order_relaxed);
+                m_IsImGuiVisible.store(s_NewVisible, std::memory_order_release);
 
-        if (!m_ImguiHasFocus) {
+                if (!s_NewVisible) {
+                    m_ImGuiHasFocus.store(false, std::memory_order_release);
+                }
+            }
+        }
+
+        const bool s_HasFocus = m_ImGuiHasFocus.load(std::memory_order_acquire);
+
+        (*SDK()->Globals()->ComponentManager)->m_pApplication->SetOption("DisableHardwareInput", s_HasFocus ? "1" : "0");
+
+        if (!s_HasFocus) {
             return {false, 0};
         }
 
         if (p_Msg == WM_QUIT || p_Msg == WM_DESTROY || p_Msg == WM_NCDESTROY || p_Msg == WM_CLOSE) {
-            m_ImguiHasFocus.store(false, std::memory_order_release);
+            m_ImGuiHasFocus.store(false, std::memory_order_release);
             return {false, 0};
         }
         if (p_Msg == WM_SIZE) {

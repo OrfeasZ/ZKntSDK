@@ -50,11 +50,11 @@ namespace zknt::rendering {
 
         // IRenderer
         bool IsVisible() const override {
-            return m_ImguiVisible;
+            return m_IsImGuiVisible.load(std::memory_order_acquire);
         }
 
         void SetFocus(bool p_HasFocus) override {
-            m_ImguiHasFocus.store(p_HasFocus, std::memory_order_release);
+            m_ImGuiHasFocus.store(p_HasFocus, std::memory_order_release);
         }
 
         ImGuiContext* GetContext() const override {
@@ -171,8 +171,10 @@ namespace zknt::rendering {
         ImFont* m_FontBold = nullptr;
         ImFont* m_FontBlack = nullptr;
 
-        std::atomic<bool> m_ImguiHasFocus{false};
-        std::atomic<bool> m_ImguiVisible{true};
+        std::atomic<bool> m_ImGuiHasFocus{false};
+        std::atomic<bool> m_IsImGuiVisible{true};
+        std::atomic<bool> m_UIToggleWarningRequested{false};
+        bool m_ShowingUIToggleWarning = false;
 
         // Input state for WndProc handler.
         HWND m_MouseHwnd = nullptr;
