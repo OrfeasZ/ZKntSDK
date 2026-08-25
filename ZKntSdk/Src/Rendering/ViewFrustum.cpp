@@ -40,7 +40,8 @@ namespace zknt::rendering {
     }
 
     SMatrix ViewFrustum::MatrixPerspectiveFovRH(float p_FovYDeg, float p_AspectWByH, float p_NearZ, float p_FarZ) {
-        const float s_Height = tanf(p_FovYDeg * 0.5f) * (p_NearZ * 2.f);
+        const float s_FovYRad = DirectX::XMConvertToRadians(p_FovYDeg);
+        const float s_Height = std::tan(s_FovYRad * 0.5f) * (p_NearZ * 2.f);
         const float s_Width = s_Height * p_AspectWByH;
 
         return MatrixPerspectiveRH(s_Width, s_Height, p_NearZ, p_FarZ);
@@ -80,15 +81,15 @@ namespace zknt::rendering {
     }
 
     bool ViewFrustum::ContainsPoint(const SVector3& p_Point) const {
-        return CheckPointInsidePlanes(p_Point) != ECheckInsideFlag::CHECK_INSIDE_FULLY_OUTSIDE;
+        return CheckPointInsidePlanes(p_Point) != ContainmentType::FullyOutside;
     }
 
     bool ViewFrustum::ContainsAABB(const AABB& p_AABB) const {
-        return CheckAABBInsidePlanes(p_AABB) != ECheckInsideFlag::CHECK_INSIDE_FULLY_OUTSIDE;
+        return CheckAABBInsidePlanes(p_AABB) != ContainmentType::FullyOutside;
     }
 
     bool ViewFrustum::ContainsOBB(const SMatrix& p_Transform, const float4& p_Center, const float4& p_HalfSize) const {
-        return CheckOBBInsidePlanes(p_Transform, p_Center, p_HalfSize) != ECheckInsideFlag::CHECK_INSIDE_FULLY_OUTSIDE;
+        return CheckOBBInsidePlanes(p_Transform, p_Center, p_HalfSize) != ContainmentType::FullyOutside;
     }
 
     void ViewFrustum::SetDistanceCullingEnabled(bool p_Enabled) {
@@ -107,84 +108,76 @@ namespace zknt::rendering {
         return m_MaxDrawDistance;
     }
 
-    ViewFrustum::ECheckInsideFlag ViewFrustum::CheckPointInsidePlanes(const SVector3& p_Point) const {
-        float positiveExtentSum = 0.f;
-        float negativeExtentSum = 0.f;
+    ViewFrustum::ContainmentType ViewFrustum::CheckPointInsidePlanes(const SVector3& p_Point) const {
+        constexpr float s_Epsilon = 1.f / 4096.f;
 
-        for (const auto& plane : m_Planes) {
-            const SVector3 normal(plane.x, plane.y, plane.z);
+        for (const auto& s_Plane : m_Planes) {
+            const SVector3 s_Normal = s_Plane;
 
-            const float distance = normal.x * p_Point.x + normal.y * p_Point.y + normal.z * p_Point.z + plane.w;
+            const float s_Distance = s_Normal.x * p_Point.x + s_Normal.y * p_Point.y + s_Normal.z * p_Point.z + s_Plane.w;
 
-            positiveExtentSum += std::max(distance, 0.0f);
-            negativeExtentSum += std::max(distance, 0.0f);
+            if (s_Distance > s_Epsilon) {
+                return ContainmentType::FullyOutside;
+            }
         }
 
-        if (negativeExtentSum > 0.f) {
-            return ECheckInsideFlag::CHECK_INSIDE_FULLY_OUTSIDE;
-        }
-
-        constexpr float epsilon = 1.f / 4096.f;
-
-        return positiveExtentSum <= epsilon ? ECheckInsideFlag::CHECK_INSIDE_FULLY_INSIDE : ECheckInsideFlag::CHECK_INSIDE_PARTIALLY_INSIDE;
+        return ContainmentType::FullyInside;
     }
 
-    ViewFrustum::ECheckInsideFlag ViewFrustum::CheckAABBInsidePlanes(const AABB& p_AABB) const {
-        float positiveExtentSum = 0.f;
-        float negativeExtentSum = 0.f;
+    ViewFrustum::ContainmentType ViewFrustum::CheckAABBInsidePlanes(const AABB& p_AABB) const {
+        const SVector3 s_Center = (p_AABB.m_Min + p_AABB.m_Max) * 0.5f;
+        const SVector3 s_HalfSize = (p_AABB.m_Max - p_AABB.m_Min) * 0.5f;
 
-        const SVector3 center = (p_AABB.m_Min + p_AABB.m_Max) * 0.5f;
-        const SVector3 halfSize = (p_AABB.m_Max - p_AABB.m_Min) * 0.5f;
+        bool s_IsPartiallyInside = false;
 
-        for (const auto& plane : m_Planes) {
-            const SVector3 normal(plane.x, plane.y, plane.z);
+        constexpr float s_Epsilon = 1.f / 4096.f;
 
-            const float distance = normal.x * center.x + normal.y * center.y + normal.z * center.z + plane.w;
+        for (const auto& s_Plane : m_Planes) {
+            const SVector3 s_Normal = s_Plane;
 
-            const float radius = std::fabs(normal.x) * halfSize.x + std::fabs(normal.y) * halfSize.y + std::fabs(normal.z) * halfSize.z;
+            const float s_Distance = s_Normal.x * s_Center.x + s_Normal.y * s_Center.y + s_Normal.z * s_Center.z + s_Plane.w;
 
-            positiveExtentSum += std::max(distance + radius, 0.0f);
-            negativeExtentSum += std::max(distance - radius, 0.0f);
+            const float s_Radius = std::fabs(s_Normal.x) * s_HalfSize.x + std::fabs(s_Normal.y) * s_HalfSize.y + std::fabs(s_Normal.z) * s_HalfSize.z;
+
+            if (s_Distance - s_Radius > s_Epsilon) {
+                return ContainmentType::FullyOutside;
+            }
+
+            if (s_Distance + s_Radius > 0.f) {
+                s_IsPartiallyInside = true;
+            }
         }
 
-        if (negativeExtentSum > 0.f) {
-            return ECheckInsideFlag::CHECK_INSIDE_FULLY_OUTSIDE;
-        }
-
-        constexpr float epsilon = 1.f / 4096.f;
-
-        return positiveExtentSum <= epsilon ? ECheckInsideFlag::CHECK_INSIDE_FULLY_INSIDE : ECheckInsideFlag::CHECK_INSIDE_PARTIALLY_INSIDE;
+        return s_IsPartiallyInside ? ContainmentType::PartiallyInside : ContainmentType::FullyInside;
     }
 
-    ViewFrustum::ECheckInsideFlag
-    ViewFrustum::CheckOBBInsidePlanes(const SMatrix& p_ObjectInternal, const float4& p_LocalCenter, const float4& p_LocalSize) const {
-        const float4 worldCenter = p_ObjectInternal.WVectorTransform(p_LocalCenter);
+    ViewFrustum::ContainmentType
+    ViewFrustum::CheckOBBInsidePlanes(const SMatrix& p_Transform, const float4& p_Center, const float4& p_HalfSize) const {
+        const SVector3 s_AxisX = p_Transform.XAxis;
+        const SVector3 s_AxisY = p_Transform.YAxis;
+        const SVector3 s_AxisZ = p_Transform.ZAxis;
 
-        const SVector3 axisX(p_ObjectInternal.XAxis.x, p_ObjectInternal.XAxis.y, p_ObjectInternal.XAxis.z);
-        const SVector3 axisY(p_ObjectInternal.YAxis.x, p_ObjectInternal.YAxis.y, p_ObjectInternal.YAxis.z);
-        const SVector3 axisZ(p_ObjectInternal.ZAxis.x, p_ObjectInternal.ZAxis.y, p_ObjectInternal.ZAxis.z);
+        bool s_IsPartiallyInside = false;
 
-        float positiveExtentSum = 0.f;
-        float negativeExtentSum = 0.f;
+        constexpr float s_Epsilon = 1.f / 4096.f;
 
-        for (const auto& plane : m_Planes) {
-            const SVector3 normal(plane.x, plane.y, plane.z);
+        for (const auto& s_Plane : m_Planes) {
+            const SVector3 s_Normal = s_Plane;
 
-            const float distance = normal.x * worldCenter.x + normal.y * worldCenter.y + normal.z * worldCenter.z + plane.w;
+            const float s_Distance = s_Normal.x * p_Center.x + s_Normal.y * p_Center.y + s_Normal.z * p_Center.z + s_Plane.w;
 
-            const float radius =
-                std::fabs(normal * axisX) * p_LocalSize.x + std::fabs(normal * axisY) * p_LocalSize.y + std::fabs(normal * axisZ) * p_LocalSize.z;
+            const float s_Radius = std::fabs(s_Normal.Dot(s_AxisX)) * p_HalfSize.x + std::fabs(s_Normal.Dot(s_AxisY)) * p_HalfSize.y
+                                   + std::fabs(s_Normal.Dot(s_AxisZ)) * p_HalfSize.z;
 
-            positiveExtentSum += std::max(distance + radius, 0.0f);
-            negativeExtentSum += std::max(distance - radius, 0.0f);
+            if (s_Distance - s_Radius > s_Epsilon) {
+                return ContainmentType::FullyOutside;
+            }
+
+            if (s_Distance + s_Radius > 0.f) {
+                s_IsPartiallyInside = true;
+            }
         }
 
-        if (negativeExtentSum > 0.f) {
-            return ECheckInsideFlag::CHECK_INSIDE_FULLY_OUTSIDE;
-        }
-
-        constexpr float epsilon = 1.f / 4096.f;
-
-        return positiveExtentSum <= epsilon ? ECheckInsideFlag::CHECK_INSIDE_FULLY_INSIDE : ECheckInsideFlag::CHECK_INSIDE_PARTIALLY_INSIDE;
+        return s_IsPartiallyInside ? ContainmentType::PartiallyInside : ContainmentType::FullyInside;
     }
 }

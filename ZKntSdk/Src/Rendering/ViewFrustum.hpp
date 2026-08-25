@@ -22,16 +22,21 @@ namespace zknt::rendering {
         float GetMaxDrawDistance() const;
 
       private:
-        enum class ECheckInsideFlag { CHECK_INSIDE_FULLY_OUTSIDE, CHECK_INSIDE_PARTIALLY_INSIDE, CHECK_INSIDE_FULLY_INSIDE, CHECK_INSIDE_UNKNOWN };
+        enum class ContainmentType {
+            FullyOutside,
+            PartiallyInside,
+            FullyInside,
+            Unknown,
+        };
 
         SMatrix MatrixPerspectiveFovRH(float p_FovYDeg, float p_AspectWByH, float p_NearZ, float p_FarZ);
         SMatrix MatrixPerspectiveRH(float p_Width, float p_Height, float p_NearZ, float p_FarZ);
         void MatrixCreateClipPlanes(float4* p_Planes, const SMatrix& p_ViewProjection);
         void MatrixCreateClipPlanesNormalized(float4* p_Planes, const SMatrix& p_ViewProjection);
 
-        ECheckInsideFlag CheckPointInsidePlanes(const SVector3& p_Point) const;
-        ECheckInsideFlag CheckAABBInsidePlanes(const AABB& p_AABB) const;
-        ECheckInsideFlag CheckOBBInsidePlanes(const SMatrix& p_ObjectInternal, const float4& p_LocalCenter, const float4& p_LocalSize) const;
+        ContainmentType CheckPointInsidePlanes(const SVector3& p_Point) const;
+        ContainmentType CheckAABBInsidePlanes(const AABB& p_AABB) const;
+        ContainmentType CheckOBBInsidePlanes(const SMatrix& p_Transform, const float4& p_Center, const float4& p_HalfSize) const;
 
         bool m_IsDistanceCullingEnabled = false;
         float m_MaxDrawDistance = 50.f;
