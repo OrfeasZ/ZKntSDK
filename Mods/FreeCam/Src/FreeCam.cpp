@@ -27,6 +27,7 @@ FreeCam::FreeCam()
     , m_ActivateGameControlAction("ActivateGameControl")
     , m_TogglePauseGameAction("TogglePauseGame")
     , m_TeleportPlayerAction("TeleportPlayer")
+    , m_KillHumanoidAction("KillHumanoid")
     , m_ShowFreeCamWindow(false)
     , m_ShowControlsWindow(false) {
     m_PcControls = {
@@ -56,7 +57,9 @@ FreeCam::FreeCam()
         {"Shift", "Temporary speed boost"},
         {"F", "Fixed-degree camera rotation"},
 
-        {"Ctrl + F6", "Teleport Hitman"},
+        {"Ctrl + F6", "Teleport player"},
+        {"F9", "Kill humanoid"},
+
         {"F8", "Pause/Resume game"}
     };
 
@@ -137,7 +140,8 @@ void FreeCam::OnEngineInitialized() {
                              "ToggleFreeCamera=tap(kb,k);"
                              "TogglePauseGame=tap(kb,f8);"
                              "ActivatePlayerInput=tap(kb,f3);"
-                             "TeleportPlayer=& hold(kb,lctrl) tap(kb,f6);};";
+                             "TeleportPlayer=& hold(kb,lctrl) tap(kb,f6);"
+                             "KillHumanoid=tap(kb,f9);};";
 
     ZInputContext* s_InputContext = SDK()->Functions()->GetGlobalInputContext->Call();
 
@@ -194,7 +198,7 @@ void FreeCam::OnDrawUI(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) {
             }
 
             if (ImGui::IsItemHovered()) {
-                ImGui::SetTooltip("Whether the Hitman should move along with the camera when in freecam.");
+                ImGui::SetTooltip("Whether the player should move along with the camera when in freecam.");
             }
 
             if (ImGui::Button(ICON_MD_SPORTS_ESPORTS " Show freecam controls")) {
@@ -294,6 +298,10 @@ void FreeCam::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
         if (m_TeleportPlayerAction.Digital()) {
             TeleportPlayer();
         }
+
+        if (m_KillHumanoidAction.Digital()) {
+            KillHumanoid();
+        }
     }
 }
 
@@ -304,9 +312,11 @@ void FreeCam::ToggleFreecam() {
 
 void FreeCam::EnableFreecam() {
     CleanupSpawnedEntities();
+
     Logger::Info("[FreeCam] Enabling free camera.");
 
     m_FreeCamera = TEntityRef<ZCameraEntity>::SpawnEntity(ResId<"[modules:/zcameraentity.class].entitytype">);
+
     if (!m_FreeCamera) {
         Logger::Error("[FreeCam] Failed to create free camera entity.");
         CleanupSpawnedEntities();
@@ -316,6 +326,7 @@ void FreeCam::EnableFreecam() {
     if (m_IsEditorStyleFreeCamEnabled) {
         m_FreeCameraControlEditorStyle =
             TEntityRef<ZFreeCameraControlEditorStyleEntity>::SpawnEntity(ResId<"[modules:/zfreecameracontroleditorstyleentity.class].entitytype">);
+
         if (!m_FreeCameraControlEditorStyle) {
             Logger::Error("[FreeCam] Failed to create free camera control editor style entity.");
             CleanupSpawnedEntities();
@@ -324,6 +335,7 @@ void FreeCam::EnableFreecam() {
     }
     else {
         m_FreeCameraControl = TEntityRef<ZFreeCameraControlEntity>::SpawnEntity(ResId<"[modules:/zfreecameracontrolentity.class].entitytype">);
+
         if (!m_FreeCameraControl) {
             Logger::Error("[FreeCam] Failed to create free camera control entity.");
             CleanupSpawnedEntities();
@@ -333,6 +345,7 @@ void FreeCam::EnableFreecam() {
 
     m_BlockHumanoidPlayerMoveInput =
         TEntityRef<ZCLBlockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayermoveinput.class].entitytype">);
+
     if (!m_BlockHumanoidPlayerMoveInput) {
         Logger::Error("[FreeCam] Failed to create block humanoid player move input entity.");
         CleanupSpawnedEntities();
@@ -341,6 +354,7 @@ void FreeCam::EnableFreecam() {
 
     m_UnblockHumanoidPlayerMoveInput =
         TEntityRef<ZCLUnblockHumanoidPlayerMoveInput>::SpawnEntity(ResId<"[modules:/zclunblockhumanoidplayermoveinput.class].entitytype">);
+
     if (!m_UnblockHumanoidPlayerMoveInput) {
         Logger::Error("[FreeCam] Failed to create unblock humanoid player move input entity.");
         CleanupSpawnedEntities();
@@ -348,6 +362,7 @@ void FreeCam::EnableFreecam() {
     }
 
     m_BlockPlayerGadgetInput = TEntityRef<ZCLBlockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclblockplayergadgetinput.class].entitytype">);
+
     if (!m_BlockPlayerGadgetInput) {
         Logger::Error("[FreeCam] Failed to create block player gadget input entity.");
         CleanupSpawnedEntities();
@@ -356,6 +371,7 @@ void FreeCam::EnableFreecam() {
 
     m_UnblockPlayerGadgetInput =
         TEntityRef<ZCLUnblockPlayerGadgetInput>::SpawnEntity(ResId<"[modules:/zclunblockplayergadgetinput.class].entitytype">);
+
     if (!m_UnblockPlayerGadgetInput) {
         Logger::Error("[FreeCam] Failed to create unblock player gadget input entity.");
         CleanupSpawnedEntities();
@@ -364,6 +380,7 @@ void FreeCam::EnableFreecam() {
 
     m_BlockHumanoidPlayerCloseCombatInput =
         TEntityRef<ZCLBlockHumanoidPlayerCloseCombatInput>::SpawnEntity(ResId<"[modules:/zclblockhumanoidplayerclosecombatinput.class].entitytype">);
+
     if (!m_BlockHumanoidPlayerCloseCombatInput) {
         Logger::Error("[FreeCam] Failed to create block humanoid player close combat input entity.");
         CleanupSpawnedEntities();
@@ -373,6 +390,7 @@ void FreeCam::EnableFreecam() {
     m_UnblockHumanoidPlayerCloseCombatInput = TEntityRef<ZCLUnblockHumanoidPlayerCloseCombatInput>::SpawnEntity(
         ResId<"[modules:/zclunblockhumanoidplayerclosecombatinput.class].entitytype">
     );
+
     if (!m_UnblockHumanoidPlayerCloseCombatInput) {
         Logger::Error("[FreeCam] Failed to create unblock humanoid player close combat input entity.");
         CleanupSpawnedEntities();
@@ -380,6 +398,7 @@ void FreeCam::EnableFreecam() {
     }
 
     m_GetLocalPlayer = TEntityRef<ZCLGetLocalPlayerID>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerid.class].entitytype">);
+
     if (!m_GetLocalPlayer) {
         Logger::Error("[FreeCam] Failed to create get player entity.");
         CleanupSpawnedEntities();
@@ -387,6 +406,7 @@ void FreeCam::EnableFreecam() {
     }
 
     m_HumanoidTeleporter = TEntityRef<ZCLTeleportHumanoidEntity>::SpawnEntity(ResId<"[modules:/zclteleporthumanoidentity.class].entitytype">);
+
     if (!m_HumanoidTeleporter) {
         Logger::Error("[FreeCam] Failed to create teleport humanoid entity.");
         CleanupSpawnedEntities();
@@ -394,6 +414,7 @@ void FreeCam::EnableFreecam() {
     }
 
     m_TeleportTarget = TEntityRef<ZSpatialEntity>::SpawnEntity(ResId<"[modules:/zspatialentity.class].entitytype">);
+
     if (!m_TeleportTarget) {
         Logger::Error("[FreeCam] Failed to create spatial entity for teleport target.");
         CleanupSpawnedEntities();
@@ -402,8 +423,57 @@ void FreeCam::EnableFreecam() {
 
     m_GetLocalPlayerHumanoidCharacter =
         TEntityRef<ZCLGetLocalPlayerHumanoidCharacter>::SpawnEntity(ResId<"[modules:/zclgetlocalplayerhumanoidcharacter.class].entitytype">);
+
     if (!m_GetLocalPlayerHumanoidCharacter) {
         Logger::Error("[FreeCam] Failed to create get local player humanoid character entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_OutfitRefGetter = TEntityRef<ZCLGetOutfitRefFromOutfit>::SpawnEntity(ResId<"[modules:/zclgetoutfitreffromoutfit.class].entitytype">);
+
+    if (!m_OutfitRefGetter) {
+        Logger::Error("[FreeCam] Failed to create get outfit ref from outfit entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_HumanoidGetter = TEntityRef<ZCLGetHumanoidFromOutfitEntity>::SpawnEntity(ResId<"[modules:/zclgethumanoidfromoutfitentity.class].entitytype">);
+
+    if (!m_HumanoidGetter) {
+        Logger::Error("[FreeCam] Failed to create get humanoid from outfit entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_TargetEntityRefValue = TEntityRef<ZCLValueEntityRefEntity>::SpawnEntity(ResId<"[modules:/zclvalueentityrefentity.class].entitytype">);
+
+    if (!m_TargetEntityRefValue) {
+        Logger::Error("[FreeCam] Failed to create value entity ref entity.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_HealthAmmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
+
+    if (!m_HealthAmmountFloatValue) {
+        Logger::Error("[FreeCam] Failed to create float value entity for health ammount.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_InterruptPassiveRegenerationBoolValue = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
+
+    if (!m_InterruptPassiveRegenerationBoolValue) {
+        Logger::Error("[FreeCam] Failed to create bool value entity for interrupt passive regeneration.");
+        CleanupSpawnedEntities();
+        return;
+    }
+
+    m_HumanoidHealthSetter = TEntityRef<ZCLSetHumanoidHealth>::SpawnEntity(ResId<"[modules:/zclsethumanoidhealth.class].entitytype">);
+
+    if (!m_HumanoidHealthSetter) {
+        Logger::Error("[FreeCam] Failed to create set humanoid health entity.");
         CleanupSpawnedEntities();
         return;
     }
@@ -438,7 +508,7 @@ void FreeCam::EnableFreecam() {
         TInterfaceRef<ITEntityRefValue<ZHumanoidCharacterEntity>>::FromEntityRef(m_GetLocalPlayerHumanoidCharacter.m_entityRef);
 
     if (!s_HumanoidRef) {
-        Logger::Error("[Cheats] Failed to get ITEntityRefValue for player.");
+        Logger::Error("[FreeCam] Failed to get ITEntityRefValue for player.");
         CleanupSpawnedEntities();
         return;
     }
@@ -446,7 +516,7 @@ void FreeCam::EnableFreecam() {
     const auto s_PlayerIDRef = TInterfaceRef<IIntValue>::FromEntityRef(m_GetLocalPlayer.m_entityRef);
 
     if (!s_PlayerIDRef) {
-        Logger::Error("[Cheats] Failed to get IIntValue for player.");
+        Logger::Error("[FreeCam] Failed to get IIntValue for player.");
         CleanupSpawnedEntities();
         return;
     }
@@ -539,9 +609,9 @@ void FreeCam::SetFreeCamFrozen(bool p_Frozen) {
     }
 }
 
-void FreeCam::TeleportPlayer() {
+bool FreeCam::RaycastFromFreeCamera(ZRayQueryOutput& p_RayQueryOutput) {
     if (!m_FreeCamera) {
-        return;
+        return false;
     }
 
     SMatrix s_WorldMatrix = m_FreeCamera.m_pInterfaceRef->GetObjectToWorldMatrix();
@@ -552,7 +622,7 @@ void FreeCam::TeleportPlayer() {
     TResourcePtr<ZEntityRef> s_EntityFactory;
     SDK()->Globals()->ResourceManager->LoadResource(
         s_EntityFactory,
-        ResId<"[assembly:/_knt/design/utility/collision_query_presets.template?/collisionquery_static_block.entitytemplate].entityresource">
+        ResId<"[assembly:/_knt/design/utility/collision_query_presets.template?/collisionquery_blockall.entitytemplate].entityresource">
     );
 
     SEntityResource* s_EntityResource = static_cast<SEntityResource*>(s_EntityFactory.GetResourceData());
@@ -569,32 +639,87 @@ void FreeCam::TeleportPlayer() {
     s_RayQueryInput.m_TypedQueryMask = s_CollisionQueryPreset->m_TypedQueryMask;
     s_RayQueryInput.m_eRayDetailLevel = ERayDetailLevel::RAYDETAILS_MESH;
 
+    return SDK()->Globals()->CollisionManager->RayCastClosestHit(&p_RayQueryOutput, s_RayQueryInput);
+}
+
+void FreeCam::TeleportPlayer() {
+    if (!m_HumanoidTeleporter) {
+        return;
+    }
+
     ZRayQueryOutput s_RayQueryOutput = {};
 
-    if (!SDK()->Globals()->CollisionManager->RayCastClosestHit(&s_RayQueryOutput, s_RayQueryInput)) {
+    if (!RaycastFromFreeCamera(s_RayQueryOutput)) {
         Logger::Error("[FreeCam] Raycast failed.");
         return;
     }
 
-    if (m_HumanoidTeleporter) {
-        auto s_LocalPlayer = SDK()->Globals()->LocalPlayerData->m_pCharacterImpl->m_pCharacter;
+    auto s_LocalPlayer = SDK()->Globals()->LocalPlayerData->m_pCharacterImpl->m_pCharacter;
 
-        if (!s_LocalPlayer) {
-            return;
-        }
-
-        const auto s_PlayerSpatialEntity = s_LocalPlayer.m_entityRef.QueryInterface<ZSpatialEntity>();
-
-        if (!s_PlayerSpatialEntity) {
-            return;
-        }
-
-        SMatrix s_Transform = s_PlayerSpatialEntity->GetObjectToWorldMatrix();
-        s_Transform.Trans = s_RayQueryOutput.m_vPosition;
-
-        m_TeleportTarget->SetObjectToWorldMatrixFromEditor(s_Transform);
-        m_HumanoidTeleporter.m_entityRef.SignalInputPin("Do");
+    if (!s_LocalPlayer) {
+        return;
     }
+
+    const auto s_PlayerSpatialEntity = s_LocalPlayer.m_entityRef.QueryInterface<ZSpatialEntity>();
+
+    if (!s_PlayerSpatialEntity) {
+        return;
+    }
+
+    SMatrix s_Transform = s_PlayerSpatialEntity->GetObjectToWorldMatrix();
+    s_Transform.Trans = s_RayQueryOutput.m_vPosition;
+
+    m_TeleportTarget->SetObjectToWorldMatrixFromEditor(s_Transform);
+    m_HumanoidTeleporter.m_entityRef.SignalInputPin("Do");
+}
+
+void FreeCam::KillHumanoid() {
+    if (!m_TargetEntityRefValue || !m_HealthAmmountFloatValue || !m_InterruptPassiveRegenerationBoolValue || !m_HumanoidHealthSetter) {
+        return;
+    }
+
+    ZRayQueryOutput s_RayQueryOutput = {};
+
+    if (!RaycastFromFreeCamera(s_RayQueryOutput)) {
+        Logger::Error("[FreeCam] Raycast failed.");
+        return;
+    }
+
+    ZEntityRef s_EntityRef = s_RayQueryOutput.m_pBlockingSpatialEntity.m_entityRef;
+
+    if (!s_EntityRef.QueryInterface<ZHumanoidOutfitEntity>()) {
+        return;
+    }
+
+    m_OutfitRefGetter.m_entityRef.SetProperty("m_outfit", TInterfaceRef<ZHumanoidOutfitEntity>::FromEntityRef(s_EntityRef));
+
+    m_HumanoidGetter.m_entityRef.SetProperty(
+        "m_outfit", TInterfaceRef<ITEntityRefValue<ZHumanoidOutfitEntity>>::FromEntityRef(m_OutfitRefGetter.m_entityRef)
+    );
+
+    ZEntityRef s_HumanoidEntity;
+    m_HumanoidGetter.m_pInterfaceRef->GetValue(s_HumanoidEntity);
+
+    m_TargetEntityRefValue.m_entityRef.SetProperty("m_vValue", s_HumanoidEntity);
+
+    const auto s_HumanoidRef = TInterfaceRef<IEntityRefValue>::FromEntityRef(m_TargetEntityRefValue.m_entityRef);
+
+    if (!s_HumanoidRef) {
+        Logger::Error("[FreeCam] Failed to get ITEntityRefValue for humanoid.");
+        return;
+    }
+
+    m_HealthAmmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", 0.f);
+    m_InterruptPassiveRegenerationBoolValue.m_entityRef.SetProperty("m_bValue", true);
+
+    const auto s_HealthAmmountFloatRef = TInterfaceRef<IFloatValue>::FromEntityRef(m_HealthAmmountFloatValue.m_entityRef);
+    const auto s_InterruptPassiveRegenerationBoolRef = TInterfaceRef<IBoolValue>::FromEntityRef(m_InterruptPassiveRegenerationBoolValue.m_entityRef);
+
+    m_HumanoidHealthSetter.m_entityRef.SetProperty("m_target", s_HumanoidRef);
+    m_HumanoidHealthSetter.m_entityRef.SetProperty("m_healthAmount", s_HealthAmmountFloatRef);
+    m_HumanoidHealthSetter.m_entityRef.SetProperty("m_interruptPassiveRegeneration", s_InterruptPassiveRegenerationBoolRef);
+
+    m_HumanoidHealthSetter.m_entityRef.SignalInputPin("Do");
 }
 
 bool FreeCam::HasSpawnedEntities() const {
@@ -602,6 +727,14 @@ bool FreeCam::HasSpawnedEntities() const {
 }
 
 void FreeCam::CleanupSpawnedEntities() {
+    const auto s_DeleteEntity = [](auto* p_Ref) {
+        if (*p_Ref) {
+            SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, p_Ref->m_entityRef);
+        }
+
+        *p_Ref = {};
+    };
+
     if (m_PreviousCameraSource) {
         TEntityRef<IRenderDestinationEntity> s_RenderDest;
         SDK()->Globals()->CameraManagerMain->GetActiveRenderDestinationEntity(s_RenderDest);
@@ -630,126 +763,77 @@ void FreeCam::CleanupSpawnedEntities() {
         m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef.SignalInputPin("Do");
     }
 
-    if (m_FreeCameraControl) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_FreeCameraControl.m_entityRef);
-    }
-    else if (m_FreeCameraControlEditorStyle) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_FreeCameraControlEditorStyle.m_entityRef);
-    }
+    s_DeleteEntity(&m_FreeCameraControl);
+    s_DeleteEntity(&m_FreeCameraControlEditorStyle);
+    s_DeleteEntity(&m_FreeCamera);
+    s_DeleteEntity(&m_BlockHumanoidPlayerMoveInput);
+    s_DeleteEntity(&m_UnblockHumanoidPlayerMoveInput);
+    s_DeleteEntity(&m_BlockPlayerGadgetInput);
+    s_DeleteEntity(&m_UnblockPlayerGadgetInput);
+    s_DeleteEntity(&m_BlockHumanoidPlayerCloseCombatInput);
+    s_DeleteEntity(&m_UnblockHumanoidPlayerCloseCombatInput);
+    s_DeleteEntity(&m_GetLocalPlayer);
+    s_DeleteEntity(&m_HumanoidTeleporter);
+    s_DeleteEntity(&m_TeleportTarget);
+    s_DeleteEntity(&m_GetLocalPlayerHumanoidCharacter);
+    s_DeleteEntity(&m_OutfitRefGetter);
+    s_DeleteEntity(&m_HumanoidGetter);
+    s_DeleteEntity(&m_TargetEntityRefValue);
+    s_DeleteEntity(&m_HumanoidHealthSetter);
+    s_DeleteEntity(&m_HealthAmmountFloatValue);
+    s_DeleteEntity(&m_InterruptPassiveRegenerationBoolValue);
 
-    if (m_FreeCamera) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_FreeCamera.m_entityRef);
-    }
-
-    if (m_BlockHumanoidPlayerMoveInput) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_BlockHumanoidPlayerMoveInput.m_entityRef);
-    }
-
-    if (m_UnblockHumanoidPlayerMoveInput) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_UnblockHumanoidPlayerMoveInput.m_entityRef);
-    }
-
-    if (m_BlockPlayerGadgetInput) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_BlockPlayerGadgetInput.m_entityRef);
-    }
-
-    if (m_UnblockPlayerGadgetInput) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_UnblockPlayerGadgetInput.m_entityRef);
-    }
-
-    if (m_BlockHumanoidPlayerCloseCombatInput) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_BlockHumanoidPlayerCloseCombatInput.m_entityRef);
-    }
-
-    if (m_UnblockHumanoidPlayerCloseCombatInput) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_UnblockHumanoidPlayerCloseCombatInput.m_entityRef);
-    }
-
-    if (m_GetLocalPlayer) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_GetLocalPlayer.m_entityRef);
-    }
-
-    if (m_HumanoidTeleporter) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_HumanoidTeleporter.m_entityRef);
-    }
-
-    if (m_TeleportTarget) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_TeleportTarget.m_entityRef);
-    }
-
-    if (m_GetLocalPlayerHumanoidCharacter) {
-        SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, m_GetLocalPlayerHumanoidCharacter.m_entityRef);
-    }
-
-    m_FreeCameraControl = {};
-    m_FreeCameraControlEditorStyle = {};
-    m_FreeCamera = {};
-    m_BlockHumanoidPlayerMoveInput = {};
-    m_UnblockHumanoidPlayerMoveInput = {};
-    m_BlockPlayerGadgetInput = {};
-    m_UnblockPlayerGadgetInput = {};
-    m_BlockHumanoidPlayerCloseCombatInput = {};
-    m_UnblockHumanoidPlayerCloseCombatInput = {};
-    m_GetLocalPlayer = {};
-    m_HumanoidTeleporter = {};
-    m_TeleportTarget = {};
-    m_GetLocalPlayerHumanoidCharacter = {};
-    m_PreviousCameraSource = {};
     m_Initialized = false;
 }
 
 DEFINE_PLUGIN_DETOUR(
     FreeCam, ZString*, ZFreeCameraControlEntity_GenerateActionBindingString, ZFreeCameraControlEntity* p_Th, ZString& p_Result, int32_t p_ControllerId
 ) {
-    ZString* s_Res = p_Hook->CallOriginal(p_Th, p_Result, p_ControllerId);
+    p_Result = "FreeCamControl={"
+               "TiltCamera=rel(ms,y);"
+               "TurnCamera=rel(ms,x);"
+               "MoveXPositive=| hold(kb,left) hold(kb,a);"
+               "MoveXNegative=| hold(kb,right) hold(kb,d);"
+               "MoveYPositive=| hold(kb,up) hold(kb,w);"
+               "MoveYNegative=| hold(kb,down) hold(kb,s);"
+               "MoveZPositive=| hold(kb,pgup) hold(kb,e);"
+               "MoveZNegative=| hold(kb,pgdn) hold(kb,q);"
+               "TiltTurnCameraFixedDegreeModifier=hold(kb,f);"
+               "RollModifier=| hold(kb,lctrl) hold(kb,rctrl);"
+               "FovModifier=| hold(kb,lctrl) hold(kb,rctrl);"
+               "SpeedModifier=| hold(kb,lalt) hold(kb,ralt);"
+               "MoveInWorldSpace=hold(kb,space);"
+               "ResetRoll=hold(kb,x);"
+               "ResetFov=hold(kb,z);"
+               "ResetSpeed=hold(kb,z);"
+               "AnalogCamXAxis=ana(gc,rightx);"
+               "AnalogCamYAxis=ana(gc,righty);"
+               "AnalogMoveXAxis=ana(gc,leftx);"
+               "AnalogMoveYAxis=ana(gc,lefty);"
+               "MoveInZDirection=| hold(gc,right_bumper) hold(gc,right1);"
+               "RollModifier2=| hold(gc,a) hold(gc,cross);"
+               "RollAxis=ana(gc,leftx);"
+               "ResetRoll2=| hold(gc,leftstick) hold(gc,left_thumb);"
+               "FovModifier2=| hold(gc,y) hold(gc,triangle);"
+               "FovAxis=ana(gc,lefty);"
+               "ResetFov2=| hold(gc,leftstick) hold(gc,left_thumb);"
+               "SpeedModifier2=| hold(gc,b) hold(gc,circle);"
+               "SpeedTranslationAxis=ana(gc,lefty);"
+               "SpeedRotationAxis=ana(gc,leftx);"
+               "ResetSpeed2=| hold(gc,leftstick) hold(gc,left_thumb);"
+               "MoveInWorldSpaceTrigger=ana(gc,left_analog_trigger);"
+               "MoveInWorldSpaceButton=hold(gc,left2);"
+               "MoveInWorldSpaceXAxis=ana(gc,leftx);"
+               "MoveInWorldSpaceYAxis=ana(gc,lefty);"
+               "MoveInWorldSpaceZAxis=ana(gc,righty);"
+               "ActivateGameControl=| hold(gc,left_bumper) hold(gc,left1);"
+               "TemporaryCamSpeedMultiplierTrigger=ana(gc,right_analog_trigger);"
+               "TemporaryCamSpeedMultiplierTrigger2=ana(gc,right2_analog);"
+               "TemporaryCamSpeedMultiplierLeftShift=hold(kb,lshift);"
+               "TemporaryCamSpeedMultiplierRightShift=hold(kb,rshift);"
+               "};";
 
-    p_Result.m_pChars = "FreeCamControl={"
-                        "TiltCamera=rel(ms,y);"
-                        "TurnCamera=rel(ms,x);"
-                        "MoveXPositive=| hold(kb,left) hold(kb,a);"
-                        "MoveXNegative=| hold(kb,right) hold(kb,d);"
-                        "MoveYPositive=| hold(kb,up) hold(kb,w);"
-                        "MoveYNegative=| hold(kb,down) hold(kb,s);"
-                        "MoveZPositive=| hold(kb,pgup) hold(kb,e);"
-                        "MoveZNegative=| hold(kb,pgdn) hold(kb,q);"
-                        "TiltTurnCameraFixedDegreeModifier=hold(kb,f);"
-                        "RollModifier=| hold(kb,lctrl) hold(kb,rctrl);"
-                        "FovModifier=| hold(kb,lctrl) hold(kb,rctrl);"
-                        "SpeedModifier=| hold(kb,lalt) hold(kb,ralt);"
-                        "MoveInWorldSpace=hold(kb,space);"
-                        "ResetRoll=hold(kb,x);"
-                        "ResetFov=hold(kb,z);"
-                        "ResetSpeed=hold(kb,z);"
-                        "AnalogCamXAxis=ana(gc,rightx);"
-                        "AnalogCamYAxis=ana(gc,righty);"
-                        "AnalogMoveXAxis=ana(gc,leftx);"
-                        "AnalogMoveYAxis=ana(gc,lefty);"
-                        "MoveInZDirection=| hold(gc,right_bumper) hold(gc,right1);"
-                        "RollModifier2=| hold(gc,a) hold(gc,cross);"
-                        "RollAxis=ana(gc,leftx);"
-                        "ResetRoll2=| hold(gc,leftstick) hold(gc,left_thumb);"
-                        "FovModifier2=| hold(gc,y) hold(gc,triangle);"
-                        "FovAxis=ana(gc,lefty);"
-                        "ResetFov2=| hold(gc,leftstick) hold(gc,left_thumb);"
-                        "SpeedModifier2=| hold(gc,b) hold(gc,circle);"
-                        "SpeedTranslationAxis=ana(gc,lefty);"
-                        "SpeedRotationAxis=ana(gc,leftx);"
-                        "ResetSpeed2=| hold(gc,leftstick) hold(gc,left_thumb);"
-                        "MoveInWorldSpaceTrigger=ana(gc,left_analog_trigger);"
-                        "MoveInWorldSpaceButton=hold(gc,left2);"
-                        "MoveInWorldSpaceXAxis=ana(gc,leftx);"
-                        "MoveInWorldSpaceYAxis=ana(gc,lefty);"
-                        "MoveInWorldSpaceZAxis=ana(gc,righty);"
-                        "ActivateGameControl=| hold(gc,left_bumper) hold(gc,left1);"
-                        "TemporaryCamSpeedMultiplierTrigger=ana(gc,right_analog_trigger);"
-                        "TemporaryCamSpeedMultiplierTrigger2=ana(gc,right2_analog);"
-                        "TemporaryCamSpeedMultiplierLeftShift=hold(kb,lshift);"
-                        "TemporaryCamSpeedMultiplierRightShift=hold(kb,rshift);"
-                        "};";
-
-    p_Result.m_nLength = static_cast<uint32_t>(std::strlen(p_Result.m_pChars)) | 0x80000000;
-
-    return {HookAction::Return(), s_Res};
+    return {HookAction::Return(), &p_Result};
 }
 
 DEFINE_PLUGIN_DETOUR(FreeCam, void, ZFreeCameraControlEntity_UpdateCamera, ZFreeCameraControlEntity* p_Th, float p_Dt) {
@@ -976,29 +1060,25 @@ DEFINE_PLUGIN_DETOUR(
     FreeCam, ZString*, ZFreeCameraControlEditorStyleEntity_GenerateActionBindingString, ZFreeCameraControlEditorStyleEntity* p_Th, ZString& p_Result,
     int32_t p_ControllerId
 ) {
-    ZString* s_Res = p_Hook->CallOriginal(p_Th, p_Result, p_ControllerId);
+    p_Result = "FreeCamControlEditorStyle={"
+               "MousePosX=rel(ms,x);"
+               "MousePosY=rel(ms,y);"
+               "MoveXPositive=| hold(kb,left) hold(kb,a);"
+               "MoveXNegative=| hold(kb,right) hold(kb,d);"
+               "MoveYPositive=| hold(kb,up) hold(kb,w);"
+               "MoveYNegative=| hold(kb,down) hold(kb,s);"
+               "MoveZPositive=| hold(kb,pgup) hold(kb,e);"
+               "MoveZNegative=| hold(kb,pgdn) hold(kb,q);"
+               "MoveFast=| hold(kb,lshift) hold(kb,rshift);"
+               "Zoom=rel(ms,wheel);"
+               "ZoomPrecision=| hold(kb,lalt) hold(kb,ralt);"
+               "ZoomToSelection=hold(kb,z);"
+               "OrbitCamera=| hold(kb,lalt) hold(kb,ralt);"
+               "ActivateRotate=hold(ms,right);"
+               "ActivateObjectHook=hold(ms,middle);"
+               "};";
 
-    p_Result.m_pChars = "FreeCamControlEditorStyle={"
-                        "MousePosX=rel(ms,x);"
-                        "MousePosY=rel(ms,y);"
-                        "MoveXPositive=| hold(kb,left) hold(kb,a);"
-                        "MoveXNegative=| hold(kb,right) hold(kb,d);"
-                        "MoveYPositive=| hold(kb,up) hold(kb,w);"
-                        "MoveYNegative=| hold(kb,down) hold(kb,s);"
-                        "MoveZPositive=| hold(kb,pgup) hold(kb,e);"
-                        "MoveZNegative=| hold(kb,pgdn) hold(kb,q);"
-                        "MoveFast=| hold(kb,lshift) hold(kb,rshift);"
-                        "Zoom=rel(ms,wheel);"
-                        "ZoomPrecision=| hold(kb,lalt) hold(kb,ralt);"
-                        "ZoomToSelection=hold(kb,z);"
-                        "OrbitCamera=| hold(kb,lalt) hold(kb,ralt);"
-                        "ActivateRotate=hold(ms,right);"
-                        "ActivateObjectHook=hold(ms,middle);"
-                        "};";
-
-    p_Result.m_nLength = static_cast<uint32_t>(std::strlen(p_Result.m_pChars)) | 0x80000000;
-
-    return {HookAction::Return(), s_Res};
+    return {HookAction::Return(), &p_Result};
 }
 
 DEFINE_PLUGIN_DETOUR(

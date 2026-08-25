@@ -1,8 +1,12 @@
 #pragma once
 
 #include <IPluginInterface.hpp>
+
 #include <Glacier/ZCamera.hpp>
 #include <Glacier/ZPlayer.hpp>
+#include <Glacier/ZCollision.hpp>
+
+class ZCLSetHumanoidHealth;
 
 class FreeCam : public zknt::IPluginInterface {
   public:
@@ -23,7 +27,11 @@ class FreeCam : public zknt::IPluginInterface {
     void TogglePlayerInput();
     void SetFreeCamFrozen(bool p_Frozen);
 
+    bool RaycastFromFreeCamera(ZRayQueryOutput& p_RayQueryOutput);
+
     void TeleportPlayer();
+
+    void KillHumanoid();
 
     bool HasSpawnedEntities() const;
     void CleanupSpawnedEntities();
@@ -58,6 +66,7 @@ class FreeCam : public zknt::IPluginInterface {
     ZInputAction m_ActivateGameControlAction;
     ZInputAction m_TogglePauseGameAction;
     ZInputAction m_TeleportPlayerAction;
+    ZInputAction m_KillHumanoidAction;
 
     bool m_ShowFreeCamWindow;
     bool m_ShowControlsWindow;
@@ -78,6 +87,12 @@ class FreeCam : public zknt::IPluginInterface {
     TEntityRef<ZCLTeleportHumanoidEntity> m_HumanoidTeleporter;
     TEntityRef<ZSpatialEntity> m_TeleportTarget;
     TEntityRef<ZCLGetLocalPlayerHumanoidCharacter> m_GetLocalPlayerHumanoidCharacter;
+    TEntityRef<ZCLGetOutfitRefFromOutfit> m_OutfitRefGetter;
+    TEntityRef<ZCLGetHumanoidFromOutfitEntity> m_HumanoidGetter;
+    TEntityRef<ZCLValueEntityRefEntity> m_TargetEntityRefValue;
+    TEntityRef<ZCLSetHumanoidHealth> m_HumanoidHealthSetter;
+    TEntityRef<ZCLValueFloatEntity> m_HealthAmmountFloatValue;
+    TEntityRef<ZCLValueBoolEntity> m_InterruptPassiveRegenerationBoolValue;
     ZEntityRef m_PreviousCameraSource;
     bool m_FrameUpdateRegistered = false;
 
