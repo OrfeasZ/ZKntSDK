@@ -1132,7 +1132,8 @@ const char* Cheats::FirearmClassToString(EFirearmClass p_FirearmClass) {
 }
 
 DEFINE_PLUGIN_DETOUR(
-    Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th, bool unk
+    Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th,
+    const ZComponentCreateInfo& Info
 ) {
     m_KntLoadoutCollectionEntity = th;
 

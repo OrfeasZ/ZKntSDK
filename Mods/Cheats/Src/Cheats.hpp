@@ -3,6 +3,7 @@
 #include <set>
 
 #include <IPluginInterface.hpp>
+
 #include <Glacier/ZCamera.hpp>
 #include <Glacier/ZValue.hpp>
 #include <Glacier/ZPlayer.hpp>
@@ -72,7 +73,8 @@ class Cheats : public zknt::IPluginInterface {
     static const char* FirearmClassToString(EFirearmClass p_FirearmClass);
 
     DECLARE_PLUGIN_DETOUR(
-        Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th, bool unk
+        Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th,
+        const ZComponentCreateInfo& Info
     );
 
     bool m_FrameUpdateRegistered = false;
