@@ -1434,11 +1434,18 @@ namespace zknt::rendering {
         ZRenderIndexBuffer* p_IndexBuffer, const SMatrix& p_Transform, const float4& p_PositionScale, const float4& p_PositionBias,
         const float4& p_TextureScaleBias, const SVector4& p_MaterialColor
     ) {
-        const SVector3 s_Center = (s_pRenderPrimitiveResource->m_vMin + s_pRenderPrimitiveResource->m_vMax) * 0.5f;
-        const SVector3 s_Extents = (s_pRenderPrimitiveResource->m_vMax - s_pRenderPrimitiveResource->m_vMin) * 0.5f;
+        const SVector3 s_RawCenter = (s_pRenderPrimitiveResource->m_vMin + s_pRenderPrimitiveResource->m_vMax) * 0.5f;
+        const SVector3 s_RawExtents = (s_pRenderPrimitiveResource->m_vMax - s_pRenderPrimitiveResource->m_vMin) * 0.5f;
 
-        if (m_IsFrustumCullingEnabled && !IsOBBInsideViewFrustum(float4(s_Center, 1.f), float4(s_Extents, 1.f), p_Transform)) {
-            return;
+        const SVector3 s_Center = s_RawCenter * SVector3(p_PositionScale) + SVector3(p_PositionBias);
+        const SVector3 s_Extents = s_RawExtents * SVector3(p_PositionScale);
+
+        if (m_IsFrustumCullingEnabled) {
+            const float4 s_WorldCenter = p_Transform.WVectorTransform(float4(s_Center, 1.f));
+
+            if (!IsOBBInsideViewFrustum(s_WorldCenter, float4(s_Extents, 1.f), p_Transform)) {
+                return;
+            }
         }
 
         ScopedD3DRef<ID3D12Device> s_Device;
