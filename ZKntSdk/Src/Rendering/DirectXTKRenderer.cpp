@@ -1011,14 +1011,16 @@ namespace zknt::rendering {
         DrawLine3D(s_Corners[3], p_Color, s_Corners[7], p_Color);
     }
 
-    void DirectXTKRenderer::DrawBox3D(const SVector3& p_Center, const SVector3& p_HalfSize, const SMatrix& p_Transform, const SVector4& p_Color) {
-        if (m_IsFrustumCullingEnabled && !IsOBBInsideViewFrustum(p_Center, p_HalfSize, p_Transform)) {
+    void DirectXTKRenderer::DrawBox3D(const SVector3& p_Center, const SVector3& p_Size, const SMatrix& p_Transform, const SVector4& p_Color) {
+        const SVector3 s_HalfSize = p_Size * 0.5f;
+
+        if (m_IsFrustumCullingEnabled && !IsOBBInsideViewFrustum(p_Center, s_HalfSize, p_Transform)) {
             return;
         }
 
-        const SVector3 s_Right = p_Transform.Right * p_HalfSize.x;
-        const SVector3 s_Forward = -(p_Transform.Backward * p_HalfSize.y);
-        const SVector3 s_Up = p_Transform.ZAxis * p_HalfSize.z;
+        const SVector3 s_Right = p_Transform.Right * s_HalfSize.x;
+        const SVector3 s_Forward = -(p_Transform.Backward * s_HalfSize.y);
+        const SVector3 s_Up = p_Transform.ZAxis * s_HalfSize.z;
 
         const SVector3 s_Corners[8] = {
             p_Center - s_Right - s_Up - s_Forward, p_Center - s_Right + s_Up - s_Forward, p_Center + s_Right + s_Up - s_Forward,
@@ -1035,19 +1037,26 @@ namespace zknt::rendering {
             {3, 2, 6}, {3, 6, 7}  // right
         };
 
+        const bool s_WasFrustumCullingEnabled = m_IsFrustumCullingEnabled;
+        m_IsFrustumCullingEnabled = false;
+
         for (const auto& s_Face : s_Faces) {
             DrawTriangle3D(s_Corners[s_Face[0]], p_Color, s_Corners[s_Face[1]], p_Color, s_Corners[s_Face[2]], p_Color);
         }
+
+        m_IsFrustumCullingEnabled = s_WasFrustumCullingEnabled;
     }
 
-    void DirectXTKRenderer::DrawBoxWire3D(const SVector3& p_Center, const SVector3& p_HalfSize, const SMatrix& p_Transform, const SVector4& p_Color) {
-        if (m_IsFrustumCullingEnabled && !IsOBBInsideViewFrustum(p_Center, p_HalfSize, p_Transform)) {
+    void DirectXTKRenderer::DrawBoxWire3D(const SVector3& p_Center, const SVector3& p_Size, const SMatrix& p_Transform, const SVector4& p_Color) {
+        const SVector3 s_HalfSize = p_Size * 0.5f;
+
+        if (m_IsFrustumCullingEnabled && !IsOBBInsideViewFrustum(p_Center, s_HalfSize, p_Transform)) {
             return;
         }
 
-        const SVector3 s_Right = p_Transform.Right * p_HalfSize.x;
-        const SVector3 s_Forward = -(p_Transform.Backward * p_HalfSize.y);
-        const SVector3 s_Up = p_Transform.ZAxis * p_HalfSize.z;
+        const SVector3 s_Right = p_Transform.Right * s_HalfSize.x;
+        const SVector3 s_Forward = -(p_Transform.Backward * s_HalfSize.y);
+        const SVector3 s_Up = p_Transform.ZAxis * s_HalfSize.z;
 
         const SVector3 s_Corners[8] = {
             p_Center - s_Right - s_Up - s_Forward, p_Center - s_Right + s_Up - s_Forward, p_Center + s_Right + s_Up - s_Forward,
@@ -1061,9 +1070,14 @@ namespace zknt::rendering {
             {0, 6}, {1, 5}, {2, 4}, {3, 7}  // vertical edges
         };
 
+        const bool s_WasFrustumCullingEnabled = m_IsFrustumCullingEnabled;
+        m_IsFrustumCullingEnabled = false;
+
         for (const auto& s_Edge : s_Edges) {
             DrawLine3D(s_Corners[s_Edge[0]], p_Color, s_Corners[s_Edge[1]], p_Color);
         }
+
+        m_IsFrustumCullingEnabled = s_WasFrustumCullingEnabled;
     }
 
     void DirectXTKRenderer::DrawOBB3D(const SVector3& p_Min, const SVector3& p_Max, const SMatrix& p_Transform, const SVector4& p_Color) {
