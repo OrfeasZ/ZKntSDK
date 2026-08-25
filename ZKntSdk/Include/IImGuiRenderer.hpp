@@ -1,5 +1,7 @@
 #pragma once
 
+#include <directx/d3d12.h>
+
 #include <cstdint>
 
 #include "imgui.h"
@@ -15,6 +17,9 @@ namespace zknt {
         std::uint64_t m_Id = 0;
         std::uint32_t m_Width = 0;
         std::uint32_t m_Height = 0;
+
+        D3D12_CPU_DESCRIPTOR_HANDLE m_SRVCPUDescriptor{};
+        D3D12_GPU_DESCRIPTOR_HANDLE m_SRVGPUDescriptor{};
     };
 
     class IImGuiRenderer {

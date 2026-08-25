@@ -250,21 +250,21 @@ namespace zknt::rendering {
         s_FrameCtx.m_CommandAllocator->Reset();
         BreakIfFailed(m_CommandList->Reset(s_FrameCtx.m_CommandAllocator, nullptr));
 
-        D3D12_RESOURCE_BARRIER s_RtBarrier{};
-        s_RtBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        s_RtBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-        s_RtBarrier.Transition.pResource = m_BackBuffers[s_BackBufferIndex];
-        s_RtBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-        s_RtBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-        s_RtBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+        D3D12_RESOURCE_BARRIER s_RTBarrier{};
+        s_RTBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        s_RTBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        s_RTBarrier.Transition.pResource = m_BackBuffers[s_BackBufferIndex];
+        s_RTBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        s_RTBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+        s_RTBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-        m_CommandList->ResourceBarrier(1, &s_RtBarrier);
+        m_CommandList->ResourceBarrier(1, &s_RTBarrier);
 
-        const auto s_RtvHandle = m_RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-        const D3D12_CPU_DESCRIPTOR_HANDLE s_RtvDescriptor{s_RtvHandle.ptr + s_BackBufferIndex * m_RtvDescriptorSize};
+        const auto s_RTVHandle = m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        const D3D12_CPU_DESCRIPTOR_HANDLE s_RtvDescriptor{s_RTVHandle.ptr + s_BackBufferIndex * m_RTVDescriptorSize};
 
         m_CommandList->OMSetRenderTargets(1, &s_RtvDescriptor, FALSE, nullptr);
-        m_CommandList->SetDescriptorHeaps(1, &m_SrvDescriptorHeap.m_Ref);
+        m_CommandList->SetDescriptorHeaps(1, &m_SRVDescriptorHeap.m_Ref);
 
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_CommandList);
 
@@ -362,6 +362,42 @@ namespace zknt::rendering {
         s_DeleteEntity(&m_GetLocalPlayer);
     }
 
+    void ImGuiRenderer::AllocateSRVDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE* p_OutCpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE* p_OutGpuHandle) {
+        UINT s_Index;
+
+        if (!m_FreeSRVDescriptorIndices.empty()) {
+            s_Index = m_FreeSRVDescriptorIndices.back();
+            m_FreeSRVDescriptorIndices.pop_back();
+        }
+        else {
+            s_Index = m_NextSRVDescriptorIndex++;
+        }
+
+        *p_OutCpuHandle = m_SRVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        p_OutCpuHandle->ptr += s_Index * m_SRVDescriptorSize;
+
+        *p_OutGpuHandle = m_SRVDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+        p_OutGpuHandle->ptr += s_Index * m_SRVDescriptorSize;
+    }
+
+    void ImGuiRenderer::FreeSRVDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE p_CpuHandle, D3D12_GPU_DESCRIPTOR_HANDLE) {
+        const auto s_HeapStart = m_SRVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+
+        const UINT s_Index = static_cast<UINT>((p_CpuHandle.ptr - s_HeapStart.ptr) / m_SRVDescriptorSize);
+
+        m_FreeSRVDescriptorIndices.push_back(s_Index);
+    }
+
+    void ImGuiRenderer::ReleaseDeferredResources(std::vector<DeferredResource>& p_Resources) {
+        for (auto& s_Resource : p_Resources) {
+            if (s_Resource.m_ImGuiTexture.m_Id) {
+                FreeSRVDescriptor(s_Resource.m_ImGuiTexture.m_SRVCPUDescriptor, s_Resource.m_ImGuiTexture.m_SRVGPUDescriptor);
+            }
+        }
+
+        p_Resources.clear();
+    }
+
     bool ImGuiRenderer::SetupRenderer(IDXGISwapChain3* p_SwapChain) {
         if (m_RendererSetup) {
             return true;
@@ -389,7 +425,7 @@ namespace zknt::rendering {
             s_RtvHeapDesc.NumDescriptors = s_BufferCount;
             s_RtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-            if (s_Device->CreateDescriptorHeap(&s_RtvHeapDesc, IID_PPV_ARGS(m_RtvDescriptorHeap.ReleaseAndGetPtr())) != S_OK) {
+            if (s_Device->CreateDescriptorHeap(&s_RtvHeapDesc, IID_PPV_ARGS(m_RTVDescriptorHeap.ReleaseAndGetPtr())) != S_OK) {
                 return false;
             }
         }
@@ -400,7 +436,7 @@ namespace zknt::rendering {
             s_SrvHeapDesc.NumDescriptors = c_MaxSRVDescriptors;
             s_SrvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
-            if (s_Device->CreateDescriptorHeap(&s_SrvHeapDesc, IID_PPV_ARGS(m_SrvDescriptorHeap.ReleaseAndGetPtr())) != S_OK) {
+            if (s_Device->CreateDescriptorHeap(&s_SrvHeapDesc, IID_PPV_ARGS(m_SRVDescriptorHeap.ReleaseAndGetPtr())) != S_OK) {
                 return false;
             }
         }
@@ -419,16 +455,16 @@ namespace zknt::rendering {
         m_BackBuffers.clear();
         m_BackBuffers.resize(s_BufferCount);
 
-        m_RtvDescriptorSize = s_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        m_RTVDescriptorSize = s_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-        const auto s_RtvHandle = m_RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        const auto s_RTVHandle = m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
         for (UINT i = 0; i < s_BufferCount; ++i) {
             if (p_SwapChain->GetBuffer(i, IID_PPV_ARGS(m_BackBuffers[i].ReleaseAndGetPtr())) != S_OK) {
                 return false;
             }
 
-            const D3D12_CPU_DESCRIPTOR_HANDLE s_Descriptor{s_RtvHandle.ptr + i * m_RtvDescriptorSize};
+            const D3D12_CPU_DESCRIPTOR_HANDLE s_Descriptor{s_RTVHandle.ptr + i * m_RTVDescriptorSize};
 
             s_Device->CreateRenderTargetView(m_BackBuffers[i], nullptr, s_Descriptor);
         }
@@ -459,9 +495,20 @@ namespace zknt::rendering {
         s_InitInfo.CommandQueue = m_CommandQueue;
         s_InitInfo.NumFramesInFlight = c_MaxRenderedFrames;
         s_InitInfo.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-        s_InitInfo.SrvDescriptorHeap = m_SrvDescriptorHeap;
-        s_InitInfo.LegacySingleSrvCpuDescriptor = m_SrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
-        s_InitInfo.LegacySingleSrvGpuDescriptor = m_SrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart();
+        s_InitInfo.SrvDescriptorHeap = m_SRVDescriptorHeap;
+        s_InitInfo.UserData = this;
+
+        s_InitInfo.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo* p_InitInfo, D3D12_CPU_DESCRIPTOR_HANDLE* p_OutCPUHandle,
+                                             D3D12_GPU_DESCRIPTOR_HANDLE* p_OutGPUHandle) {
+            auto* s_Renderer = static_cast<ImGuiRenderer*>(p_InitInfo->UserData);
+            s_Renderer->AllocateSRVDescriptor(p_OutCPUHandle, p_OutGPUHandle);
+        };
+
+        s_InitInfo.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo* p_InitInfo, D3D12_CPU_DESCRIPTOR_HANDLE p_CPUHandle,
+                                            D3D12_GPU_DESCRIPTOR_HANDLE p_GPUHandle) {
+            auto* s_Renderer = static_cast<ImGuiRenderer*>(p_InitInfo->UserData);
+            s_Renderer->FreeSRVDescriptor(p_CPUHandle, p_GPUHandle);
+        };
 
         if (!ImGui_ImplDX12_Init(&s_InitInfo)) {
             Logger::Error("[ImGuiRenderer] ImGui_ImplDX12_Init failed.");
@@ -502,8 +549,8 @@ namespace zknt::rendering {
         m_CommandList.Reset();
         m_Fence.Reset();
         m_FenceEvent.Reset();
-        m_RtvDescriptorHeap.Reset();
-        m_SrvDescriptorHeap.Reset();
+        m_RTVDescriptorHeap.Reset();
+        m_SRVDescriptorHeap.Reset();
         m_SwapChain.Reset();
         m_CommandQueue.Reset();
         m_RendererSetup = false;
@@ -544,16 +591,16 @@ namespace zknt::rendering {
 
         m_BackBuffers.resize(s_SwapChainDesc.BufferCount);
 
-        m_RtvDescriptorSize = s_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        m_RTVDescriptorSize = s_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
-        const auto s_RtvHandle = m_RtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        const auto s_RTVHandle = m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
         for (UINT i = 0; i < m_BackBuffers.size(); ++i) {
             if (p_SwapChain->GetBuffer(i, IID_PPV_ARGS(m_BackBuffers[i].ReleaseAndGetPtr())) != S_OK) {
                 return;
             }
 
-            const D3D12_CPU_DESCRIPTOR_HANDLE s_Descriptor{s_RtvHandle.ptr + i * m_RtvDescriptorSize};
+            const D3D12_CPU_DESCRIPTOR_HANDLE s_Descriptor{s_RTVHandle.ptr + i * m_RTVDescriptorSize};
 
             s_Device->CreateRenderTargetView(m_BackBuffers[i], nullptr, s_Descriptor);
         }
@@ -1011,21 +1058,28 @@ namespace zknt::rendering {
             const auto s_MouseSource = GetMouseSourceFromMessageExtraInfo();
             const int s_Area = (p_Msg == WM_MOUSEMOVE) ? 1 : 2;
             m_MouseHwnd = p_Hwnd;
+
             if (m_MouseTrackedArea != s_Area) {
                 TRACKMOUSEEVENT s_Cancel = {sizeof(s_Cancel), TME_CANCEL, p_Hwnd, 0};
                 TRACKMOUSEEVENT s_Track = {sizeof(s_Track), static_cast<DWORD>(s_Area == 2 ? (TME_LEAVE | TME_NONCLIENT) : TME_LEAVE), p_Hwnd, 0};
+
                 if (m_MouseTrackedArea != 0) {
                     ::TrackMouseEvent(&s_Cancel);
                 }
+
                 ::TrackMouseEvent(&s_Track);
                 m_MouseTrackedArea = s_Area;
             }
+
             POINT s_Pos = {static_cast<LONG>(GET_X_LPARAM(p_Lparam)), static_cast<LONG>(GET_Y_LPARAM(p_Lparam))};
+
             if (p_Msg == WM_NCMOUSEMOVE && ::ScreenToClient(p_Hwnd, &s_Pos) == FALSE) {
                 break;
             }
+
             s_Io.AddMouseSourceEvent(s_MouseSource);
             s_Io.AddMousePosEvent(static_cast<float>(s_Pos.x), static_cast<float>(s_Pos.y));
+
             break;
         }
         case WM_MOUSELEAVE:
@@ -1034,9 +1088,11 @@ namespace zknt::rendering {
                 if (m_MouseHwnd == p_Hwnd) {
                     m_MouseHwnd = nullptr;
                 }
+
                 m_MouseTrackedArea = 0;
                 s_Io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
             }
+
             break;
         }
         case WM_LBUTTONDOWN:
@@ -1049,28 +1105,37 @@ namespace zknt::rendering {
         case WM_XBUTTONDBLCLK: {
             const auto s_MouseSource = GetMouseSourceFromMessageExtraInfo();
             int s_Button = 0;
+
             if (p_Msg == WM_LBUTTONDOWN || p_Msg == WM_LBUTTONDBLCLK) {
                 s_Button = 0;
             }
+
             if (p_Msg == WM_RBUTTONDOWN || p_Msg == WM_RBUTTONDBLCLK) {
                 s_Button = 1;
             }
+
             if (p_Msg == WM_MBUTTONDOWN || p_Msg == WM_MBUTTONDBLCLK) {
                 s_Button = 2;
             }
+
             if (p_Msg == WM_XBUTTONDOWN || p_Msg == WM_XBUTTONDBLCLK) {
                 s_Button = (GET_XBUTTON_WPARAM(p_Wparam) == XBUTTON1) ? 3 : 4;
             }
+
             HWND s_Capture = ::GetCapture();
+
             if (m_MouseButtonsDown != 0 && s_Capture != p_Hwnd) {
                 m_MouseButtonsDown = 0;
             }
+
             if (m_MouseButtonsDown == 0 && s_Capture == nullptr) {
                 ::SetCapture(p_Hwnd);
             }
+
             m_MouseButtonsDown |= 1 << s_Button;
             s_Io.AddMouseSourceEvent(s_MouseSource);
             s_Io.AddMouseButtonEvent(s_Button, true);
+
             break;
         }
         case WM_LBUTTONUP:
@@ -1079,24 +1144,32 @@ namespace zknt::rendering {
         case WM_XBUTTONUP: {
             const auto s_MouseSource = GetMouseSourceFromMessageExtraInfo();
             int s_Button = 0;
+
             if (p_Msg == WM_LBUTTONUP) {
                 s_Button = 0;
             }
+
             if (p_Msg == WM_RBUTTONUP) {
                 s_Button = 1;
             }
+
             if (p_Msg == WM_MBUTTONUP) {
                 s_Button = 2;
             }
+
             if (p_Msg == WM_XBUTTONUP) {
                 s_Button = (GET_XBUTTON_WPARAM(p_Wparam) == XBUTTON1) ? 3 : 4;
             }
+
             m_MouseButtonsDown &= ~(1 << s_Button);
+
             if (m_MouseButtonsDown == 0 && ::GetCapture() == p_Hwnd) {
                 ::ReleaseCapture();
             }
+
             s_Io.AddMouseSourceEvent(s_MouseSource);
             s_Io.AddMouseButtonEvent(s_Button, false);
+
             break;
         }
         case WM_MOUSEWHEEL:
@@ -1110,21 +1183,27 @@ namespace zknt::rendering {
         case WM_SYSKEYDOWN:
         case WM_SYSKEYUP: {
             const bool s_IsKeyDown = (p_Msg == WM_KEYDOWN || p_Msg == WM_SYSKEYDOWN);
+
             if (p_Wparam < 256) {
                 UpdateKeyModifiers(s_Io);
+
                 const ImGuiKey s_Key = KeyEventToImGuiKey(p_Wparam, p_Lparam);
                 const int s_Vk = static_cast<int>(p_Wparam);
                 const int s_Scancode = LOBYTE(HIWORD(p_Lparam));
+
                 if (s_Key == ImGuiKey_PrintScreen && !s_IsKeyDown) {
                     AddKeyEvent(s_Io, s_Key, true, s_Vk, s_Scancode);
                 }
+
                 if (s_Key != ImGuiKey_None) {
                     AddKeyEvent(s_Io, s_Key, s_IsKeyDown, s_Vk, s_Scancode);
                 }
+
                 if (s_Vk == VK_SHIFT) {
                     if (IsVkDown(VK_LSHIFT) == s_IsKeyDown) {
                         AddKeyEvent(s_Io, ImGuiKey_LeftShift, s_IsKeyDown, VK_LSHIFT, s_Scancode);
                     }
+
                     if (IsVkDown(VK_RSHIFT) == s_IsKeyDown) {
                         AddKeyEvent(s_Io, ImGuiKey_RightShift, s_IsKeyDown, VK_RSHIFT, s_Scancode);
                     }
@@ -1133,6 +1212,7 @@ namespace zknt::rendering {
                     if (IsVkDown(VK_LCONTROL) == s_IsKeyDown) {
                         AddKeyEvent(s_Io, ImGuiKey_LeftCtrl, s_IsKeyDown, VK_LCONTROL, s_Scancode);
                     }
+
                     if (IsVkDown(VK_RCONTROL) == s_IsKeyDown) {
                         AddKeyEvent(s_Io, ImGuiKey_RightCtrl, s_IsKeyDown, VK_RCONTROL, s_Scancode);
                     }
@@ -1141,11 +1221,13 @@ namespace zknt::rendering {
                     if (IsVkDown(VK_LMENU) == s_IsKeyDown) {
                         AddKeyEvent(s_Io, ImGuiKey_LeftAlt, s_IsKeyDown, VK_LMENU, s_Scancode);
                     }
+
                     if (IsVkDown(VK_RMENU) == s_IsKeyDown) {
                         AddKeyEvent(s_Io, ImGuiKey_RightAlt, s_IsKeyDown, VK_RMENU, s_Scancode);
                     }
                 }
             }
+
             break;
         }
         case WM_SETFOCUS:
@@ -1166,6 +1248,7 @@ namespace zknt::rendering {
                 ::MultiByteToWideChar(m_KeyboardCodePage, MB_PRECOMPOSED, reinterpret_cast<char*>(&p_Wparam), 1, &s_Wch, 1);
                 s_Io.AddInputCharacter(s_Wch);
             }
+
             break;
         }
 
