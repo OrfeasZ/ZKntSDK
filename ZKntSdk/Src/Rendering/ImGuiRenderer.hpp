@@ -9,6 +9,8 @@
 #include <dxgi1_4.h>
 #include <vector>
 
+#include <ResourceUploadBatch.h>
+
 #include <imgui.h>
 
 #include <Glacier/ZEntity.hpp>
@@ -119,6 +121,23 @@ namespace zknt::rendering {
             return m_FontBlack;
         }
 
+        bool CreateDDSTextureFromMemory(
+            const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+        );
+
+        bool CreateDDSTextureFromFile(const std::string& p_FilePath, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture);
+
+        bool CreateWICTextureFromMemory(
+            const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+        );
+
+        bool CreateWICTextureFromFile(const std::string& p_FilePath, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture);
+
+        bool CreateImGuiTextureSRV(ID3D12Resource* p_Texture, ImGuiTexture& p_OutImGuiTexture);
+        void DestroyImGuiTextureSRV(ImGuiTexture& p_Texture);
+
+        void DestroyImGuiTexture(ScopedD3DRef<ID3D12Resource>& p_Texture, ImGuiTexture& p_ImGuiTexture);
+
       private:
         bool SetupRenderer(IDXGISwapChain3* p_SwapChain);
         void TeardownRenderer();
@@ -133,6 +152,11 @@ namespace zknt::rendering {
         void FreeSRVDescriptor(D3D12_CPU_DESCRIPTOR_HANDLE p_CPUHandle, D3D12_GPU_DESCRIPTOR_HANDLE p_GPUHandle);
 
         void ReleaseDeferredResources(std::vector<DeferredResource>& p_Resources);
+
+        bool CreateTexture(
+            std::function<HRESULT(ScopedD3DRef<ID3D12Device>&, DirectX::ResourceUploadBatch&, ID3D12Resource**)> p_Loader,
+            ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+        );
 
         // Input plumbing helpers (ported from ZHM's WndProc handler).
         static ImGuiMouseSource GetMouseSourceFromMessageExtraInfo();

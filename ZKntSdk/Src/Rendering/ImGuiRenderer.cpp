@@ -8,6 +8,10 @@
 #include <imgui_impl_dx12.h>
 #include <windowsx.h>
 
+#include <DDSTextureLoader.h>
+#include <WICTextureLoader.h>
+#include <DirectXHelpers.h>
+
 #include <IconsMaterialDesign.h>
 
 #include <Glacier/ZComponent.hpp>
@@ -684,6 +688,173 @@ namespace zknt::rendering {
             ImGui::End();
             ImGui::PopFont();
         }
+    }
+
+    bool ImGuiRenderer::CreateDDSTextureFromMemory(
+        const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+    ) {
+        return CreateTexture(
+            [p_Data, p_DataSize](ScopedD3DRef<ID3D12Device>& device, DirectX::ResourceUploadBatch& batch, ID3D12Resource** texture) {
+                return DirectX::CreateDDSTextureFromMemory(device, batch, reinterpret_cast<const uint8_t*>(p_Data), p_DataSize, texture);
+            },
+            p_OutTexture, p_OutImGuiTexture
+        );
+    }
+
+    bool ImGuiRenderer::CreateDDSTextureFromFile(
+        const std::string& p_FilePath, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+    ) {
+        return CreateTexture(
+            [p_FilePath](ScopedD3DRef<ID3D12Device>& device, DirectX::ResourceUploadBatch& batch, ID3D12Resource** texture) {
+                const std::wstring s_FilePath2(p_FilePath.begin(), p_FilePath.end());
+
+                return DirectX::CreateDDSTextureFromFile(device, batch, s_FilePath2.c_str(), texture);
+            },
+            p_OutTexture, p_OutImGuiTexture
+        );
+    }
+
+    bool ImGuiRenderer::CreateWICTextureFromMemory(
+        const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+    ) {
+        return CreateTexture(
+            [p_Data, p_DataSize](ScopedD3DRef<ID3D12Device>& device, DirectX::ResourceUploadBatch& batch, ID3D12Resource** texture) {
+                return DirectX::CreateWICTextureFromMemory(device, batch, reinterpret_cast<const uint8_t*>(p_Data), p_DataSize, texture);
+            },
+            p_OutTexture, p_OutImGuiTexture
+        );
+    }
+
+    bool ImGuiRenderer::CreateWICTextureFromFile(
+        const std::string& p_FilePath, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+    ) {
+        return CreateTexture(
+            [p_FilePath](ScopedD3DRef<ID3D12Device>& device, DirectX::ResourceUploadBatch& batch, ID3D12Resource** texture) {
+                const std::wstring s_FilePath2(p_FilePath.begin(), p_FilePath.end());
+
+                return DirectX::CreateWICTextureFromFile(device, batch, s_FilePath2.c_str(), texture);
+            },
+            p_OutTexture, p_OutImGuiTexture
+        );
+    }
+
+    bool ImGuiRenderer::CreateImGuiTextureSRV(ID3D12Resource* p_Texture, ImGuiTexture& p_OutImGuiTexture) {
+        if (!p_Texture) {
+            return false;
+        }
+
+        if (!m_RendererSetup) {
+            Logger::Error("Failed to create texture - ImGui renderer is not set up!");
+
+            return false;
+        }
+
+        ScopedD3DRef<ID3D12Device> s_Device;
+
+        if (m_SwapChain->GetDevice(REF_IID_PPV_ARGS(s_Device)) != S_OK) {
+            Logger::Error("Failed to retrieve D3D12 device from swap chain in CreateImGuiTexture!");
+
+            return false;
+        }
+
+        const auto s_Description = p_Texture->GetDesc();
+
+        p_OutImGuiTexture.m_Width = static_cast<UINT>(s_Description.Width);
+        p_OutImGuiTexture.m_Height = s_Description.Height;
+
+        AllocateSRVDescriptor(&p_OutImGuiTexture.m_SRVCPUDescriptor, &p_OutImGuiTexture.m_SRVGPUDescriptor);
+
+        D3D12_SHADER_RESOURCE_VIEW_DESC s_SRVDescription{};
+        s_SRVDescription.Format = s_Description.Format;
+        s_SRVDescription.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        s_SRVDescription.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        s_SRVDescription.Texture2D.MostDetailedMip = 0;
+        s_SRVDescription.Texture2D.MipLevels = s_Description.MipLevels;
+        s_SRVDescription.Texture2D.PlaneSlice = 0;
+        s_SRVDescription.Texture2D.ResourceMinLODClamp = 0.f;
+
+        s_Device->CreateShaderResourceView(p_Texture, &s_SRVDescription, p_OutImGuiTexture.m_SRVCPUDescriptor);
+
+        p_OutImGuiTexture.m_Id = p_OutImGuiTexture.m_SRVGPUDescriptor.ptr;
+
+        return true;
+    }
+
+    void ImGuiRenderer::DestroyImGuiTextureSRV(ImGuiTexture& p_Texture) {
+        if (!p_Texture.m_Id) {
+            return;
+        }
+
+        m_PendingDeferredResources.push_back({.m_Texture = {}, .m_ImGuiTexture = p_Texture});
+
+        p_Texture = {};
+    }
+
+    void ImGuiRenderer::DestroyImGuiTexture(ScopedD3DRef<ID3D12Resource>& p_Texture, ImGuiTexture& p_ImGuiTexture) {
+        if (!p_Texture && !p_ImGuiTexture.m_Id) {
+            return;
+        }
+
+        m_PendingDeferredResources.push_back({std::move(p_Texture), p_ImGuiTexture});
+
+        p_ImGuiTexture = {};
+    }
+
+    bool ImGuiRenderer::CreateTexture(
+        std::function<HRESULT(ScopedD3DRef<ID3D12Device>&, DirectX::ResourceUploadBatch&, ID3D12Resource**)> p_Loader,
+        ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+    ) {
+        if (!m_RendererSetup) {
+            Logger::Error("Failed to create texture - ImGui renderer is not set up!");
+
+            return false;
+        }
+
+        ScopedD3DRef<ID3D12Device> s_Device;
+
+        if (m_SwapChain->GetDevice(REF_IID_PPV_ARGS(s_Device)) != S_OK) {
+            Logger::Error("Failed to retrieve D3D12 device from swap chain in CreateTexture!");
+
+            return false;
+        }
+
+        DirectX::ResourceUploadBatch s_UploadBatch(s_Device);
+
+        s_UploadBatch.Begin();
+
+        ScopedD3DRef<ID3D12Resource> s_Texture;
+
+        HRESULT s_Result = p_Loader(s_Device, s_UploadBatch, &s_Texture.m_Ref);
+
+        if (FAILED(s_Result)) {
+            Logger::Error("Failed to create texture via loader function!");
+
+            return false;
+        }
+
+        auto s_Finish = s_UploadBatch.End(m_CommandQueue);
+
+        s_Finish.wait();
+
+        p_OutTexture = std::move(s_Texture);
+
+        auto s_TextureDescription = p_OutTexture->GetDesc();
+
+        p_OutImGuiTexture.m_Width = static_cast<UINT>(s_TextureDescription.Width);
+        p_OutImGuiTexture.m_Height = static_cast<UINT>(s_TextureDescription.Height);
+
+        AllocateSRVDescriptor(&p_OutImGuiTexture.m_SRVCPUDescriptor, &p_OutImGuiTexture.m_SRVGPUDescriptor);
+
+        DirectX::CreateShaderResourceView(s_Device, p_OutTexture, p_OutImGuiTexture.m_SRVCPUDescriptor);
+
+        p_OutImGuiTexture.m_Id = p_OutImGuiTexture.m_SRVGPUDescriptor.ptr;
+
+        const auto s_HeapStart = m_SRVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        const auto s_SRVDescriptorIndex = (p_OutImGuiTexture.m_SRVCPUDescriptor.ptr - s_HeapStart.ptr) / m_SRVDescriptorSize;
+
+        Logger::Info("Created texture ({}x{}) in SRV slot {}.", s_TextureDescription.Width, s_TextureDescription.Height, s_SRVDescriptorIndex);
+
+        return true;
     }
 
     ImGuiMouseSource ImGuiRenderer::GetMouseSourceFromMessageExtraInfo() {

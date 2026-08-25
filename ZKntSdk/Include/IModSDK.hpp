@@ -1,5 +1,7 @@
 #pragma once
 
+#include "directx/d3d12.h"
+
 #include "Common.hpp"
 #include <spdlog/spdlog.h>
 #include <string_view>
@@ -20,6 +22,12 @@ class ZString;
 struct SVector2;
 struct SVector3;
 struct SMatrix;
+
+template<typename T> struct ScopedD3DRef;
+
+namespace zknt {
+    struct ImGuiTexture;
+}
 
 namespace zknt {
     class Hooks;
@@ -282,6 +290,70 @@ namespace zknt {
          * This allows the user to interact with the game again.
          */
         virtual void ReleaseUIFocus() = 0;
+
+        /**
+         * Create a DirectX 12 texture from DDS data in memory and initialize an ImGui texture descriptor.
+         * @param p_Data Pointer to DDS data in memory.
+         * @param p_DataSize Size of the DDS data buffer.
+         * @param p_OutTexture Output DirectX 12 texture resource.
+         * @param p_OutImGuiTexture Output ImGui texture descriptor.
+         * @return True if the texture was successfully created, false otherwise.
+         */
+        virtual bool CreateDDSTextureFromMemory(
+            const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+        ) = 0;
+
+        /**
+         * Create a DirectX 12 texture from a DDS file and initialize an ImGui texture descriptor.
+         * @param p_FilePath Path to the DDS file.
+         * @param p_OutTexture Output DirectX 12 texture resource.
+         * @param p_OutImGuiTexture Output ImGui texture descriptor.
+         * @return True if the texture was successfully created, false otherwise.
+         */
+        virtual bool
+        CreateDDSTextureFromFile(const std::string& p_FilePath, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture) = 0;
+
+        /**
+         * Create a DirectX 12 texture from WIC-compatible image data in memory (PNG, JPEG, etc.)
+         * and initialize an ImGui texture descriptor.
+         * @param p_Data Pointer to image data in memory.
+         * @param p_DataSize Size of the image data buffer.
+         * @param p_OutTexture Output DirectX 12 texture resource.
+         * @param p_OutImGuiTexture Output ImGui texture descriptor.
+         * @return True if the texture was successfully created, false otherwise.
+         */
+        virtual bool CreateWICTextureFromMemory(
+            const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+        ) = 0;
+
+        /**
+         * Create a DirectX 12 texture from a WIC-compatible image file (PNG, JPEG, etc.)
+         * and initialize an ImGui texture descriptor.
+         * @param p_FilePath Path to the image file.
+         * @param p_OutTexture Output DirectX 12 texture resource.
+         * @param p_OutImGuiTexture Output ImGui texture descriptor.
+         * @return True if the texture was successfully created, false otherwise.
+         */
+        virtual bool
+        CreateWICTextureFromFile(const std::string& p_FilePath, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture) = 0;
+
+        /**
+         * Creates an ImGui shader resource view for the specified texture.
+         * The texture remains owned by the caller.
+         */
+        virtual bool CreateImGuiTextureSRV(ID3D12Resource* p_Texture, ImGuiTexture& p_OutImGuiTexture) = 0;
+
+        /**
+         * Destroys an ImGui shader resource view.
+         * The underlying texture is not released.
+         */
+        virtual void DestroyImGuiTextureSRV(ImGuiTexture& p_Texture) = 0;
+
+        /**
+         * Destroys an ImGui texture and its shader resource view.
+         * The texture and shader resource view are released when they are no longer in use by the GPU.
+         */
+        virtual void DestroyImGuiTexture(ScopedD3DRef<ID3D12Resource>& p_Texture, ImGuiTexture& p_ImGuiTexture) = 0;
     };
 }
 

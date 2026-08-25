@@ -800,6 +800,40 @@ namespace zknt {
         m_ImGuiRenderer.get()->SetFocus(false);
     }
 
+    bool ModSDK::CreateDDSTextureFromMemory(
+        const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+    ) {
+        return m_ImGuiRenderer.get()->CreateDDSTextureFromMemory(p_Data, p_DataSize, p_OutTexture, p_OutImGuiTexture);
+    }
+
+    bool
+    ModSDK::CreateDDSTextureFromFile(const std::string& p_FilePath, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture) {
+        return m_ImGuiRenderer.get()->CreateDDSTextureFromFile(p_FilePath, p_OutTexture, p_OutImGuiTexture);
+    }
+
+    bool ModSDK::CreateWICTextureFromMemory(
+        const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+    ) {
+        return m_ImGuiRenderer.get()->CreateWICTextureFromMemory(p_Data, p_DataSize, p_OutTexture, p_OutImGuiTexture);
+    }
+
+    bool
+    ModSDK::CreateWICTextureFromFile(const std::string& p_FilePath, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture) {
+        return m_ImGuiRenderer.get()->CreateWICTextureFromFile(p_FilePath, p_OutTexture, p_OutImGuiTexture);
+    }
+
+    bool ModSDK::CreateImGuiTextureSRV(ID3D12Resource* p_Texture, ImGuiTexture& p_OutImGuiTexture) {
+        return m_ImGuiRenderer.get()->CreateImGuiTextureSRV(p_Texture, p_OutImGuiTexture);
+    }
+
+    void ModSDK::DestroyImGuiTextureSRV(ImGuiTexture& p_Texture) {
+        return m_ImGuiRenderer.get()->DestroyImGuiTextureSRV(p_Texture);
+    }
+
+    void ModSDK::DestroyImGuiTexture(ScopedD3DRef<ID3D12Resource>& p_Texture, ImGuiTexture& p_ImGuiTexture) {
+        m_ImGuiRenderer.get()->DestroyImGuiTexture(p_Texture, p_ImGuiTexture);
+    }
+
     zknt::IImGuiRenderer* ModSDK::GetImGuiRenderer() const {
         return m_ImGuiRenderer.get();
     }

@@ -14,6 +14,7 @@
 #include "Rendering/ImGuiRenderer.hpp"
 #include "Rendering/DirectXTKRenderer.hpp"
 #include "HostServices.hpp"
+#include "D3DUtils.hpp"
 
 class ZResourcePending;
 
@@ -120,6 +121,26 @@ namespace zknt {
 
         void RequestUIFocus() override;
         void ReleaseUIFocus() override;
+
+        bool CreateDDSTextureFromMemory(
+            const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+        ) override;
+
+        bool
+        CreateDDSTextureFromFile(const std::string& p_Path, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture) override;
+
+        bool CreateWICTextureFromMemory(
+            const void* p_Data, size_t p_DataSize, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture
+        ) override;
+
+        bool
+        CreateWICTextureFromFile(const std::string& p_Path, ScopedD3DRef<ID3D12Resource>& p_OutTexture, ImGuiTexture& p_OutImGuiTexture) override;
+
+        bool CreateImGuiTextureSRV(ID3D12Resource* p_Texture, ImGuiTexture& p_OutImGuiTexture) override;
+
+        void DestroyImGuiTextureSRV(ImGuiTexture& p_Texture) override;
+
+        void DestroyImGuiTexture(ScopedD3DRef<ID3D12Resource>& p_Texture, ImGuiTexture& p_ImGuiTexture) override;
 
         // SDK-internal methods.
         IImGuiRenderer* GetImGuiRenderer() const;

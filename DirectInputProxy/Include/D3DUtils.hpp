@@ -7,7 +7,7 @@
 // RAII wrapper around a COM pointer. Constructed without an AddRef so it
 // composes with QueryInterface / IID_PPV_ARGS; reassignment AddRefs the new
 // value and Releases the old one.
-template<class T> struct ScopedD3DRef {
+template<typename T> struct ScopedD3DRef {
     using RefType = T*;
 
     ScopedD3DRef() = default;
