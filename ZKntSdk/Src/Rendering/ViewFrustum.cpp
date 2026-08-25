@@ -92,6 +92,10 @@ namespace zknt::rendering {
         return CheckOBBInsidePlanes(p_Transform, p_Center, p_HalfSize) != ContainmentType::FullyOutside;
     }
 
+    bool ViewFrustum::ContainsSphere(const SVector3& p_Center, float p_Radius) const {
+        return CheckSphereInsidePlanes(p_Center, p_Radius) != ContainmentType::FullyOutside;
+    }
+
     void ViewFrustum::SetDistanceCullingEnabled(bool p_Enabled) {
         m_IsDistanceCullingEnabled = p_Enabled;
     }
@@ -174,6 +178,28 @@ namespace zknt::rendering {
             }
 
             if (s_Distance + s_Radius > 0.f) {
+                s_IsPartiallyInside = true;
+            }
+        }
+
+        return s_IsPartiallyInside ? ContainmentType::PartiallyInside : ContainmentType::FullyInside;
+    }
+
+    ViewFrustum::ContainmentType ViewFrustum::CheckSphereInsidePlanes(const SVector3& p_Center, float p_Radius) const {
+        bool s_IsPartiallyInside = false;
+
+        for (const auto& s_Plane : m_Planes) {
+            const SVector3 s_Normal = s_Plane;
+
+            const float s_Distance = s_Normal.x * p_Center.x + s_Normal.y * p_Center.y + s_Normal.z * p_Center.z + s_Plane.w;
+
+            constexpr float s_Epsilon = 1.f / 4096.f;
+
+            if (s_Distance - p_Radius > s_Epsilon) {
+                return ContainmentType::FullyOutside;
+            }
+
+            if (s_Distance + p_Radius > 0.f) {
                 s_IsPartiallyInside = true;
             }
         }

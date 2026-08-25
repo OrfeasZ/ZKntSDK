@@ -14,6 +14,7 @@ namespace zknt::rendering {
         bool ContainsPoint(const SVector3& p_Point) const;
         bool ContainsAABB(const AABB& p_AABB) const;
         bool ContainsOBB(const SMatrix& p_Transform, const float4& p_Center, const float4& p_HalfSize) const;
+        bool ContainsSphere(const SVector3& p_Center, float p_Radius) const;
 
         void SetDistanceCullingEnabled(bool p_Enabled);
         bool IsDistanceCullingEnabled() const;
@@ -37,6 +38,7 @@ namespace zknt::rendering {
         ContainmentType CheckPointInsidePlanes(const SVector3& p_Point) const;
         ContainmentType CheckAABBInsidePlanes(const AABB& p_AABB) const;
         ContainmentType CheckOBBInsidePlanes(const SMatrix& p_Transform, const float4& p_Center, const float4& p_HalfSize) const;
+        ContainmentType CheckSphereInsidePlanes(const SVector3& p_Center, float p_Radius) const;
 
         bool m_IsDistanceCullingEnabled = false;
         float m_MaxDrawDistance = 50.f;
