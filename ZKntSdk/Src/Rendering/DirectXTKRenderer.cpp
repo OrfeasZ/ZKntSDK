@@ -1022,32 +1022,6 @@ namespace zknt::rendering {
 
         const SVector3 s_Corners[8] = {
             p_Center - s_Right - s_Up - s_Forward, p_Center - s_Right + s_Up - s_Forward, p_Center + s_Right + s_Up - s_Forward,
-            p_Center + s_Right - s_Up - s_Forward, p_Center + s_Right + s_Up + s_Forward, p_Center - s_Right + s_Up + s_Forward,
-            p_Center - s_Right - s_Up + s_Forward, p_Center + s_Right - s_Up + s_Forward,
-        };
-
-        static constexpr int s_Edges[12][2] = {
-            {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom face
-            {4, 5}, {5, 6}, {6, 7}, {7, 4}, // top face
-            {0, 6}, {1, 5}, {2, 4}, {3, 7}  // vertical edges
-        };
-
-        for (const auto& s_Edge : s_Edges) {
-            DrawLine3D(s_Corners[s_Edge[0]], p_Color, s_Corners[s_Edge[1]], p_Color);
-        }
-    }
-
-    void DirectXTKRenderer::DrawBoxWire3D(const SVector3& p_Center, const SVector3& p_HalfSize, const SMatrix& p_Transform, const SVector4& p_Color) {
-        if (m_IsFrustumCullingEnabled && !IsOBBInsideViewFrustum(p_Center, p_HalfSize, p_Transform)) {
-            return;
-        }
-
-        const SVector3 s_Right = p_Transform.Right * p_HalfSize.x;
-        const SVector3 s_Forward = -(p_Transform.Backward * p_HalfSize.y);
-        const SVector3 s_Up = p_Transform.ZAxis * p_HalfSize.z;
-
-        const SVector3 s_Corners[8] = {
-            p_Center - s_Right - s_Up - s_Forward, p_Center - s_Right + s_Up - s_Forward, p_Center + s_Right + s_Up - s_Forward,
             p_Center + s_Right - s_Up - s_Forward, p_Center - s_Right - s_Up + s_Forward, p_Center - s_Right + s_Up + s_Forward,
             p_Center + s_Right + s_Up + s_Forward, p_Center + s_Right - s_Up + s_Forward,
         };
@@ -1063,6 +1037,32 @@ namespace zknt::rendering {
 
         for (const auto& s_Face : s_Faces) {
             DrawTriangle3D(s_Corners[s_Face[0]], p_Color, s_Corners[s_Face[1]], p_Color, s_Corners[s_Face[2]], p_Color);
+        }
+    }
+
+    void DirectXTKRenderer::DrawBoxWire3D(const SVector3& p_Center, const SVector3& p_HalfSize, const SMatrix& p_Transform, const SVector4& p_Color) {
+        if (m_IsFrustumCullingEnabled && !IsOBBInsideViewFrustum(p_Center, p_HalfSize, p_Transform)) {
+            return;
+        }
+
+        const SVector3 s_Right = p_Transform.Right * p_HalfSize.x;
+        const SVector3 s_Forward = -(p_Transform.Backward * p_HalfSize.y);
+        const SVector3 s_Up = p_Transform.ZAxis * p_HalfSize.z;
+
+        const SVector3 s_Corners[8] = {
+            p_Center - s_Right - s_Up - s_Forward, p_Center - s_Right + s_Up - s_Forward, p_Center + s_Right + s_Up - s_Forward,
+            p_Center + s_Right - s_Up - s_Forward, p_Center + s_Right + s_Up + s_Forward, p_Center - s_Right + s_Up + s_Forward,
+            p_Center - s_Right - s_Up + s_Forward, p_Center + s_Right - s_Up + s_Forward,
+        };
+
+        static constexpr int s_Edges[12][2] = {
+            {0, 1}, {1, 2}, {2, 3}, {3, 0}, // bottom face
+            {4, 5}, {5, 6}, {6, 7}, {7, 4}, // top face
+            {0, 6}, {1, 5}, {2, 4}, {3, 7}  // vertical edges
+        };
+
+        for (const auto& s_Edge : s_Edges) {
+            DrawLine3D(s_Corners[s_Edge[0]], p_Color, s_Corners[s_Edge[1]], p_Color);
         }
     }
 
