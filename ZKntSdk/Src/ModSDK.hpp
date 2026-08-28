@@ -14,7 +14,7 @@
 #include "Rendering/ImGuiRenderer.hpp"
 #include "Rendering/DirectXTKRenderer.hpp"
 #include "HostServices.hpp"
-#include "D3DUtils.hpp"
+#include "Util/D3DUtils.hpp"
 
 class ZResourcePending;
 

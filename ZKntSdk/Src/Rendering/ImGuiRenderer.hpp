@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IImGuiRenderer.hpp"
-#include "D3DUtils.hpp"
+#include "Util/D3DUtils.hpp"
 
 #include <array>
 #include <atomic>

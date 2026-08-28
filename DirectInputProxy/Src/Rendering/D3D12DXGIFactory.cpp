@@ -3,7 +3,7 @@
 #include "D3D12SwapChain.hpp"
 #include "RenderingHost.hpp"
 
-#include "../../Include/D3DUtils.hpp"
+#include "Util/D3DUtils.hpp"
 
 namespace knt::rendering {
     D3D12DXGIFactory::D3D12DXGIFactory(IDXGIFactory4* p_Target) : m_Target(p_Target) {

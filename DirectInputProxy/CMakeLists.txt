@@ -21,6 +21,7 @@ set_target_properties(DirectInputProxy PROPERTIES
 target_include_directories(DirectInputProxy PRIVATE
         ${CR_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}/Src
+        ${CMAKE_SOURCE_DIR}/ZKntSdk/Include
 )
 
 target_include_directories(DirectInputProxy PUBLIC

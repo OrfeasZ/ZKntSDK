@@ -14,13 +14,12 @@
 #include "SpriteFont.h"
 #include "CommonStates.h"
 
-#include "D3DUtils.hpp"
+#include "Util/D3DUtils.hpp"
 #include "IDirectXTKRenderer.hpp"
 #include "DebugEffect.hpp"
 #include "Rendering/ViewFrustum.hpp"
 #include "CustomPrimitiveBatch.hpp"
 #include "Hooks.hpp"
-#include "IDirectXTKRenderer.hpp"
 
 namespace zknt::rendering {
     class DirectXTKRenderer final : public IDirectXTKRenderer {

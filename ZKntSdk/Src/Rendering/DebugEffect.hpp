@@ -1,12 +1,9 @@
 #pragma once
 
-#include <directxtk12/Effects.h>
-#include <directxtk12/GraphicsMemory.h>
+#include <Effects.h>
+#include <GraphicsMemory.h>
 
 #include <Glacier/ZMath.hpp>
-#include <Glacier/SColorRGBA.hpp>
-
-#include "D3DUtils.hpp"
 
 struct CD3DX12_RESOURCE_DESC;
 

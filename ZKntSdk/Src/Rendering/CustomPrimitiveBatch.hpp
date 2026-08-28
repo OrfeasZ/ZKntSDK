@@ -6,7 +6,7 @@
 
 #include "GraphicsMemory.h"
 
-#include "D3DUtils.hpp"
+#include "Util/D3DUtils.hpp"
 
 namespace zknt::rendering {
     template<typename TVertex> class CustomPrimitiveBatch {

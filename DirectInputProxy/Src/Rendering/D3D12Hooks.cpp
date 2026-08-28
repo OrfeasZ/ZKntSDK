@@ -1,7 +1,7 @@
 #include "D3D12Hooks.hpp"
 
 #include "D3D12DXGIFactory.hpp"
-#include "../../Include/D3DUtils.hpp"
+#include "Util/D3DUtils.hpp"
 
 #include <MinHook.h>
 #include <dxgi1_4.h>
