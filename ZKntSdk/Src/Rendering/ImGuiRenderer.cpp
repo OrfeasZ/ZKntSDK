@@ -114,7 +114,7 @@ namespace zknt::rendering {
         s_Style.ItemSpacing = ImVec2(10.f, 6.f);
         s_Style.ItemInnerSpacing = ImVec2(10.f, 10.f);
         s_Style.TouchExtraPadding = ImVec2(0.f, 0.f);
-        s_Style.IndentSpacing = 10.f;
+        s_Style.IndentSpacing = 34.f;
         s_Style.ScrollbarSize = 12.f;
         s_Style.GrabMinSize = 12.f;
 
@@ -460,6 +460,7 @@ namespace zknt::rendering {
         m_BackBuffers.resize(s_BufferCount);
 
         m_RTVDescriptorSize = s_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        m_SRVDescriptorSize = s_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         const auto s_RTVHandle = m_RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 
