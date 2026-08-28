@@ -1519,7 +1519,7 @@ namespace zknt::rendering {
 
         m_ViewFrustum.SetDistanceCullingEnabled(p_Enabled);
 
-        m_ViewFrustum.UpdateClipPlanes(*reinterpret_cast<SMatrix*>(&m_View), m_CameraViewToClip);
+        m_ViewFrustum.UpdateClipPlanes(SMatrix(m_View), m_CameraViewToClip);
     }
 
     bool DirectXTKRenderer::IsDistanceCullingEnabled() const {
@@ -1533,7 +1533,7 @@ namespace zknt::rendering {
 
         m_ViewFrustum.SetMaxDrawDistance(p_MaxDrawDistance);
 
-        m_ViewFrustum.UpdateClipPlanes(*reinterpret_cast<SMatrix*>(&m_View), m_CameraViewToClip);
+        m_ViewFrustum.UpdateClipPlanes(SMatrix(m_View), m_CameraViewToClip);
     }
 
     float DirectXTKRenderer::GetMaxDrawDistance() const {
