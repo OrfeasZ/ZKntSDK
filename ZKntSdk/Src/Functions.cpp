@@ -64,8 +64,8 @@ zknt::Functions::Functions() {
     PATTERN_FUNCTION("\x40\x53\x48\x83\xEC\x00\x33\xDB\x89\x5C\x24\x40", "xxxxx?xxxxxx", GetGlobalInputContext, ZInputContext * ());
 
     PATTERN_FUNCTION(
-        "\x48\x8B\xC4\x48\x89\x50\x10\x48\x89\x48\x08\x55\x48\x8D\x68\xA1\x48\x81\xEC\x00\x00\x00\x00\x48\x89\x58\xF0", "xxxxxxxxxxxxxxxxxxx????xxxx",
-        AddBindings, void(const char* binds, ZInputContext* inputContext)
+        "\x48\x8B\xC4\x48\x89\x50\x10\x48\x89\x48\x08\x55\x48\x8D\x68\xA1\x48\x81\xEC\x00\x00\x00\x00\x48\x89\x58\xF0\x48\x89\x70\xE8\x48\x8B\xF1",
+        "xxxxxxxxxxxxxxxxxxx????xxxxxxxxxxx", AddBindings, void(const char* binds, ZInputContext* inputContext)
     );
 
     PATTERN_FUNCTION(
