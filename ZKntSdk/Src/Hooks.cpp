@@ -128,8 +128,8 @@ zknt::Hooks::Hooks() {
     );
 
     PATTERN_HOOK(
-        "\x48\x8B\xC4\x48\x89\x58\x20\x55\x56\x57\x48\x8D\x68\xA1", "xxxxxxxxxxxxxx", ZPFObstacleEntity_UpdateObstacle,
-        void(ZPFObstacleEntity * th, bool forceUpdate)
+        "\x48\x8B\xC4\x48\x89\x58\x20\x55\x56\x57\x48\x8D\x68\xA1\x48\x81\xEC\x00\x00\x00\x00\x4C\x8B\x99\x30\x01\x00\x00",
+        "xxxxxxxxxxxxxxxxx????xxxxxxx", ZPFObstacleEntity_UpdateObstacle, void(ZPFObstacleEntity * th, bool forceUpdate)
     );
 
     PATTERN_HOOK(
