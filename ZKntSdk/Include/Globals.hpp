@@ -22,8 +22,21 @@ struct SD3D12ObjectPools;
 struct SPrimDrawData;
 struct SEntitySlotMetadata;
 class ZObjectPool;
+class ZSelectionForFreeCameraEditorStyleEntity;
+struct SDefaultAllocatorProvider;
+template<typename T> class TArray;
+template<typename T> class TEntityRef;
+class ZGameKeywordManager;
+class ZPathfinder;
+class ZInputManager;
+class ZRoomManagerMain;
+class ZKntGameProgressionManager;
+class ZUIText;
+struct SKntMissionData;
+class ZRenderGraphManager;
 
 namespace Gameplay {
+    class ZKntGPWStores;
     class ZGPWTransientStores;
 }
 
@@ -76,6 +89,16 @@ namespace zknt {
         SEntitySlotMetadata** EntitySlotMetadata = nullptr;
         ZObjectPool* Variant8BytePool;
         ZObjectPool* Variant32BytePool;
+        Gameplay::ZKntGPWStores* KntGPWStores = nullptr;
         Gameplay::ZGPWTransientStores* GPWTransientStores = nullptr;
+        TArray<TEntityRef<ZSelectionForFreeCameraEditorStyleEntity>>* Selections = nullptr;
+        ZGameKeywordManager* GameKeywordManager = nullptr;
+        ZPathfinder* Pathfinder = nullptr;
+        ZInputManager* InputManager = nullptr;
+        ZRoomManagerMain* RoomManagerMain = nullptr;
+        ZKntGameProgressionManager* KntGameProgressionManager = nullptr;
+        ZUIText* UIText = nullptr;
+        TArray<SKntMissionData>* Missions = nullptr;
+        ZRenderGraphManager* RenderGraphManager;
     };
 }

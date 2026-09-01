@@ -2,6 +2,7 @@
 
 #include "ZEntity.hpp"
 #include "ZLocalization.hpp"
+#include "ZHumanoid.hpp"
 
 class ZKeywordEntity;
 
@@ -87,4 +88,17 @@ class ZItemCharacterDefinitionBase : public ZEntityImpl {
     ZRuntimeResourceID m_itemIcon;                       // 0x110
     ZRuntimeResourceID m_itemVideo;                      // 0x118
     PAD(0xB0);                                           // 0x120
+};
+
+class ZItemCharacterEntityBase : public ZEntityImpl, public ICharacterEntity, public ISpawnableEntity {
+  public:
+    virtual ~ZItemCharacterEntityBase() = 0;
+
+    TEntityRef<ZSpatialEntity> m_spatialEntity; // 0x28
+    TResourcePtr<ZEntityRef> m_definition;      // 0x40
+    bool m_itemControlsPhysics;                 // 0x48
+    PAD(0x2F);                                  // 0x49
+    ZEntityRef m_spawnedItem;                   // 0x78
+    PAD(0x8);                                   // 0x88
+    ZRuntimeResourceID m_itemTemplate;          // 0x90
 };

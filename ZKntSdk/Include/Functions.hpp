@@ -5,6 +5,7 @@
 #include "Glacier/ZDelegate.hpp"
 #include "Glacier/EUpdateMode.hpp"
 #include "Glacier/ZMath.hpp"
+#include "Glacier/TArray.hpp"
 
 class ZEntityManager;
 class IEntityFactory;
@@ -39,6 +40,9 @@ class ZTemplateBlueprintInstaller;
 class ZCppEntityTypeInstaller;
 class ZCppEntityBlueprintInstaller;
 class ZResourcePending;
+class ZGameKeywordManager;
+struct SKeyword;
+class ZUIText;
 
 namespace zknt {
     class Functions {
@@ -51,10 +55,10 @@ namespace zknt {
 
         EngineFunction<ZEntityRef*(ZEntityManager* th, ZEntityRef& result, SEntityCreateInfo& entityCreateInfo)>* ZEntityManager_NewEntity = nullptr;
 
-        EngineFunction<void(ZEntityManager* th, const ZEntityRef& ent)>* ZEntityManager_DeleteEntity = nullptr;
+        EngineFunction<void(ZEntityManager* th, const ZEntityRef& entityRef)>* ZEntityManager_DeleteEntity = nullptr;
 
         EngineFunction<SEntityCreateInfo*(
-            SEntityCreateInfo* th, const ZString& sDebugName, ZResourcePtr& pEntityFactory, const ZEntityRef& transformParent, uint64_t entityId
+            SEntityCreateInfo* th, const ZString& sDebugName, const ZResourcePtr& pEntityFactory, const ZEntityRef& transformParent, uint64_t entityID
         )>* SEntityCreateInfo_SEntityCreateInfo = nullptr;
 
         EngineFunction<TEntityRef<ZCameraEntity>*(ZCameraManagerMain* th, TEntityRef<ZCameraEntity>& result)>*
@@ -132,5 +136,22 @@ namespace zknt {
         EngineFunction<bool(ZCppEntityTypeInstaller* th, ZResourcePending* ResourcePending)>* ZCppEntityTypeInstaller_Install = nullptr;
 
         EngineFunction<bool(ZCppEntityBlueprintInstaller* th, ZResourcePending* ResourcePending)>* ZCppEntityBlueprintInstaller_Install = nullptr;
+
+        EngineFunction<void(ZSpatialEntity* th, float4& vMin_, float4& vMax_)>* ZSpatialEntity_CalculateBounds = nullptr;
+
+        EngineFunction<void(ZGameKeywordManager* th, const ZEntityRef& rHolder, TArray<SKeyword>& outKeywords)>* ZGameKeywordManager_GetKeywords =
+            nullptr;
+
+        EngineFunction<void(ZGameKeywordManager* th, const ZEntityRef& rHolder, const SKeyword& rKeyword)>* ZGameKeywordManager_AddKeyword = nullptr;
+
+        EngineFunction<void(ZGameKeywordManager* th, const ZEntityRef& rHolder, const SKeyword& rKeyword)>* ZGameKeywordManager_RemoveKeyword =
+            nullptr;
+
+        EngineFunction<uint16*(ZRoomManagerMain* th, uint16_t& result, const float4& vPointWS)>* ZRoomManagerMain_GetRoomFromPoint = nullptr;
+
+        EngineFunction<bool(ZUIText* th, int32 nNameHash, ZString& sResult, int32_t& outMarkupResult)>* ZUIText_TryGetTextFromNameHash = nullptr;
+
+        EngineFunction<void(ZResourceContainer* th, ZResourceIndex index, TArray<ZResourceIndex>& indices, TArray<uint8_t>& flags)>*
+            ZResourceContainer_GetResourceReferences = nullptr;
     };
 }

@@ -12,3 +12,8 @@ namespace Gameplay {
 }
 
 class ZGadgetItemDefinition : public ZItemCharacterDefinitionBase {};
+
+class IGadgetCollectionProvider {
+  public:
+    virtual ~IGadgetCollectionProvider() = 0;
+};

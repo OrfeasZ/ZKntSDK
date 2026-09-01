@@ -25,7 +25,7 @@ class ZSpatialEntity : public ZEntityImpl {
     virtual void ZSpatialEntity_unk30() = 0;
     virtual void ZSpatialEntity_unk31() = 0;
     virtual void SetObjectToWorldMatrixFromEditor(SMatrix mObjectToWorld) = 0;
-    virtual void ZSpatialEntity_unk33() = 0;
+    virtual void CalculateBounds(float4& vMin_, float4& vMax_) = 0;
     virtual void ZSpatialEntity_unk34() = 0;
     virtual void ZSpatialEntity_unk35() = 0;
     virtual void ZSpatialEntity_unk36() = 0;
@@ -34,6 +34,9 @@ class ZSpatialEntity : public ZEntityImpl {
     virtual void ZSpatialEntity_unk39() = 0;
     virtual void ZSpatialEntity_unk40() = 0;
     virtual void ZSpatialEntity_unk41() = 0;
+    virtual void ZSpatialEntity_unk42() = 0;
+    virtual void ZSpatialEntity_unk43() = 0;
+    virtual void ZSpatialEntity_unk44() = 0;
 
     SMatrix GetObjectToWorldMatrix() const {
         if (m_bWorldTransformDirty) {

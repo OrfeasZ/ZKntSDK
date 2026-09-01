@@ -1,0 +1,80 @@
+#pragma once
+
+#include <expected>
+#include <string>
+#include <cstdint>
+
+#include "uwebsockets/App.h"
+
+#include <Glacier/ZMath.hpp>
+#include <Glacier/ZResourceID.hpp>
+#include <Glacier/ZEntity.hpp>
+
+#include "EntityTreeNode.hpp"
+#include "EditorJson.hpp"
+
+class EditorServer {
+  public:
+    struct SocketUserData {
+        std::string ClientId;
+        std::string Identifier;
+    };
+
+    using WebSocket = uWS::WebSocket<false, true, SocketUserData>;
+
+    EditorServer();
+    ~EditorServer();
+
+    void OnEntitySelected(ZEntityRef p_Entity, std::optional<std::string> p_ByClient);
+    void OnEntityTransformChanged(ZEntityRef p_Entity, std::optional<std::string> p_ByClient);
+    void OnEntityNameChanged(ZEntityRef p_Entity, std::optional<std::string> p_ByClient);
+    void OnEntityPropertySet(ZEntityRef p_Entity, uint32_t p_PropertyId, std::optional<std::string> p_ByClient);
+    void OnEntitySpawned(ZEntityRef p_Entity, std::optional<std::string> p_ByClient);
+    void OnEntityDestroying(uint64_t p_EntityId, std::optional<std::string> p_ByClient);
+    void OnSceneCreating(const std::vector<ZRuntimeResourceID>& p_Bricks);
+    void OnSceneClearing(bool p_FullyUnloadScene);
+    void OnEntityTreeRebuilt();
+    void OnDynamicBrickLoaded(const ZRuntimeResourceID& p_DynamicBrick);
+    void OnDynamicBrickUnloaded(const ZRuntimeResourceID& p_DynamicBrick);
+    static void SetEnabled(bool p_Enabled);
+    static bool GetEnabled();
+
+  private:
+    static void OnMessage(WebSocket* p_Socket, std::string_view p_Message, uWS::Loop* p_Loop) noexcept(false);
+
+    static void SendWelcome(WebSocket* p_Socket);
+    static void SendPlayerEntity(WebSocket* p_Socket, std::optional<int64_t> p_MessageId);
+    static void SendCameraEntity(WebSocket* p_Socket, std::optional<int64_t> p_MessageId);
+    static void SendError(WebSocket* p_Socket, std::string p_Message, std::optional<int64_t> p_MessageId);
+    static void SendEntityList(WebSocket* p_Socket, std::shared_ptr<EntityTreeNode> p_Tree, std::optional<int64_t> p_MessageId);
+    static void SendEntityDetails(WebSocket* p_Socket, ZEntityRef p_Entity, std::optional<int64_t> p_MessageId);
+    static void SendNavKitScene(WebSocket* p_Socket, uWS::Loop* p_Loop);
+    static bool SendEntitiesDetails(WebSocket* p_Socket, const std::vector<std::tuple<std::vector<std::string>, Quat, ZEntityRef>>& p_Entities);
+    static void WriteEntityTransforms(std::ostream& p_Stream, Quat p_Quat, ZEntityRef p_Entity);
+    static void WriteEntityDetails(std::ostream& p_Stream, ZEntityRef p_Entity);
+    static void WriteVector3(std::ostream& p_Stream, double p_X, double p_Y, double p_Z);
+    static void WriteRotation(std::ostream& p_Stream, double p_Yaw, double p_Pitch, double p_Roll);
+    static void WriteQuat(std::ostream& p_Stream, double p_x, double p_y, double p_z, double p_w);
+    static void WriteTransform(std::ostream& p_Stream, SMatrix p_Transform);
+    static void WritePropertyName(std::ostream& p_Stream, SPropertyData* p_Property);
+    static void WriteProperty(std::ostream& p_Stream, ZEntityRef p_Entity, SPropertyData* p_Property);
+
+  public:
+    static std::vector<EntitySelector> ReadPrimEntitySelectors(simdjson::ondemand::array p_Selector);
+    static SVector3 ReadVector3(simdjson::ondemand::value p_Vector);
+    static EulerAngles ReadRotation(simdjson::ondemand::value p_Rotation);
+    static SMatrix ReadTransform(simdjson::ondemand::value p_Transform);
+    static ZRuntimeResourceID ReadResourceId(simdjson::ondemand::value p_ResourceId);
+    static uint64_t ReadEntityId(simdjson::ondemand::value p_EntityId);
+
+  private:
+    void PublishEvent(const std::string& p_Event, std::optional<std::string> p_IgnoreClient);
+
+  private:
+    uint64_t m_LastClientId = 0;
+    uWS::App* m_App;
+    uWS::Loop* m_Loop;
+    std::vector<SocketUserData*> m_SocketUserDatas;
+    std::jthread m_ServerThread;
+    inline static std::atomic<bool> m_Enabled{true};
+};

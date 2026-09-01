@@ -19,7 +19,7 @@ class ICameraManager : public IComponentInterface {
     virtual void ICameraManager_Unk6() = 0;
     virtual void ICameraManager_Unk7() = 0;
     virtual void ICameraManager_Unk8() = 0;
-    virtual TEntityRef<IRenderDestinationEntity>* GetActiveRenderDestinationEntity2(TEntityRef<IRenderDestinationEntity>& result) = 0;
+    virtual void ICameraManager_Unk9() = 0;
 };
 
 class ZCameraManagerMain : public ICameraManager, public IReflectSource {};
@@ -261,4 +261,9 @@ class ZFreeCameraControlEditorStyleEntity : public ZEntityImpl, public IFreeCame
 
     inline static ZInputAction m_MoveFast = ZInputAction("MoveFast");
     inline static ZInputAction m_OrbitCamera = ZInputAction("OrbitCamera");
+};
+
+class ZSelectionForFreeCameraEditorStyleEntity : public ZEntityImpl {
+  public:
+    TArray<ZEntityRef> m_selection; // 0x18
 };
