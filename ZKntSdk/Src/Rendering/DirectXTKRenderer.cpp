@@ -108,7 +108,7 @@ namespace zknt::rendering {
         const auto s_CameraView = s_CameraWorld.Inverse();
 
         m_View = *reinterpret_cast<DirectX::FXMMATRIX*>(&s_CameraView);
-        m_Projection = *reinterpret_cast<DirectX::FXMMATRIX*>(&m_CameraViewToClip);
+        m_Projection = *reinterpret_cast<const DirectX::SimpleMath::Matrix*>(&m_CameraViewToClip);
 
         m_ViewProjection = m_View * m_Projection;
         m_ProjectionViewInverse = (m_Projection * m_View).Invert();
