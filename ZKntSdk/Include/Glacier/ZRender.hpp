@@ -88,6 +88,8 @@ class ZRenderDeviceContext {
     uint32_t m_nNumRenderTargetViews;             // 0x18
     ZRenderTargetView* m_pRenderTargetViews[8];   // 0x20
     ZRenderDepthStencilView* m_pDepthStencilView; // 0x60
+    PAD(0x1AD0);                                  // 0x68
+    ID3D12GraphicsCommandList* m_pCommandList;    // 0x1B38
 };
 
 class IRenderDevice {
