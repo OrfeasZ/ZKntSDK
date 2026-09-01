@@ -8,17 +8,15 @@ namespace knt::util {
     inline std::vector<std::string> Split(const std::string& p_String, const std::string& p_Delimeter) {
         std::vector<std::string> s_Parts;
 
-        size_t s_PartStart = p_String.find_first_not_of(p_Delimeter);
+        size_t s_PartStart = 0;
         size_t s_PartEnd;
 
-        while ((s_PartEnd = p_String.find_first_of(p_Delimeter, s_PartStart)) != std::string::npos) {
+        while ((s_PartEnd = p_String.find(p_Delimeter, s_PartStart)) != std::string::npos) {
             s_Parts.push_back(p_String.substr(s_PartStart, s_PartEnd - s_PartStart));
-            s_PartStart = p_String.find_first_not_of(p_Delimeter, s_PartEnd);
+            s_PartStart = s_PartEnd + p_Delimeter.length();
         }
 
-        if (s_PartStart != std::string::npos) {
-            s_Parts.push_back(p_String.substr(s_PartStart));
-        }
+        s_Parts.push_back(p_String.substr(s_PartStart));
 
         return s_Parts;
     }
