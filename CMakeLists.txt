@@ -22,9 +22,9 @@ find_package(imgui CONFIG REQUIRED)
 #find_package(simdjson CONFIG REQUIRED)
 find_package(directxtk12 CONFIG REQUIRED)
 find_package(implot CONFIG REQUIRED)
+find_package(simdjson CONFIG REQUIRED)
 
 CPMAddPackage("gh:OrfeasZ/ZHMTools@4.1.0")
-CPMAddPackage("gh:simdjson/simdjson@4.6.4")
 
 add_subdirectory(DirectInputProxy)
 add_subdirectory(ZKntSdk)

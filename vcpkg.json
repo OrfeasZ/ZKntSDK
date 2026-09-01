@@ -6,6 +6,7 @@
     "cr",
     "minhook",
     "spdlog",
+    "simdjson",
     "directx-headers",
     {
       "name": "imgui",
