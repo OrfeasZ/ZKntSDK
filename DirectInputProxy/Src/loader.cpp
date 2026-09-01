@@ -122,7 +122,6 @@ namespace zknt::loader {
         }
 
         void Run(fs::path p_GameDir, fs::path p_SdkDllPath, fs::path p_CrTempDir, cr_plugin p_CrCtx) {
-            cr_plugin_update(p_CrCtx, true);
             WatchForNewSdk(p_GameDir, p_SdkDllPath, p_CrCtx);
             cr_plugin_close(p_CrCtx);
 
@@ -183,6 +182,12 @@ namespace zknt::loader {
             else {
                 s_CrTempDir.clear();
             }
+        }
+
+        // Load the SDK.
+        const auto s_LoadResult = cr_plugin_update(s_CrCtx, true);
+        if (s_LoadResult < 0 || s_CrCtx.failure != CR_NONE) {
+            log(std::format("[dinput8] initial SDK load failed: rc={} failure={}", s_LoadResult, static_cast<int>(s_CrCtx.failure)));
         }
 
         std::thread(Run, s_GameDir, s_SdkDllPath, s_CrTempDir, s_CrCtx).detach();
