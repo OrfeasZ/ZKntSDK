@@ -10,7 +10,7 @@
 #include "ResourceUploadBatch.h"
 #include "DirectXHelpers.h"
 
-#include <Glacier/MDF_FONT.h>
+#include <Glacier/MDF_FONT.hpp>
 #include <Glacier/ZRender.hpp>
 #include <Glacier/ZCamera.hpp>
 
@@ -1434,6 +1434,16 @@ namespace zknt::rendering {
         ZRenderIndexBuffer* p_IndexBuffer, const SMatrix& p_Transform, const float4& p_PositionScale, const float4& p_PositionBias,
         const float4& p_TextureScaleBias, const SVector4& p_MaterialColor
     ) {
+        if (!s_pRenderPrimitiveResource || !p_VertexBuffers || p_VertexBufferCount == 0 || !p_IndexBuffer) {
+            return;
+        }
+
+        for (uint32_t i = 0; i < p_VertexBufferCount; ++i) {
+            if (!p_VertexBuffers[i] || !p_VertexBuffers[i]->m_pResource) {
+                return;
+            }
+        }
+
         const SVector3 s_RawCenter = (s_pRenderPrimitiveResource->m_vMin + s_pRenderPrimitiveResource->m_vMax) * 0.5f;
         const SVector3 s_RawExtents = (s_pRenderPrimitiveResource->m_vMax - s_pRenderPrimitiveResource->m_vMin) * 0.5f;
 

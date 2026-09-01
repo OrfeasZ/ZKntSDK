@@ -7,6 +7,8 @@
 #include "ZScene.hpp"
 #include "TObjectPool.hpp"
 #include "TRefCountPtr.hpp"
+#include "ZRenderableEntity.hpp"
+#include "ZValue.hpp"
 
 class ZRenderPipelineState;
 class ZRenderInputLayout;
@@ -18,17 +20,133 @@ class ZRenderBuffer;
 class ZRenderShaderResourceView;
 class ZRenderUnorderedAccessView;
 class ZUploadBufferResource;
+class ZVertexDataResource;
+class ZAnimationBoneData;
+class ZBodyPartEntity;
+class IBoneAnimator;
+class IBoneWeightManagerEntity;
+class ZRoomManagerRender;
+
+enum ERenderFormat : int16 {
+    RENDER_FORMAT_NONE = 0x0,
+    RENDER_FORMAT_UNKNOWN = 0x0,
+    RENDER_FORMAT_R32G32B32A32_TYPELESS = 0x1,
+    RENDER_FORMAT_R32G32B32A32_FLOAT = 0x2,
+    RENDER_FORMAT_R32G32B32A32_UINT = 0x3,
+    RENDER_FORMAT_R32G32B32A32_SINT = 0x4,
+    RENDER_FORMAT_R32G32B32_TYPELESS = 0x5,
+    RENDER_FORMAT_R32G32B32_FLOAT = 0x6,
+    RENDER_FORMAT_R32G32B32_UINT = 0x7,
+    RENDER_FORMAT_R32G32B32_SINT = 0x8,
+    RENDER_FORMAT_R16G16B16A16_TYPELESS = 0x9,
+    RENDER_FORMAT_R16G16B16A16_FLOAT = 0xA,
+    RENDER_FORMAT_R16G16B16A16_UNORM = 0xB,
+    RENDER_FORMAT_R16G16B16A16_UINT = 0xC,
+    RENDER_FORMAT_R16G16B16A16_SNORM = 0xD,
+    RENDER_FORMAT_R16G16B16A16_SINT = 0xE,
+    RENDER_FORMAT_R32G32_TYPELESS = 0xF,
+    RENDER_FORMAT_R32G32_FLOAT = 0x10,
+    RENDER_FORMAT_R32G32_UINT = 0x11,
+    RENDER_FORMAT_R32G32_SINT = 0x12,
+    RENDER_FORMAT_R32G8X24_TYPELESS = 0x13,
+    RENDER_FORMAT_D32_FLOAT_S8X24_UINT = 0x14,
+    RENDER_FORMAT_R32_FLOAT_X8X24_TYPELESS = 0x15,
+    RENDER_FORMAT_X32_TYPELESS_G8X24_UINT = 0x16,
+    RENDER_FORMAT_R10G10B10A2_TYPELESS = 0x17,
+    RENDER_FORMAT_R10G10B10A2_UNORM = 0x18,
+    RENDER_FORMAT_R10G10B10A2_UINT = 0x19,
+    RENDER_FORMAT_R11G11B10_FLOAT = 0x1A,
+    RENDER_FORMAT_R8G8B8A8_TYPELESS = 0x1B,
+    RENDER_FORMAT_R8G8B8A8_UNORM = 0x1C,
+    RENDER_FORMAT_R8G8B8A8_UNORM_SRGB = 0x1D,
+    RENDER_FORMAT_R8G8B8A8_UINT = 0x1E,
+    RENDER_FORMAT_R8G8B8A8_SNORM = 0x1F,
+    RENDER_FORMAT_R8G8B8A8_SINT = 0x20,
+    RENDER_FORMAT_B8G8R8A8_TYPELESS = 0x21,
+    RENDER_FORMAT_B8G8R8A8_UNORM = 0x22,
+    RENDER_FORMAT_B8G8R8A8_UNORM_SRGB = 0x23,
+    RENDER_FORMAT_R16G16_TYPELESS = 0x24,
+    RENDER_FORMAT_R16G16_FLOAT = 0x25,
+    RENDER_FORMAT_R16G16_UNORM = 0x26,
+    RENDER_FORMAT_R16G16_UINT = 0x27,
+    RENDER_FORMAT_R16G16_SNORM = 0x28,
+    RENDER_FORMAT_R16G16_SINT = 0x29,
+    RENDER_FORMAT_R32_TYPELESS = 0x2A,
+    RENDER_FORMAT_D32_FLOAT = 0x2B,
+    RENDER_FORMAT_R32_FLOAT = 0x2C,
+    RENDER_FORMAT_R32_UINT = 0x2D,
+    RENDER_FORMAT_R32_SINT = 0x2E,
+    RENDER_FORMAT_R24G8_TYPELESS = 0x2F,
+    RENDER_FORMAT_D24_UNORM_S8_UINT = 0x30,
+    RENDER_FORMAT_R24_UNORM_X8_TYPELESS = 0x31,
+    RENDER_FORMAT_X24_TYPELESS_G8_UINT = 0x32,
+    RENDER_FORMAT_R9G9B9E5_SHAREDEXP = 0x33,
+    RENDER_FORMAT_R8G8_B8G8_UNORM = 0x34,
+    RENDER_FORMAT_G8R8_G8B8_UNORM = 0x35,
+    RENDER_FORMAT_R8G8_TYPELESS = 0x36,
+    RENDER_FORMAT_R8G8_UNORM = 0x37,
+    RENDER_FORMAT_R8G8_UINT = 0x38,
+    RENDER_FORMAT_R8G8_SNORM = 0x39,
+    RENDER_FORMAT_R8G8_SINT = 0x3A,
+    RENDER_FORMAT_R16_TYPELESS = 0x3B,
+    RENDER_FORMAT_R16_FLOAT = 0x3C,
+    RENDER_FORMAT_D16_UNORM = 0x3D,
+    RENDER_FORMAT_R16_UNORM = 0x3E,
+    RENDER_FORMAT_R16_UINT = 0x3F,
+    RENDER_FORMAT_R16_SNORM = 0x40,
+    RENDER_FORMAT_R16_SINT = 0x41,
+    RENDER_FORMAT_B5G6R5_UNORM = 0x42,
+    RENDER_FORMAT_B5G5R5A1_UNORM = 0x43,
+    RENDER_FORMAT_R8_TYPELESS = 0x44,
+    RENDER_FORMAT_R8_UNORM = 0x45,
+    RENDER_FORMAT_R8_UINT = 0x46,
+    RENDER_FORMAT_R8_SNORM = 0x47,
+    RENDER_FORMAT_R8_SINT = 0x48,
+    RENDER_FORMAT_A8_UNORM = 0x49,
+    RENDER_FORMAT_R1_UNORM = 0x4A,
+    RENDER_FORMAT_BC1_TYPELESS = 0x4B,
+    RENDER_FORMAT_BC1_UNORM = 0x4C,
+    RENDER_FORMAT_BC1_UNORM_SRGB = 0x4D,
+    RENDER_FORMAT_BC2_TYPELESS = 0x4E,
+    RENDER_FORMAT_BC2_UNORM = 0x4F,
+    RENDER_FORMAT_BC2_UNORM_SRGB = 0x50,
+    RENDER_FORMAT_BC3_TYPELESS = 0x51,
+    RENDER_FORMAT_BC3_UNORM = 0x52,
+    RENDER_FORMAT_BC3_UNORM_SRGB = 0x53,
+    RENDER_FORMAT_BC4_TYPELESS = 0x54,
+    RENDER_FORMAT_BC4_UNORM = 0x55,
+    RENDER_FORMAT_BC4_SNORM = 0x56,
+    RENDER_FORMAT_BC5_TYPELESS = 0x57,
+    RENDER_FORMAT_BC5_UNORM = 0x58,
+    RENDER_FORMAT_BC5_SNORM = 0x59,
+    RENDER_FORMAT_BC6H_TYPELESS = 0x5A,
+    RENDER_FORMAT_BC6H_UF16 = 0x5B,
+    RENDER_FORMAT_BC6H_SF16 = 0x5C,
+    RENDER_FORMAT_BC7_TYPELESS = 0x5D,
+    RENDER_FORMAT_BC7_UNORM = 0x5E,
+    RENDER_FORMAT_BC7_UNORM_SRGB = 0x5F,
+    NUM_RENDER_FORMATS = 0x60
+};
+
+enum ERenderResourceType {
+    RENDER_RESOURCE_TYPE_TEXTURE2D = 1,
+    RENDER_RESOURCE_TYPE_TEXTURE3D = 2,
+    RENDER_RESOURCE_TYPE_BUFFER = 3,
+};
 
 template<class T, bool U> class TRenderReferencedCountedImpl : public T {
   public:
     int32_t m_ReferenceCount;
 };
 
+template<typename T, ERenderResourceType ResourceType> class TRenderResourceImpl : public TRenderReferencedCountedImpl<T, false> {};
+
 class IRenderRefCount {
   public:
     virtual ~IRenderRefCount() = 0;
     virtual void AddRef() = 0;
     virtual uint32_t Release() = 0;
+    virtual int32_t GetRefCount() const = 0;
 };
 
 class IRenderDestinationEntity : public IComponentInterface {
@@ -45,12 +163,41 @@ class IRenderDestinationSource : public IComponentInterface {
     virtual ~IRenderDestinationSource() = 0;
 };
 
-class ZRenderTexture2D {
+struct SRenderTexture2DDesc {
+    uint32 nWidth;         // 0x0
+    uint32 nHeight;        // 0x4
+    uint32 nMipLevels;     // 0x8
+    PAD(0xE);              // 0xC
+    uint16 nArraySize;     // 0x1A
+    ERenderFormat eFormat; // 0x1C
+    PAD(0x10);             // 0x20
+};
+
+class IRenderResource : public IRenderRefCount {
+  public:
+    virtual ERenderResourceType GetResourceType() const = 0;
+};
+
+class IRenderResourceD3D12 : public IRenderResource {
+  public:
+    ID3D12Resource* m_pResource; // 0x08
+
+    uint32_t m_Unknown10; // 0x10
+    uint32_t m_Unknown14; // 0x14
+
+    uint64_t m_Unknown18; // 0x18
+    uint64_t m_Unknown20; // 0x20
+    uint64_t m_Unknown28; // 0x28
+};
+
+static_assert(sizeof(IRenderResourceD3D12) == 0x30);
+
+class ZRenderTexture2D : public TRenderResourceImpl<IRenderResourceD3D12, ERenderResourceType::RENDER_RESOURCE_TYPE_TEXTURE2D> {
   public:
     virtual ~ZRenderTexture2D() = 0;
 
   public:
-    ID3D12Resource* m_pResource; // 0x8
+    SRenderTexture2DDesc m_Description; // 0x38
 };
 
 class ZRenderTargetView {
@@ -109,8 +256,30 @@ class ZRenderDevice : public ZRenderDeviceBase {
     ZRenderSwapChain* m_pSwapChain;             // 0x310
     PAD(0x398);                                 // 0x318
     ZRenderDeviceContext* m_pMainContext;       // 0x6B0
-    PAD(0x4AB1178);                             // 0x6B8
+    PAD(0x4AAEF98);                             // 0x6B8
+    ID3D12CommandQueue* m_pCommandQueue;        // 0x4AAF650
+    PAD(0x21D8);                                // 0x4AAF658
     ID3D12DescriptorHeap* m_pDescriptorHeapDSV; // 0x4AB1830
+};
+
+class ZRenderSharedResources {
+  public:
+    PAD(0xF0);                                                           // 0x0
+    ZRenderTexture2D* m_pBoxReflectionCubeTexture[2];                    // 0xF0
+    ZRenderTexture2D* m_pBoxReflectionDiffuseCubeTexture[2];             // 0x100
+    ZRenderShaderResourceView* m_pBoxReflectionCubeTextureSRV[2];        // 0x110
+    ZRenderShaderResourceView* m_pBoxReflectionDiffuseCubeTextureSRV[2]; // 0x120
+    PAD(0x38);                                                           // 0x130
+    int32_t m_nBoxReflectionCubeRenderTargetChunks;                      // 0x168
+    PAD(0x561C);                                                         // 0x16C
+    uint32 m_nBoxReflectionMaxCubeMaps;                                  // 0x5788
+    uint32 m_nBoxReflectionResolution;                                   // 0x578C
+    uint32_t m_nBoxReflectionDiffuseResolution;                          // 0x5790
+    uint32 m_nBoxReflectionRenderResolution;                             // 0x5794
+    uint32 m_nBoxReflectionMips;                                         // 0x5798
+    uint32 m_nBoxReflectionUseBC6;                                       // 0x579C
+    PAD(0x3878);                                                         // 0x57A0
+    bool m_SplitBoxReflectionCubeRenderTargets;                          // 0x9018
 };
 
 class IRenderManager : public IComponentInterface {};
@@ -120,8 +289,12 @@ class ZRenderManager : public IRenderManager, public ZSceneLifecycleListener {
     virtual ~ZRenderManager() = default;
 
   public:
-    PAD(0x17C50);                   // 0x10
-    ZRenderDevice* m_pRenderDevice; // 0x17C60
+    PAD(0x17C50);                               // 0x10
+    ZRenderDevice* m_pRenderDevice;             // 0x17C60
+    PAD(0x8);                                   // 0x17C68
+    ZRenderSharedResources* m_pSharedResources; // 0x17C70
+    PAD(0xA7D0);                                // 0x17C78
+    ZRoomManagerRender* m_pRoomManagerRender;   // 0x22448
 };
 
 class RenderReferencedCountedBaseStub {
@@ -402,4 +575,135 @@ class ZRenderPrimitiveResource {
     TArray<TRefCountPtr<IRenderPrimitive>> m_Primitives;
     SVector3 m_vMin;
     SVector3 m_vMax;
+};
+
+class IRenderPrimitiveMesh {
+  public:
+    virtual ~IRenderPrimitiveMesh() = 0;
+};
+
+class ZRenderPrimitiveMeshBase : public IRenderPrimitiveMesh {
+  public:
+    virtual ~ZRenderPrimitiveMeshBase() = 0;
+};
+
+class ZRenderPrimitive : public IRenderPrimitive {
+  public:
+    virtual ~ZRenderPrimitive() = 0;
+};
+
+class ZRenderPrimitiveMesh : public ZRenderPrimitiveMeshBase, public ZRenderPrimitive {
+  public:
+    virtual ~ZRenderPrimitiveMesh() = 0;
+};
+
+class IRenderPrimitiveListener : public IComponentInterface {};
+
+class ZPrimitiveContainerEntity : public ZRenderableEntity, public IRenderPrimitiveListener {
+  public:
+    PAD(0x6C);                    // 0xF0
+    float32 m_fLODScale;          // 0x15C
+    float32 m_fLODOffset;         // 0x160
+    PAD(0x2);                     // 0x164
+    bool m_bCastShadows;          // 0x166
+    bool m_bCastContactShadows;   // 0x167
+    bool m_bDisableStaticShadows; // 0x168
+    bool m_bCustomShaderData;     // 0x169
+    bool m_bStaticSDF;            // 0x16A
+    PAD(0x15);                    // 0x16B
+};
+
+enum class ESeamFixMode : int8_t {
+    SEAMFIX_NONE = 0,
+    SEAMFIX_X = 1,
+    SEAMFIX_Y = 2,
+    SEAMFIX_Z = 4,
+    SEAMFIX_XZ = 5,
+    SEAMFIX_XY = 3,
+    SEAMFIX_XYZ = 7,
+    SEAMFIX_YZ = 6
+};
+
+class ZGeomEntity : public ZPrimitiveContainerEntity {
+  public:
+    TResourcePtr<ZVertexDataResource> m_VertexPaintData; // 0x180
+    ZString m_sVertexPaintSourceResourceId;              // 0x188
+    ZResourcePtr m_ResourceID;                           // 0x198
+    SVector3 m_PrimitiveScale;                           // 0x1A0
+    ESeamFixMode m_eSeamFix;                             // 0x1AC
+    PAD(0x13);                                           // 0x1AD
+};
+
+class ZLinkedEntity : public ZGeomEntity, public ITEntityRefValue<ZLinkedEntity> {
+  public:
+    TResourcePtr<ZAnimationBoneData> m_pBonesAndCollisionResource;  // 0x1C8
+    TArray<TEntityRef<ZBodyPartEntity>> m_aBodyParts;               // 0x1D0
+    SVector3 m_vBodypartBoundingMarginMax;                          // 0x1E8
+    SVector3 m_vBodypartBoundingMarginMin;                          // 0x1F4
+    uint32 m_nBodypartLODCutOff;                                    // 0x200
+    ZResourcePtr m_BodyPartLODCutOffMeshResource;                   // 0x204
+    TEntityRef<IBoneAnimator> m_BoneAnimator;                       // 0x210
+    TEntityRef<IBoneWeightManagerEntity> m_BoneWeightManagerEntity; // 0x228
+    PAD(0x120);                                                     // 0x240
+};
+
+class ZVTablePaddingRemover {
+  public:
+    virtual ~ZVTablePaddingRemover() = 0;
+};
+
+class ZRenderGraphNode : public ZVTablePaddingRemover {
+  public:
+    enum TYPE : uint8 {
+        GEOM = 0,
+        LINKED = 1,
+        PARTICLEEMITTER = 2,
+        TERRAIN = 3,
+        SPATIAL = 4,
+        LIGHT = 5,
+        CAMERA = 6,
+        MATERIAL = 7,
+        POSTFILTER = 8,
+        DESTINATION = 9,
+        VIDEO_PLAYER = 10,
+        UI = 11,
+        CROWDENTITY = 12,
+        SCATTER = 13,
+        MIRROR = 14,
+        BOXREFLECTION = 15,
+        RENDERGLOBAL = 16,
+        GLOBALLIGHT = 17,
+        ATMOSPHERICSCATTERING = 18,
+        VOLUMETRICLIGHTING = 19,
+        FOGVOLUME = 20,
+        SMOLDERVOLUME = 21,
+        SMOLDERDYNAMICVOLUME = 22,
+        SKINSETTINGS = 23,
+        CINEMATICVOLUME = 24,
+        TYPE_SIZE = 25,
+        RENDERABLE_TYPE_MASK = 15,
+        RENDERABLE_TYPE_FIRST = GEOM,
+        RENDERABLE_TYPE_LAST = TERRAIN
+    };
+
+    PAD(0x8);                               // 0x8
+    ZRenderableEntity* m_pRenderableEntity; // 0x10
+    PAD(0x8);                               // 0x18
+    int32 m_Base;                           // 0x20
+    PAD(0xA);                               // 0x24
+    TYPE m_nType;                           // 0x2E
+};
+
+class ZRenderGraphNodeBoxReflection : public ZRenderGraphNode {
+  public:
+    PAD(0x54);   // 0x30
+    int32 m_nId; // 0x84
+};
+
+class IRenderGraphManager : public IComponentInterface {};
+
+class ZRenderGraphManager : public IRenderGraphManager {
+  public:
+    PAD(0x9E8);                                                      // 0x8
+    TMaxArray<ZRenderGraphNodeBoxReflection*, 682> m_BoxReflections; // 0x9F0
 };

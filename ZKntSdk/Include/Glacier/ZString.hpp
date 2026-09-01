@@ -94,6 +94,8 @@ class ZString {
             return *this;
         }
 
+        SDK()->FreeZString(this);
+
         m_nLength = p_Other.m_nLength;
         m_pChars = p_Other.m_pChars;
 

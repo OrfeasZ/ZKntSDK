@@ -7,14 +7,16 @@ zknt::Functions::Functions() {
         ZEntityRef * (ZEntityManager * th, ZEntityRef & result, SEntityCreateInfo & entityCreateInfo)
     );
 
-    PATTERN_FUNCTION(
-        "\x48\x89\x5C\x24\x08\x57\x48\x83\xEC\x00\x48\x8B\xDA\x48\x8B\xF9\xE8\x00\x00\x00\x00\x33\xD2\x4C\x8D\x8C\x24\x80\x00\x00\x00",
-        "xxxxxxxxx?xxxxxxx????xxxxxxxxxx", ZEntityManager_DeleteEntity, void(ZEntityManager * th, const ZEntityRef& result)
+    PATTERN_RELATIVE_FUNCTION(
+        "\xE8\x00\x00\x00\x00\x33\xFF\x48\x89\x7C\x24\x20\x48\x89\x7C\x24\x28\xC5\xF8\x10\x44\x24\x20\xC5\xF8\x11\x43\x28",
+        "x????xxxxxxxxxxxxxxxxxxxxxxx", ZEntityManager_DeleteEntity, void(ZEntityManager * th, const ZEntityRef& entityRef)
     );
 
     PATTERN_RELATIVE_FUNCTION(
         "\xE8\x00\x00\x00\x00\x4C\x8D\x44\x24\x70\x48\x8D\x54\x24\x58", "x????xxxxxxxxxx", SEntityCreateInfo_SEntityCreateInfo,
-        SEntityCreateInfo * (SEntityCreateInfo * th, const ZString& sDebugName, ZResourcePtr&, const ZEntityRef& transformParent, uint64_t entityId)
+        SEntityCreateInfo
+            * (SEntityCreateInfo * th, const ZString& sDebugName, const ZResourcePtr& pEntityFactory, const ZEntityRef& transformParent,
+               uint64_t entityID)
     );
 
     PATTERN_FUNCTION(
@@ -189,6 +191,42 @@ zknt::Functions::Functions() {
         "xxx????xx????xxx????xxx????xxx????xxx", 7, ZCppEntityBlueprintInstaller_Install,
         bool(ZCppEntityBlueprintInstaller * th, ZResourcePending * ResourcePending)
     );
+
+    PATTERN_FUNCTION(
+        "\x48\x89\x5C\x24\x08\x48\x89\x74\x24\x10\x57\x48\x81\xEC\x00\x00\x00\x00\x48\x8B\x01", "xxxxxxxxxxxxxx????xxx",
+        ZSpatialEntity_CalculateBounds, void(ZSpatialEntity * th, float4 & vMin_, float4 & vMax_)
+    );
+
+    PATTERN_FUNCTION(
+        "\x40\x55\x57\x41\x56\x48\x81\xEC\x00\x00\x00\x00\x48\x8B\x05", "xxxxxxxx????xxx", ZGameKeywordManager_GetKeywords,
+        void(ZGameKeywordManager * th, const ZEntityRef& rHolder, TArray<SKeyword>& outKeywords)
+    );
+
+    PATTERN_FUNCTION(
+        "\x4C\x8B\xDC\x45\x88\x4B\x20\x55", "xxxxxxxx", ZGameKeywordManager_AddKeyword,
+        void(ZGameKeywordManager * th, const ZEntityRef& rHolder, const SKeyword& rKeyword)
+    );
+
+    PATTERN_FUNCTION(
+        "\x4C\x8B\xDC\x49\x89\x73\x18\x55", "xxxxxxxx", ZGameKeywordManager_RemoveKeyword,
+        void(ZGameKeywordManager * th, const ZEntityRef& rHolder, const SKeyword& rKeyword)
+    );
+
+    PATTERN_FUNCTION(
+        "\x4C\x89\x44\x24\x18\x55\x41\x55\x41\x56\x41\x57", "xxxxxxxxxxxx", ZRoomManagerMain_GetRoomFromPoint,
+        uint16 * (ZRoomManagerMain * th, uint16_t& result, const float4& vPointWS)
+    );
+
+    PATTERN_FUNCTION(
+        "\x48\x89\x5C\x24\x08\x48\x89\x6C\x24\x10\x48\x89\x74\x24\x18\x48\x89\x7C\x24\x20\x41\x54\x41\x56\x41\x57\x48\x83\xEC\x00\x48\x8D\x59\x28",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx?xxxx", ZUIText_TryGetTextFromNameHash,
+        bool(ZUIText * th, int32 nNameHash, ZString & sResult, int32_t& outMarkupResult)
+    );
+
+    PATTERN_FUNCTION(
+        "\x40\x57\x48\x83\xEC\x00\x48\x8B\x05\x00\x00\x00\x00\x48\x89\x5C\x24\x50", "xxxxx?xxx????xxxxx", ZResourceContainer_GetResourceReferences,
+        void(ZResourceContainer * th, ZResourceIndex index, TArray<ZResourceIndex> & indices, TArray<uint8_t> & flags)
+    );
 }
 
 zknt::Functions::~Functions() {
@@ -224,4 +262,10 @@ zknt::Functions::~Functions() {
     delete ZTemplateBlueprintInstaller_Install;
     delete ZCppEntityTypeInstaller_Install;
     delete ZCppEntityBlueprintInstaller_Install;
+    delete ZSpatialEntity_CalculateBounds;
+    delete ZGameKeywordManager_GetKeywords;
+    delete ZGameKeywordManager_AddKeyword;
+    delete ZGameKeywordManager_RemoveKeyword;
+    delete ZRoomManagerMain_GetRoomFromPoint;
+    delete ZUIText_TryGetTextFromNameHash;
 }

@@ -19,10 +19,13 @@ find_package(minhook CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(directx-headers CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
-#find_package(simdjson CONFIG REQUIRED)
+find_package(simdjson CONFIG REQUIRED)
 find_package(directxtk12 CONFIG REQUIRED)
 find_package(implot CONFIG REQUIRED)
-find_package(simdjson CONFIG REQUIRED)
+find_package(imguizmo CONFIG REQUIRED)
+find_package(directxtex CONFIG REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(libuv CONFIG REQUIRED)
 
 CPMAddPackage("gh:OrfeasZ/ZHMTools@4.1.0")
 
@@ -34,11 +37,17 @@ set(MODS
         FreeCam
         #SkipIntro
         Cheats
+        Editor
+        DebugMod
+        DiscordRichPresence
 )
 
 foreach (MOD IN LISTS MODS)
   add_subdirectory("Mods/${MOD}")
 endforeach ()
+
+# Install the discord SDK DLL.
+install(FILES ${DISCORD_SDK_DLL_PATH} DESTINATION bin)
 
 # Install ZKntSdk, dinput8, and all the mods in the game folder.
 if (EXISTS "${GAME_INSTALL_PATH}/Retail")
@@ -51,6 +60,9 @@ if (EXISTS "${GAME_INSTALL_PATH}/Retail")
 
   # Install ResourceLib, needed by the Editor mod.
   install(FILES "$<TARGET_FILE:ResourceLib_KNT>" DESTINATION "${GAME_INSTALL_PATH}/Retail")
+
+  # Install the Discord SDK DLL, needed by the DiscordRichPresence mod.
+  install(FILES "${DISCORD_SDK_DLL_PATH}" DESTINATION "${GAME_INSTALL_PATH}/Retail")
 endif ()
 
 # Packageable install layout (always emitted to ${CMAKE_INSTALL_PREFIX}).

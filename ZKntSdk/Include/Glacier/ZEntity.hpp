@@ -138,7 +138,6 @@ class IEntity : public IComponentInterface {
     virtual void IEntity_unk9() = 0;
 };
 
-// Size = 0x18
 class ZEntityImpl : public IEntity {
   public:
     enum class EEntityFlags {
@@ -200,11 +199,11 @@ class ZEntityRef {
     }
 
     operator bool() const {
-        return GetEntity() != nullptr;
+        return IsValid();
     }
 
     bool IsValid() const {
-        if (!m_pObj) {
+        if (!m_pObj || !GetEntity()) {
             return false;
         }
 
@@ -515,6 +514,10 @@ class ZEntityRef {
         SDK()->Hooks()->SignalOutputPin->Call(m_pObj, p_PinId, p_Data);
     }
 
+    static ZEntityRef SpawnEntity(ZRuntimeResourceID p_Rrid);
+
+    template<typename T> static ZEntityRef SpawnEntity(const TResourcePtr<T>& p_EntityFactory);
+
     ZEntityType** m_pObj = nullptr; // 0x0
 
     union {
@@ -542,6 +545,28 @@ struct SEntityCreateInfo {
     PAD(0x7C);
 };
 
+inline ZEntityRef ZEntityRef::SpawnEntity(ZRuntimeResourceID p_Rrid) {
+    TResourcePtr<IEntityFactory> s_EntityFactory;
+    SDK()->Globals()->ResourceManager->LoadResource(s_EntityFactory, p_Rrid);
+
+    return SpawnEntity(s_EntityFactory);
+}
+
+template<typename T> ZEntityRef ZEntityRef::SpawnEntity(const TResourcePtr<T>& p_EntityFactory) {
+    if (!p_EntityFactory) {
+        return {};
+    }
+
+    SEntityCreateInfo s_CreationInfo;
+    SDK()->Functions()->SEntityCreateInfo_SEntityCreateInfo->Call(&s_CreationInfo, ZString(), p_EntityFactory, ZEntityRef(), -1);
+
+    ZEntityRef s_EntityRef{};
+
+    SDK()->Functions()->ZEntityManager_NewEntity->Call(SDK()->Globals()->EntityManager, s_EntityRef, s_CreationInfo);
+
+    return s_EntityRef;
+}
+
 template<typename T> class TEntityRef {
   public:
     TEntityRef() = default;
@@ -557,25 +582,16 @@ template<typename T> class TEntityRef {
      * @param p_Rrid The runtime resource id of the entity factory template to use.
      */
     static TEntityRef SpawnEntity(ZRuntimeResourceID p_Rrid) {
-        TResourcePtr<IEntityFactory> s_EntityFactory;
-        SDK()->Globals()->ResourceManager->LoadResource(s_EntityFactory, p_Rrid);
-        if (!s_EntityFactory) {
+        TEntityRef s_EntityRef{};
+
+        s_EntityRef.m_entityRef = ZEntityRef::SpawnEntity(p_Rrid);
+        s_EntityRef.m_pInterfaceRef = s_EntityRef.m_entityRef.QueryInterface<T>();
+
+        if (!s_EntityRef.m_pInterfaceRef) {
             return {};
         }
 
-        SEntityCreateInfo s_CreationInfo;
-        SDK()->Functions()->SEntityCreateInfo_SEntityCreateInfo->Call(&s_CreationInfo, ZString(), s_EntityFactory, ZEntityRef(), -1);
-
-        TEntityRef s_Ref{};
-
-        SDK()->Functions()->ZEntityManager_NewEntity->Call(SDK()->Globals()->EntityManager, s_Ref.m_entityRef, s_CreationInfo);
-        s_Ref.m_pInterfaceRef = s_Ref.m_entityRef.QueryInterface<T>();
-
-        if (!s_Ref.m_pInterfaceRef) {
-            return {};
-        }
-
-        return std::move(s_Ref);
+        return s_EntityRef;
     }
 
     T* operator->() {
@@ -691,7 +707,7 @@ class IEntityBlueprintFactory : public IComponentInterface {
     virtual void IEntityBlueprintFactory_unk24() = 0;
     virtual void IEntityBlueprintFactory_unk25() = 0;
     virtual void IEntityBlueprintFactory_unk26() = 0;
-    virtual int64_t GetSubEntitiesCount() = 0;
+    virtual uint64_t GetSubEntitiesCount() = 0;
     virtual void IEntityBlueprintFactory_unk28() = 0;
     virtual void IEntityBlueprintFactory_unk29() = 0;
     virtual void IEntityBlueprintFactory_unk30() = 0;
@@ -894,7 +910,7 @@ class ZTemplateEntityBlueprintFactory : public ZCompositeEntityBlueprintFactoryB
     STemplateEntityBlueprint* m_pTemplateEntityBlueprint; // 0x1C8
 };
 
-class ZCppEntityBlueprintFactory : ZEntityBlueprintFactoryBase {};
+class ZCppEntityBlueprintFactory : public ZEntityBlueprintFactoryBase {};
 
 class ZCppEntityFactory : public IEntityFactory {
   public:
@@ -954,7 +970,70 @@ class ZTemplateEntityFactory : public IEntityFactory {
     TArray<SDirectlySettablePropertyWithSetter> m_directlySettablePropertiesWithSetter; // 0x140
 };
 
+class ZAspectEntityFactory : public IEntityFactory {
+  public:
+    TArray<TResourcePtr<IEntityFactory>> m_factoryResources;         // 0x8
+    TResourcePtr<ZAspectEntityBlueprintFactory> m_blueprintResource; // 0x20
+    ZRuntimeResourceID m_ridResource;                                // 0x28
+};
+
+class ZExtendedCppEntityFactory : public IEntityFactory {
+  public:
+    TResourcePtr<IEntityFactory> m_pCppEntityFactory;          // 0x8
+    TResourcePtr<IEntityBlueprintFactory> m_pBlueprintFactory; // 0x10
+};
+
+class ZUIControlEntityFactory : public IEntityFactory {
+  public:
+    TResourcePtr<IEntityFactory> m_pCppEntityFactory;          // 0x8
+    TResourcePtr<IEntityBlueprintFactory> m_pBlueprintFactory; // 0x10
+    ZRuntimeResourceID m_ridResource;                          // 0x18
+};
+
+class ZRenderMaterialInstance;
+
+class ZRenderMaterialEntityFactory : public IEntityFactory {
+  public:
+    PAD(0xD8);                                                 // 0x8
+    TResourcePtr<IEntityFactory> m_pMaterialEntityFactory;     // 0xE0
+    TResourcePtr<IEntityBlueprintFactory> m_blueprintResource; // 0xE8
+    ZRuntimeResourceID m_ridResource;                          // 0xF0
+    TResourcePtr<ZRenderMaterialInstance> m_pMaterialInstance; // 0xF8
+    ZRuntimeResourceID m_ridMaterialInstance;                  // 0x100
+};
+
+class ZAudioSwitchEntityFactory : public IEntityFactory {
+  public:
+    TResourcePtr<IEntityFactory> m_pParentEntityFactory;        // 0x8
+    TResourcePtr<IEntityBlueprintFactory> m_pBlueprintResource; // 0x10
+    ZRuntimeResourceID m_ridResource;                           // 0x18
+};
+
+class ZAudioStateEntityFactory : public IEntityFactory {
+  public:
+    TResourcePtr<IEntityFactory> m_pParentEntityFactory;        // 0x8
+    TResourcePtr<IEntityBlueprintFactory> m_pBlueprintResource; // 0x10
+    ZRuntimeResourceID m_ridResource;                           // 0x18
+};
+
+class ZPadEntityFactory : public IEntityFactory {
+  public:
+    TResourcePtr<IEntityFactory> m_pParentEntityFactory;        // 0x8
+    TResourcePtr<IEntityBlueprintFactory> m_pBlueprintResource; // 0x10
+};
+
+class ZShadernodeEntityFactory : public IEntityFactory {
+  public:
+    TResourcePtr<IEntityFactory> m_pParentEntityFactory;        // 0x8
+    TResourcePtr<IEntityBlueprintFactory> m_pBlueprintResource; // 0x10
+};
+
 struct SEntityResource {
     ZEntityRef entityRef;         // 0x0
     ZResourcePtr factoryResource; // 0x10
+};
+
+struct SEntityIdentifier {
+    ZString m_UUID;
+    uint64_t m_EntityID;
 };

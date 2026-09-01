@@ -4,5 +4,6 @@
 
 class ZBoundedEntity : public ZSpatialEntity {
   public:
-    PAD(0x18);
+    SVector3 m_vCenter;   // 0xA8
+    SVector3 m_vHalfSize; // 0xB4
 };

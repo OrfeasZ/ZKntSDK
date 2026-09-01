@@ -93,10 +93,80 @@ zknt::Hooks::Hooks() {
         "\x48\x89\x5C\x24\x08\x48\x89\x6C\x24\x10\x48\x89\x74\x24\x18\x57\x41\x56\x41\x57\x48\x83\xEC\x00\x48\x8B\x01\x48\x8B\xF1",
         "xxxxxxxxxxxxxxxxxxxxxxx?xxxxxx", SPassExecution_ExecutePass, void(SPassExecution * th, int32_t renderDeviceContextIndex)
     );
+
+    PATTERN_VTABLE_HOOK(
+        "\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x65\xAF", "xxx????xxxx", 10, ZEntitySceneContext_CreateScene, void(ZEntitySceneContext*)
+    );
+
+    PATTERN_VTABLE_HOOK(
+        "\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x65\xAF", "xxx????xxxx", 7, ZEntitySceneContext_ClearScene,
+        void(ZEntitySceneContext*, bool bFullyUnloadScene)
+    );
+
+    PATTERN_HOOK(
+        "\x4C\x89\x4C\x24\x20\x4C\x89\x44\x24\x18\x48\x89\x54\x24\x10\x53", "xxxxxxxxxxxxxxxx", ZTemplateEntityFactory_ConfigureEntity,
+        void(ZTemplateEntityFactory * th, ZEntityType * *pEntity, void* unk0, void* unk1, void* unk2)
+    );
+
+    PATTERN_HOOK(
+        "\x48\x89\x5C\x24\x08\x48\x89\x6C\x24\x10\x48\x89\x74\x24\x20\x4C\x89\x44\x24\x18\x57\x41\x54\x41\x55\x41\x56\x41\x57\x48\x83\xEC\x00\x4C\x8B"
+        "\xF2",
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx?xxx", ZEntityManager_NewUninitializedEntity,
+        ZEntityRef
+            * (ZEntityManager * th, ZEntityRef & result, const ZString& sDebugName, TResourcePtr<IEntityFactory>& entityFactory,
+               const ZEntityRef& logicalParent, uint64_t entityID, void* unk0, bool unk1)
+    );
+
+    PATTERN_HOOK(
+        "\x48\x89\x5C\x24\x08\x48\x89\x6C\x24\x10\x48\x89\x74\x24\x18\x57\x48\x83\xEC\x00\x48\x8B\xF1\x48\x8D\x4C\x24\x20",
+        "xxxxxxxxxxxxxxxxxxx?xxxxxxxx", GenerateEntityIdentifier, uint64_t(SEntityIdentifier * p_Identifier)
+    );
+
+    PATTERN_HOOK(
+        "\x48\x89\x5C\x24\x08\x57\x48\x83\xEC\x00\x48\x8B\xDA\x48\x8B\xF9\xE8\x00\x00\x00\x00\x33\xD2\x4C\x8D\x8C\x24\x80\x00\x00\x00",
+        "xxxxxxxxx?xxxxxxx????xxxxxxxxxx", ZEntityManager_DeleteEntity, void(ZEntityManager * th, const ZEntityRef& entityRef)
+    );
+
+    PATTERN_HOOK(
+        "\x48\x8B\xC4\x48\x89\x58\x20\x55\x56\x57\x48\x8D\x68\xA1", "xxxxxxxxxxxxxx", ZPFObstacleEntity_UpdateObstacle,
+        void(ZPFObstacleEntity * th, bool forceUpdate)
+    );
+
+    PATTERN_HOOK(
+        "\x40\x53\x56\x57\x41\x56\x48\x81\xEC\x00\x00\x00\x00\x48\x8B\xB9\x98\x00\x00\x00", "xxxxxxxxx????xxxxxxx", ZPathfinder_AddLoadedNavMesh,
+        void(ZPathfinder * th, const SPendingLoadedNavMesh& pendingLoadedNavMesh)
+    );
+
+    PATTERN_HOOK(
+        "\x48\x89\x5C\x24\x08\x48\x89\x74\x24\x10\x57\x48\x83\xEC\x00\x48\x8B\xF1\x48\x8B\xFA\x48\x8B\x49\x50\x4C\x8B\x46\x58",
+        "xxxxxxxxxxxxxx?xxxxxxxxxxxxxx", ZPathfinder_RemoveLoadedNavMesh, bool(ZPathfinder * th, ZPathfinderConfiguration * pathfinderConfiguration)
+    );
+
+    PATTERN_HOOK(
+        "\x40\x57\x48\x83\xEC\x00\x48\x8B\x05\x00\x00\x00\x00\x48\x8B\xF9\x48\x89\x81\xE8\x00\x00\x00", "xxxxx?xxx????xxxxxxxxxx",
+        ZLevelManager_SetStatePlaying, void(ZLevelManager * th)
+    );
+
+    PATTERN_VTABLE_HOOK(
+        "\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x65\xAF", "xxx????xxxx", 16, ZEntitySceneContext_LoadDynamicBrick,
+        void(ZEntitySceneContext * th, const ZRuntimeResourceID& runtimeResourceID, ZEntityRef entityRef, IEntityFactory* entityFactory)
+    );
+
+    PATTERN_VTABLE_HOOK(
+        "\x48\x8D\x05\x00\x00\x00\x00\x4C\x89\x65\xAF", "xxx????xxxx", 17, ZEntitySceneContext_UnloadDynamicBrick,
+        void(ZEntitySceneContext * th, const ZRuntimeResourceID& runtimeResourceID)
+    );
+
+    PATTERN_HOOK(
+        "\x48\x8B\xC4\x48\x89\x58\x08\x48\x89\x68\x10\x48\x89\x70\x18\x48\x89\x78\x20\x41\x56\x48\x83\xEC\x00\x33\xFF", "xxxxxxxxxxxxxxxxxxxxxxxx?xx",
+        ZKntGameProgressionManager_SetCurrentCheckpoint,
+        void(ZKntGameProgressionManager * th, const TEntityRef<ZKntCheckpointEntity>& checkpointEntity)
+    );
 }
 
 void zknt::Hooks::EnableAll() {
     const auto s_Result = MH_EnableHook(MH_ALL_HOOKS);
+
     if (s_Result != MH_OK) {
         Logger::Error("Failed to enable hooks. Error code: {}.", static_cast<int>(s_Result));
     }
