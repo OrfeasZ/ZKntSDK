@@ -2,6 +2,8 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/External/IconFontCppHeaders" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/External/mINI" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/External/vcpkg" vcs="Git" />
   </component>
 </project>

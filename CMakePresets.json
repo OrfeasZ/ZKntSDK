@@ -14,8 +14,12 @@
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/_install/${presetName}",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/vcpkg-overlays",
-        "VCPKG_APPLOCAL_DEPS": "OFF",
-        "VCPKG_INSTALL_OPTIONS": "--allow-unsupported"
+        "CMAKE_VERBOSE_MAKEFILE": false,
+        "CMAKE_POLICY_DEFAULT_CMP0091": "NEW"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
       }
     },
     {
@@ -29,7 +33,8 @@
         "rhs": "Windows"
       },
       "cacheVariables": {
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_HOST_TRIPLET": "x64-windows-static"
       }
     },
     {
@@ -44,6 +49,7 @@
       },
       "cacheVariables": {
         "VCPKG_TARGET_TRIPLET": "x64-windows-static-cross",
+        "VCPKG_HOST_TRIPLET": "x64-linux",
         "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/clang-cl.cmake",
         "VCPKG_OVERLAY_PORTS": "${sourceDir}/cmake/vcpkg-ports-cross"
       }

@@ -9,7 +9,7 @@
 
 struct SDefaultAllocatorProvider {};
 
-template<typename T, typename AllocatorProvider> class TArray {
+template<typename T> class TArray {
   public:
     TArray() : m_pBegin(nullptr), m_pEnd(nullptr), m_pAllocationEnd(nullptr) {}
 

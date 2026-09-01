@@ -4,7 +4,7 @@
 #include "ZEntity.hpp"
 #include "ZRenderableEntity.hpp"
 #include "ZRender.hpp"
-#include "ZInput.h"
+#include "ZInput.hpp"
 
 class IRenderDestinationEntity;
 

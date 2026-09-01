@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ZKntSdk" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="-applaunch 3768760" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="ZKntSdk" TARGET_NAME="ZKntSdk" CONFIG_NAME="x64-Debug-Cross-Install" RUN_PATH="/run/current-system/sw/bin/steam">
+    <method v="2">
+      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      <option name="CMake.Install" enabled="true" />
+    </method>
+  </configuration>
+</component>

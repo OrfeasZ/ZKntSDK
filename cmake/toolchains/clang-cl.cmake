@@ -6,7 +6,7 @@ if (NOT xwin)
   get_filename_component(xwin "../../.xwin/splat" ABSOLUTE)
 endif ()
 if (NOT EXISTS "${xwin}/crt/include")
-  message(FATAL_ERROR "no Windows SDK at ${xwin} -- run scripts/fetch-xwin.sh")
+  message(FATAL_ERROR "no Windows SDK at ${xwin} -- run cmake/scripts/fetch-xwin.sh")
 endif ()
 
 set(CMAKE_C_COMPILER clang-cl)
@@ -18,29 +18,30 @@ set(CMAKE_AR llvm-lib)
 set(CMAKE_RC_COMPILER llvm-rc)
 set(CMAKE_MT llvm-mt)
 
+# MASM assembler for ports that have .asm sources (e.g. crashpad inside
+# sentry-native). Upstream expects ml64.exe; llvm-ml is the LLVM-shipped,
+# ml64-compatible assembler. Unlike ml64 it defaults to 32-bit, so force x64.
+set(CMAKE_ASM_MASM_COMPILER llvm-ml)
+set(CMAKE_ASM_MASM_FLAGS_INIT "-m64")
+
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-# Emit BOTH CodeView (for PDBs distributed to Windows users) and DWARF (so GDB
-# on Linux can read symbols directly out of the .dll when debugging the game
-# under Proton). clang-cl with `/Z7 /clang:-gdwarf-4` produces both `.debug$S`
-# (CodeView) and `.debug_*` (DWARF) sections in the .obj; lld-link consumes
-# CodeView to generate a .pdb and keeps the DWARF sections in the output .dll.
-#
-# We pin the CMake debug-format policy to "Embedded" (/Z7) so the format is
-# explicit and PDBs are linker-generated, then layer DWARF on top.
+# Emit both CodeView (for PDBs) and DWARF (so GDB on Linux can read symbols
+# straight out of the DLL when debugging the game under Proton).
 set(CMAKE_POLICY_DEFAULT_CMP0141 NEW)
 set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "Embedded")
-set(_zknt_dwarf_flags "/clang:-gdwarf-4 /clang:-fstandalone-debug")
-set(CMAKE_C_FLAGS_DEBUG_INIT "${_zknt_dwarf_flags}")
-set(CMAKE_CXX_FLAGS_DEBUG_INIT "${_zknt_dwarf_flags}")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "${_zknt_dwarf_flags} -O2")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${_zknt_dwarf_flags} -O2")
+set(_zhm_dwarf_flags "/clang:-gdwarf-4 /clang:-fstandalone-debug")
+set(CMAKE_C_FLAGS_DEBUG_INIT "${_zhm_dwarf_flags}")
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "${_zhm_dwarf_flags}")
+set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "${_zhm_dwarf_flags} -O2")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO_INIT "${_zhm_dwarf_flags} -O2")
 
-foreach (d crt/include sdk/include/ucrt sdk/include/um sdk/include/shared)
+foreach (d crt/include sdk/include/ucrt sdk/include/um sdk/include/shared sdk/include/winrt)
   string(APPEND inc " /imsvc${xwin}/${d}")
 endforeach ()
-set(CMAKE_C_FLAGS_INIT "${inc} -Wno-unused-command-line-argument")
-set(CMAKE_CXX_FLAGS_INIT "${inc} -Wno-unused-command-line-argument /EHsc")
+
+set(CMAKE_C_FLAGS_INIT "${inc} -Wno-unused-command-line-argument -Wno-c++-keyword")
+set(CMAKE_CXX_FLAGS_INIT "${inc} -Wno-unused-command-line-argument -Wno-c++-keyword /EHsc")
 
 foreach (d crt/lib/x86_64 sdk/lib/um/x86_64 sdk/lib/ucrt/x86_64)
   string(APPEND lib " /libpath:${xwin}/${d}")

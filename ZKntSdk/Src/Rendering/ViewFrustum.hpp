@@ -1,7 +1,5 @@
 #pragma once
 
-#include <DirectXMath.h>
-
 #include <Glacier/ZMath.hpp>
 
 #include "Common.hpp"

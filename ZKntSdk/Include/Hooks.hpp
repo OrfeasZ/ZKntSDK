@@ -56,7 +56,7 @@ namespace zknt {
 
         Hook<ZKntLoadoutCollectionEntity*(ZKntLoadoutCollectionEntity* th, const ZComponentCreateInfo& Info)>*
             ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity = nullptr;
-            nullptr;
+
         Hook<void(const SRenderCameraData& cameraData, uint32_t unk)>* UpdateStreamlineConstants;
         Hook<void(SPassExecution* th, int32_t renderDeviceContextIndex)>* SPassExecution_ExecutePass;
 
