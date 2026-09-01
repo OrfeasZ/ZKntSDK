@@ -4,7 +4,7 @@
 #include <emmintrin.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
-#include <directxmath.h>
+#include <DirectXMath.h>
 
 struct SViewport {
     uint32_t x;

@@ -40,8 +40,8 @@ foreach (d crt/include sdk/include/ucrt sdk/include/um sdk/include/shared sdk/in
   string(APPEND inc " /imsvc${xwin}/${d}")
 endforeach ()
 
-set(CMAKE_C_FLAGS_INIT "${inc} -Wno-unused-command-line-argument -Wno-c++-keyword")
-set(CMAKE_CXX_FLAGS_INIT "${inc} -Wno-unused-command-line-argument -Wno-c++-keyword /EHsc")
+set(CMAKE_C_FLAGS_INIT "${inc} -Wno-unused-command-line-argument -Wno-c++-keyword -msse4.1")
+set(CMAKE_CXX_FLAGS_INIT "${inc} -Wno-unused-command-line-argument -Wno-c++-keyword -msse4.1 /EHsc")
 
 foreach (d crt/lib/x86_64 sdk/lib/um/x86_64 sdk/lib/ucrt/x86_64)
   string(APPEND lib " /libpath:${xwin}/${d}")
