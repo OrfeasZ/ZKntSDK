@@ -83,3 +83,50 @@ class ZHumanoidOutfitSet : public ZEntityImpl {
   public:
     TArray<TInterfaceRef<ZHumanoidOutfitReference>> m_outfits; // 0x18
 };
+
+class ZCLGetHumanoidFromOutfitEntity : public ZEntityImpl, public ITEntityRefValue<ZHumanoidCharacterEntity> {
+  public:
+    TInterfaceRef<ITEntityRefValue<ZHumanoidOutfitEntity>> m_outfit; // 0x20
+};
+
+class ZCLGetOutfitRefFromOutfit : public ZEntityImpl, public ITEntityRefValue<ZHumanoidOutfitEntity> {
+  public:
+    TInterfaceRef<ZHumanoidOutfitEntity> m_outfit; // 0x20
+};
+
+class ZCLGetHumanoidHealth : public ZEntityImpl, public IFloatValue {
+  public:
+    TInterfaceRef<IEntityRefValue> m_rTarget; // 0x20
+};
+
+class ZCLGetHumanoidMaxHealth : public ZEntityImpl, public IFloatValue {
+  public:
+    TInterfaceRef<IEntityRefValue> m_rTarget; // 0x20
+};
+
+class ZCLGetHumanoidRefFromEntityRef : public ZEntityImpl, public ITEntityRefValue<ZHumanoidCharacterEntity> {
+  public:
+    TInterfaceRef<IEntityRefValue> m_entityRef; // 0x20
+};
+
+class ZCLGetCharacterRefFromEntityRef : public ZEntityImpl, public ITEntityRefValue<ICharacterEntity> {
+  public:
+    TEntityRef<IEntityRefValue> m_entityRef; // 0x20
+};
+
+class ZCLIsHumanoidAlive : public ZCLValue, public IBoolValue {
+  public:
+    TInterfaceRef<IEntityRefValue> m_rTarget; // 0x28
+    PAD(0x8);                                 // 0x38
+};
+
+class ZCLIsHumanoidDead : public ZCLValue, public IBoolValue {
+  public:
+    TInterfaceRef<IEntityRefValue> m_rTarget; // 0x28
+    PAD(0x8);                                 // 0x38
+};
+
+enum class EFirearmDisarmType : int32_t {
+    EquippedOnly = 0,
+    AllAttached = 1,
+};
