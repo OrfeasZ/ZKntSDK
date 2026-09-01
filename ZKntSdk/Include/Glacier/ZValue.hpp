@@ -34,9 +34,16 @@ class IIntValue : public IComponentInterface {
 
 class ZCLValueIntEntity : public ZCLSimpleValue, public IIntValue {};
 
-class IEntityRefValue : public IComponentInterface {};
-
-template<typename T> class ITEntityRefValue : public IEntityRefValue {
+class IEntityRefValue : public IComponentInterface {
   public:
     virtual ZEntityRef* GetValue(ZEntityRef& result) = 0;
+};
+
+template<typename T> class ITEntityRefValue : public IEntityRefValue {};
+
+class ZCLValueEntityRefEntity : public ZCLValue, public IEntityRefValue, public IReplicatedCLValue {
+  public:
+    ZEntityRef m_vValue; // 0x30
+    PAD(0x10);           // 0x40
+    bool m_isReplicated; // 0x50
 };
