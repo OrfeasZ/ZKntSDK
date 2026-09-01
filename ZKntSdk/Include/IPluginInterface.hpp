@@ -208,12 +208,12 @@ namespace knt::mod {
     };
 }
 
-#define DECLARE_ZKNT_PLUGIN(PluginClass) inline PluginClass* Plugin();
+#define DECLARE_ZKNT_PLUGIN(PluginClass) PluginClass* Plugin();
 
 #define DEFINE_ZKNT_PLUGIN(PluginClass)                                                                                      \
     static PluginClass* g_##PluginClass##_Instance = nullptr;                                                                \
                                                                                                                              \
-    inline PluginClass* Plugin() {                                                                                           \
+    PluginClass* Plugin() {                                                                                                  \
         return g_##PluginClass##_Instance;                                                                                   \
     }                                                                                                                        \
                                                                                                                              \
