@@ -508,10 +508,13 @@ void Editor::OnMouseDown(const SVector2& p_Position, bool p_IsFirstClick) {
     if (p_IsFirstClick) {
         if (s_RayQueryOutput.m_pBlockingSpatialEntity.m_pInterfaceRef) {
             const auto& s_Interfaces = *s_RayQueryOutput.m_pBlockingSpatialEntity.m_pInterfaceRef->GetType()->m_pInterfaceData;
-            Logger::Trace(
-                "[Editor] Hit entity of type '{}' with id '{:x}'.", s_Interfaces[0].m_Type->GetTypeInfo()->pszTypeName,
-                s_RayQueryOutput.m_pBlockingSpatialEntity.m_entityRef->GetType()->m_nEntityID
-            );
+
+            if (m_RaycastLogging) {
+                Logger::Info(
+                    "[Editor] Hit entity of type '{}' with id '{:x}'.", s_Interfaces[0].m_Type->GetTypeInfo()->pszTypeName,
+                    s_RayQueryOutput.m_pBlockingSpatialEntity.m_entityRef->GetType()->m_nEntityID
+                );
+            }
 
             const auto s_EntitySceneContext = SDK()->Globals()->GameSceneflowModule->m_pEntitySceneContext;
             ZEntityRef s_SelectedEntity = s_RayQueryOutput.m_pBlockingSpatialEntity.m_entityRef;
@@ -520,7 +523,11 @@ void Editor::OnMouseDown(const SVector2& p_Position, bool p_IsFirstClick) {
             for (const auto& s_Brick : s_EntitySceneContext->m_SceneConfig->m_aMainBricks) {
                 if (s_SelectedEntity.IsAnyParent(s_Brick.m_EntityType)) {
                     s_IsParentFound = true;
-                    Logger::Debug("[Editor] Found entity in brick {}.", s_Brick.m_RuntimeResourceID);
+
+                    if (m_RaycastLogging) {
+                        Logger::Info("[Editor] Found entity in brick {}.", s_Brick.m_RuntimeResourceID);
+                    }
+
                     break;
                 }
             }
@@ -528,7 +535,10 @@ void Editor::OnMouseDown(const SVector2& p_Position, bool p_IsFirstClick) {
             if (!s_IsParentFound) {
                 for (const auto& [s_RuntimeResourceID, s_EntityType] : s_EntitySceneContext->m_aDynamicBrickEntities) {
                     if (s_SelectedEntity.IsAnyParent(s_EntityType)) {
-                        Logger::Debug("[Editor] Found entity in brick {}.", s_RuntimeResourceID);
+                        if (m_RaycastLogging) {
+                            Logger::Info("[Editor] Found entity in brick {}.", s_RuntimeResourceID);
+                        }
+
                         break;
                     }
                 }
