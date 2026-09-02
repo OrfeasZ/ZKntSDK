@@ -70,6 +70,24 @@ class ZRayQueryInput {
     uint32_t m_Unk3;                                                          // 0x7C
 };
 
+static_assert(sizeof(ZRayQueryInput) == 0x80);
+static_assert(alignof(ZRayQueryInput) == 0x10);
+
+static_assert(offsetof(ZRayQueryInput, m_BlockingChannelMask) == 0x00);
+static_assert(offsetof(ZRayQueryInput, m_OverlapChannelMask) == 0x02);
+static_assert(offsetof(ZRayQueryInput, m_RequiredAttributeMask) == 0x04);
+static_assert(offsetof(ZRayQueryInput, m_ForbiddenAttributeMask) == 0x06);
+static_assert(offsetof(ZRayQueryInput, m_eRayCollidables) == 0x08);
+static_assert(offsetof(ZRayQueryInput, m_Unk1) == 0x10);
+static_assert(offsetof(ZRayQueryInput, m_pIgnoredEntities) == 0x18);
+static_assert(offsetof(ZRayQueryInput, m_TypedQueryMask) == 0x20);
+static_assert(offsetof(ZRayQueryInput, m_vFrom) == 0x30);
+static_assert(offsetof(ZRayQueryInput, m_vTo) == 0x40);
+static_assert(offsetof(ZRayQueryInput, m_FilterCallback) == 0x50);
+static_assert(offsetof(ZRayQueryInput, m_eRayDetailLevel) == 0x70);
+static_assert(offsetof(ZRayQueryInput, m_Unk2) == 0x78);
+static_assert(offsetof(ZRayQueryInput, m_Unk3) == 0x7C);
+
 class ZRayQueryOutput {
   public:
     float4 m_vPosition;                                                  // 0x0
@@ -83,6 +101,18 @@ class ZRayQueryOutput {
     TEntityRef<ZSpatialEntity> m_pBlockingSpatialEntity;                 // 0x50
     PAD(0x48);                                                           // 0x68
 };
+
+static_assert(sizeof(ZRayQueryOutput) == 0xB0);
+static_assert(alignof(ZRayQueryOutput) == 0x10);
+
+static_assert(offsetof(ZRayQueryOutput, m_vPosition) == 0x00);
+static_assert(offsetof(ZRayQueryOutput, m_vNormal) == 0x10);
+static_assert(offsetof(ZRayQueryOutput, m_nT) == 0x20);
+static_assert(offsetof(ZRayQueryOutput, m_pBlockingMaterialDescriptor) == 0x24);
+static_assert(offsetof(ZRayQueryOutput, m_pBlockingMaterial) == 0x2C);
+static_assert(offsetof(ZRayQueryOutput, m_BlockingEntity) == 0x38);
+static_assert(offsetof(ZRayQueryOutput, m_pBlockingPhysicsObject) == 0x48);
+static_assert(offsetof(ZRayQueryOutput, m_pBlockingSpatialEntity) == 0x50);
 
 class ZCollisionQueryPreset : public ZEntityImpl {
   public:
