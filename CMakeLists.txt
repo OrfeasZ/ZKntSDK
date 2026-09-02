@@ -46,9 +46,6 @@ foreach (MOD IN LISTS MODS)
   add_subdirectory("Mods/${MOD}")
 endforeach ()
 
-# Install the discord SDK DLL.
-install(FILES ${DISCORD_SDK_DLL_PATH} DESTINATION bin)
-
 # Install ZKntSdk, dinput8, and all the mods in the game folder.
 if (EXISTS "${GAME_INSTALL_PATH}/Retail")
   install(FILES "$<TARGET_FILE:DirectInputProxy>" DESTINATION "${GAME_INSTALL_PATH}/Retail")
@@ -72,6 +69,8 @@ install(FILES "$<TARGET_FILE:DirectInputProxy>" DESTINATION "Retail")
 install(FILES "$<TARGET_PDB_FILE:DirectInputProxy>" DESTINATION "Retail" OPTIONAL)
 install(FILES "$<TARGET_FILE:ZKntSdk>" DESTINATION "Retail")
 install(FILES "$<TARGET_PDB_FILE:ZKntSdk>" DESTINATION "Retail" OPTIONAL)
+install(FILES "$<TARGET_FILE:ResourceLib_KNT>" DESTINATION "Retail")
+install(FILES "${DISCORD_SDK_DLL_PATH}" DESTINATION "Retail")
 
 foreach (MOD IN LISTS MODS)
   install(FILES "$<TARGET_FILE:${MOD}>" DESTINATION "Retail/mods")
