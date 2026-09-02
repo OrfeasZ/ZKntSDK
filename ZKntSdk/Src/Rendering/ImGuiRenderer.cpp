@@ -177,7 +177,7 @@ namespace zknt::rendering {
 
         s_Colors[ImGuiCol_TitleBg] = ImVec4(0.10f, 0.11f, 0.13f, 1.00f);
         // s_Colors[ImGuiCol_TitleBgActive] = ImVec4(0.15f, 0.16f, 0.19f, 1.00f);
-        s_Colors[ImGuiCol_TitleBgActive] = s_AccentSoft;
+        s_Colors[ImGuiCol_TitleBgActive] = ImVec4(0.420f, 0.376f, 0.290f, 1.000f);
         s_Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.10f, 0.11f, 0.13f, 0.90f);
 
         s_Colors[ImGuiCol_MenuBarBg] = ImVec4(0.14f, 0.15f, 0.17f, 1.00f);
