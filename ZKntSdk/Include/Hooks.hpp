@@ -30,6 +30,7 @@ class ZRuntimeResourceID;
 class ZKntGameProgressionManager;
 class ZKntCheckpointEntity;
 template<typename T> class TEntityRef;
+class ZKntStartingCheckpoint;
 
 namespace zknt {
     class ModSDK;
@@ -107,6 +108,8 @@ namespace zknt {
 
         Hook<void(ZKntGameProgressionManager* th, const TEntityRef<ZKntCheckpointEntity>& checkpointEntity)>*
             ZKntGameProgressionManager_SetCurrentCheckpoint;
+
+        Hook<void(ZKntStartingCheckpoint* th)>* ZKntStartingCheckpoint_Start = nullptr;
 
       private:
         void EnableAll();

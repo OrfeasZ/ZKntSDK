@@ -35,7 +35,7 @@ add_subdirectory(ZKntSdk)
 set(MODS
         NoPause
         FreeCam
-        #SkipIntro
+        SkipIntro
         Cheats
         Editor
         DebugMod
