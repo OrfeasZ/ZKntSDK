@@ -252,14 +252,14 @@ class ZRenderDevice : public ZRenderDeviceBase {
     virtual ~ZRenderDevice() = 0;
 
   public:
-    PAD(0x308);                                 // 0x8
-    ZRenderSwapChain* m_pSwapChain;             // 0x310
+    PAD(0x350);                                 // 0x8
+    ZRenderSwapChain* m_pSwapChain;             // 0x358
     PAD(0x398);                                 // 0x318
-    ZRenderDeviceContext* m_pMainContext;       // 0x6B0
+    ZRenderDeviceContext* m_pMainContext;       // 0x6F8
     PAD(0x4AAEF98);                             // 0x6B8
-    ID3D12CommandQueue* m_pCommandQueue;        // 0x4AAF650
-    PAD(0x21D8);                                // 0x4AAF658
-    ID3D12DescriptorHeap* m_pDescriptorHeapDSV; // 0x4AB1830
+    ID3D12CommandQueue* m_pCommandQueue;        // 0x4AAF698
+    PAD(0x21D8);                                // 0x4AAF6A0
+    ID3D12DescriptorHeap* m_pDescriptorHeapDSV; // 0x4AB1878
 };
 
 class ZRenderSharedResources {
@@ -289,12 +289,12 @@ class ZRenderManager : public IRenderManager, public ZSceneLifecycleListener {
     virtual ~ZRenderManager() = default;
 
   public:
-    PAD(0x17C50);                               // 0x10
-    ZRenderDevice* m_pRenderDevice;             // 0x17C60
-    PAD(0x8);                                   // 0x17C68
-    ZRenderSharedResources* m_pSharedResources; // 0x17C70
-    PAD(0xA7D0);                                // 0x17C78
-    ZRoomManagerRender* m_pRoomManagerRender;   // 0x22448
+    PAD(0x17C80);                               // 0x10
+    ZRenderDevice* m_pRenderDevice;             // 0x17C90
+    PAD(0x8);                                   // 0x17C98
+    ZRenderSharedResources* m_pSharedResources; // 0x17CA0
+    PAD(0xA900);                                // 0x17CA8
+    ZRoomManagerRender* m_pRoomManagerRender;   // 0x225A8
 };
 
 class RenderReferencedCountedBaseStub {
