@@ -20,6 +20,9 @@ void Editor::DrawItemsWindow(zknt::IImGuiRenderer* p_Renderer, bool p_HasFocus) 
     ImGui::PushFont(p_Renderer->GetRegularFont());
 
     if (!s_IsWindowExpanded) {
+        ImGui::PopFont();
+        ImGui::End();
+        ImGui::PopFont();
         return;
     }
 
