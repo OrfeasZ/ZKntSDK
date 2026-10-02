@@ -206,7 +206,7 @@ namespace zknt::rendering {
         s_Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.60f);
     }
 
-    void ImGuiRenderer::SetSwapChain(IDXGISwapChain3* p_SwapChain) {
+    void ImGuiRenderer::SetSwapChain(IDXGISwapChain4* p_SwapChain) {
         if (p_SwapChain == m_SwapChain.m_Ref) {
             return;
         }
@@ -222,7 +222,7 @@ namespace zknt::rendering {
         m_CommandQueue = p_CommandQueue;
     }
 
-    void ImGuiRenderer::OnPresent(IDXGISwapChain3* p_SwapChain) {
+    void ImGuiRenderer::OnPresent(IDXGISwapChain4* p_SwapChain) {
         if (!m_CommandQueue) {
             return;
         }
@@ -287,7 +287,7 @@ namespace zknt::rendering {
         m_CommandQueue->ExecuteCommandLists(1, s_Lists);
     }
 
-    void ImGuiRenderer::PostPresent(IDXGISwapChain3*, HRESULT p_PresentResult) {
+    void ImGuiRenderer::PostPresent(IDXGISwapChain4*, HRESULT p_PresentResult) {
         if (!m_CommandQueue || !m_RendererSetup) {
             return;
         }
@@ -402,7 +402,7 @@ namespace zknt::rendering {
         p_Resources.clear();
     }
 
-    bool ImGuiRenderer::SetupRenderer(IDXGISwapChain3* p_SwapChain) {
+    bool ImGuiRenderer::SetupRenderer(IDXGISwapChain4* p_SwapChain) {
         if (m_RendererSetup) {
             return true;
         }
@@ -561,7 +561,7 @@ namespace zknt::rendering {
         m_RendererSetup = false;
     }
 
-    void ImGuiRenderer::OnReset(IDXGISwapChain3*) {
+    void ImGuiRenderer::OnReset(IDXGISwapChain4*) {
         if (!m_RendererSetup) {
             return;
         }
@@ -577,7 +577,7 @@ namespace zknt::rendering {
         ImGui_ImplDX12_InvalidateDeviceObjects();
     }
 
-    void ImGuiRenderer::PostReset(IDXGISwapChain3* p_SwapChain) {
+    void ImGuiRenderer::PostReset(IDXGISwapChain4* p_SwapChain) {
         if (!m_RendererSetup) {
             return;
         }

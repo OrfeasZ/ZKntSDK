@@ -41,7 +41,7 @@ namespace zknt::rendering {
         SDK()->Hooks()->UpdateStreamlineConstants->AddDetour(this, &DirectXTKRenderer::UpdateStreamlineConstants);
     }
 
-    void DirectXTKRenderer::SetSwapChain(IDXGISwapChain3* p_SwapChain) {
+    void DirectXTKRenderer::SetSwapChain(IDXGISwapChain4* p_SwapChain) {
         if (p_SwapChain == m_SwapChain.m_Ref) {
             return;
         }
@@ -57,7 +57,7 @@ namespace zknt::rendering {
         m_CommandQueue = p_CommandQueue;
     }
 
-    void DirectXTKRenderer::OnPresent(IDXGISwapChain3* p_SwapChain) {
+    void DirectXTKRenderer::OnPresent(IDXGISwapChain4* p_SwapChain) {
         if (!m_CommandQueue) {
             return;
         }
@@ -161,7 +161,7 @@ namespace zknt::rendering {
         }
     }
 
-    void DirectXTKRenderer::PostPresent(IDXGISwapChain3* p_SwapChain, HRESULT p_PresentResult) {
+    void DirectXTKRenderer::PostPresent(IDXGISwapChain4* p_SwapChain, HRESULT p_PresentResult) {
         if (!m_CommandQueue || !m_RendererSetup) {
             return;
         }
@@ -180,7 +180,7 @@ namespace zknt::rendering {
         BreakIfFailed(m_CommandQueue->Signal(m_Fence, s_NewFence));
     }
 
-    void DirectXTKRenderer::OnReset(IDXGISwapChain3* p_SwapChain) {
+    void DirectXTKRenderer::OnReset(IDXGISwapChain4* p_SwapChain) {
         if (!m_RendererSetup) {
             return;
         }
@@ -202,7 +202,7 @@ namespace zknt::rendering {
         m_DepthBufferCopyHeight = 0;
     }
 
-    void DirectXTKRenderer::PostReset(IDXGISwapChain3* p_SwapChain) {
+    void DirectXTKRenderer::PostReset(IDXGISwapChain4* p_SwapChain) {
         if (!m_RendererSetup) {
             return;
         }
@@ -246,7 +246,7 @@ namespace zknt::rendering {
         m_SpriteBatch->SetViewport(s_Viewport);
     }
 
-    bool DirectXTKRenderer::SetupRenderer(IDXGISwapChain3* p_SwapChain) {
+    bool DirectXTKRenderer::SetupRenderer(IDXGISwapChain4* p_SwapChain) {
         if (m_RendererSetup) {
             return true;
         }

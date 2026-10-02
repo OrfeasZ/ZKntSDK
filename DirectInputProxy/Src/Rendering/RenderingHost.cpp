@@ -24,7 +24,7 @@ namespace knt::rendering {
         }
     }
 
-    void RenderingHost::SetActiveSwapChain(IDXGISwapChain3* p_SwapChain) {
+    void RenderingHost::SetActiveSwapChain(IDXGISwapChain4* p_SwapChain) {
         if (p_SwapChain) {
             p_SwapChain->AddRef();
         }
@@ -42,7 +42,7 @@ namespace knt::rendering {
         }
     }
 
-    void RenderingHost::DispatchOnPresent(IDXGISwapChain3* p_SwapChain) {
+    void RenderingHost::DispatchOnPresent(IDXGISwapChain4* p_SwapChain) {
         auto s_Ticket = m_Gate.TryEnter();
         if (!s_Ticket) {
             return;
@@ -53,7 +53,7 @@ namespace knt::rendering {
         }
     }
 
-    void RenderingHost::DispatchPostPresent(IDXGISwapChain3* p_SwapChain, HRESULT p_Result) {
+    void RenderingHost::DispatchPostPresent(IDXGISwapChain4* p_SwapChain, HRESULT p_Result) {
         auto s_Ticket = m_Gate.TryEnter();
         if (!s_Ticket) {
             return;
@@ -64,7 +64,7 @@ namespace knt::rendering {
         }
     }
 
-    void RenderingHost::DispatchOnReset(IDXGISwapChain3* p_SwapChain) {
+    void RenderingHost::DispatchOnReset(IDXGISwapChain4* p_SwapChain) {
         auto s_Ticket = m_Gate.TryEnter();
         if (!s_Ticket) {
             return;
@@ -75,7 +75,7 @@ namespace knt::rendering {
         }
     }
 
-    void RenderingHost::DispatchPostReset(IDXGISwapChain3* p_SwapChain) {
+    void RenderingHost::DispatchPostReset(IDXGISwapChain4* p_SwapChain) {
         auto s_Ticket = m_Gate.TryEnter();
         if (!s_Ticket) {
             return;
@@ -98,7 +98,7 @@ namespace knt::rendering {
         return s_Callbacks->OnWndProc(p_Hwnd, p_Msg, p_Wparam, p_Lparam);
     }
 
-    void RenderingHost::NotifyNewSwapChain(IDXGISwapChain3* p_SwapChain, IUnknown* p_DeviceOrQueue) {
+    void RenderingHost::NotifyNewSwapChain(IDXGISwapChain4* p_SwapChain, IUnknown* p_DeviceOrQueue) {
         SetActiveSwapChain(p_SwapChain);
 
         // CreateSwapChain* takes an ID3D12CommandQueue (D3D12 path) or an

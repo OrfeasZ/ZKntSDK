@@ -24,20 +24,20 @@ namespace knt::rendering {
 
         // Tracking the active swap chain / queue lets us replay them to a
         // freshly-loaded SDK without waiting for the next CreateSwapChain.
-        void SetActiveSwapChain(IDXGISwapChain3* p_SwapChain);
+        void SetActiveSwapChain(IDXGISwapChain4* p_SwapChain);
         void SetActiveCommandQueue(ID3D12CommandQueue* p_CommandQueue);
 
         // Each Dispatch* acquires the ReloadGate; if the SDK is reloading the
         // call becomes a no-op (or passthrough, for WndProc).
-        void DispatchOnPresent(IDXGISwapChain3* p_SwapChain);
-        void DispatchPostPresent(IDXGISwapChain3* p_SwapChain, HRESULT p_Result);
-        void DispatchOnReset(IDXGISwapChain3* p_SwapChain);
-        void DispatchPostReset(IDXGISwapChain3* p_SwapChain);
+        void DispatchOnPresent(IDXGISwapChain4* p_SwapChain);
+        void DispatchPostPresent(IDXGISwapChain4* p_SwapChain, HRESULT p_Result);
+        void DispatchOnReset(IDXGISwapChain4* p_SwapChain);
+        void DispatchPostReset(IDXGISwapChain4* p_SwapChain);
         knt::host::WndProcResult DispatchOnWndProc(HWND p_Hwnd, UINT p_Msg, WPARAM p_Wparam, LPARAM p_Lparam);
 
         // Called from each CreateSwapChain* detour. Stores the swap chain and
         // (when available) its command queue so a future reload can resubmit.
-        void NotifyNewSwapChain(IDXGISwapChain3* p_SwapChain, IUnknown* p_DeviceOrQueue);
+        void NotifyNewSwapChain(IDXGISwapChain4* p_SwapChain, IUnknown* p_DeviceOrQueue);
 
       private:
         RenderingHost() = default;
@@ -55,7 +55,7 @@ namespace knt::rendering {
         knt::host::HostServices m_Services{};
         std::atomic<const knt::host::RenderingCallbacks*> m_Callbacks{nullptr};
         ReloadGate m_Gate;
-        std::atomic<IDXGISwapChain3*> m_ActiveSwapChain{nullptr};
+        std::atomic<IDXGISwapChain4*> m_ActiveSwapChain{nullptr};
         std::atomic<ID3D12CommandQueue*> m_ActiveCommandQueue{nullptr};
         std::atomic<bool> m_EngineInitialized{false};
     };

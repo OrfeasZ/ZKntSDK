@@ -6,7 +6,7 @@
 #include <array>
 #include <atomic>
 #include <directx/d3d12.h>
-#include <dxgi1_4.h>
+#include <dxgi1_5.h>
 #include <vector>
 
 #include <ResourceUploadBatch.h>
@@ -41,12 +41,12 @@ namespace zknt::rendering {
         ImGuiRenderer& operator=(const ImGuiRenderer&) = delete;
 
         // Called from proxy callbacks.
-        void SetSwapChain(IDXGISwapChain3* p_SwapChain);
+        void SetSwapChain(IDXGISwapChain4* p_SwapChain);
         void SetCommandQueue(ID3D12CommandQueue* p_CommandQueue);
-        void OnPresent(IDXGISwapChain3* p_SwapChain);
-        void PostPresent(IDXGISwapChain3* p_SwapChain, HRESULT p_PresentResult);
-        void OnReset(IDXGISwapChain3* p_SwapChain);
-        void PostReset(IDXGISwapChain3* p_SwapChain);
+        void OnPresent(IDXGISwapChain4* p_SwapChain);
+        void PostPresent(IDXGISwapChain4* p_SwapChain, HRESULT p_PresentResult);
+        void OnReset(IDXGISwapChain4* p_SwapChain);
+        void PostReset(IDXGISwapChain4* p_SwapChain);
 
         // Returns {Handled = true, Value = lresult} when ImGui consumes the
         // message (game must not see it). Otherwise {false, 0}; game's
@@ -139,7 +139,7 @@ namespace zknt::rendering {
         void DestroyImGuiTexture(ScopedD3DRef<ID3D12Resource>& p_Texture, ImGuiTexture& p_ImGuiTexture);
 
       private:
-        bool SetupRenderer(IDXGISwapChain3* p_SwapChain);
+        bool SetupRenderer(IDXGISwapChain4* p_SwapChain);
         void TeardownRenderer();
         void Draw();
         void SetupStyles();
@@ -176,7 +176,7 @@ namespace zknt::rendering {
 
         bool m_RendererSetup = false;
 
-        ScopedD3DRef<IDXGISwapChain3> m_SwapChain;
+        ScopedD3DRef<IDXGISwapChain4> m_SwapChain;
         ScopedD3DRef<ID3D12CommandQueue> m_CommandQueue;
         HWND m_Hwnd = nullptr;
 

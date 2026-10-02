@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 #include <atomic>
-#include <dxgi1_4.h>
+#include <dxgi1_5.h>
 
 namespace knt::rendering {
     // Subclasses the game window via SetWindowLongPtrW so SDK callbacks see
@@ -14,7 +14,7 @@ namespace knt::rendering {
 
         // First call resolves the swap chain's HWND and installs the subclass;
         // subsequent calls are no-ops.
-        void EnsureInstalled(IDXGISwapChain3* p_SwapChain);
+        void EnsureInstalled(IDXGISwapChain4* p_SwapChain);
 
         void Uninstall();
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <directx/d3d12.h>
-#include <dxgi1_4.h>
+#include <dxgi1_5.h>
 #include <memory>
 #include <mutex>
 
@@ -33,12 +33,12 @@ namespace zknt::rendering {
         void OnEngineInitialized();
 
         // Called from proxy callbacks.
-        void SetSwapChain(IDXGISwapChain3* p_SwapChain);
+        void SetSwapChain(IDXGISwapChain4* p_SwapChain);
         void SetCommandQueue(ID3D12CommandQueue* p_CommandQueue);
-        void OnPresent(IDXGISwapChain3* p_SwapChain);
-        void PostPresent(IDXGISwapChain3* p_SwapChain, HRESULT p_PresentResult);
-        void OnReset(IDXGISwapChain3* p_SwapChain);
-        void PostReset(IDXGISwapChain3* p_SwapChain);
+        void OnPresent(IDXGISwapChain4* p_SwapChain);
+        void PostPresent(IDXGISwapChain4* p_SwapChain, HRESULT p_PresentResult);
+        void OnReset(IDXGISwapChain4* p_SwapChain);
+        void PostReset(IDXGISwapChain4* p_SwapChain);
 
         void SetDepthBuffer(ID3D12Resource* p_DepthResource) {
             std::scoped_lock s_Lock(m_DepthBufferMutex);
@@ -134,7 +134,7 @@ namespace zknt::rendering {
         SMatrix GetProjectionMatrix() const override;
 
       private:
-        bool SetupRenderer(IDXGISwapChain3* p_SwapChain);
+        bool SetupRenderer(IDXGISwapChain4* p_SwapChain);
 
         void Draw();
         void DepthDraw();
@@ -163,7 +163,7 @@ namespace zknt::rendering {
         bool m_RendererSetup = false;
 
         ScopedD3DRef<ID3D12CommandQueue> m_CommandQueue;
-        ScopedD3DRef<IDXGISwapChain3> m_SwapChain;
+        ScopedD3DRef<IDXGISwapChain4> m_SwapChain;
         HWND m_Hwnd = nullptr;
 
         uint32_t m_RtvDescriptorSize = 0;

@@ -8,7 +8,7 @@ namespace knt::rendering {
         return s_Instance;
     }
 
-    void WndProcSubclass::EnsureInstalled(IDXGISwapChain3* p_SwapChain) {
+    void WndProcSubclass::EnsureInstalled(IDXGISwapChain4* p_SwapChain) {
         if (m_Hwnd.load(std::memory_order_acquire) != nullptr) {
             return;
         }

@@ -1,24 +1,24 @@
 #pragma once
 
 #include <atomic>
-#include <dxgi1_4.h>
+#include <dxgi1_5.h>
 
 namespace knt::rendering {
-    // Passthrough wrapper for IDXGISwapChain3. Lives in the proxy DLL so the
+    // Passthrough wrapper for IDXGISwapChain4. Lives in the proxy DLL so the
     // game retains a stable vtable address across SDK hot-reloads.
     //
     // Intercepts Present/Present1 (to notify the SDK each frame) and the
     // ResizeBuffers* / ResizeTarget family (to let the SDK recreate its
     // backbuffer-dependent resources).
-    class D3D12SwapChain final : public IDXGISwapChain3 {
+    class D3D12SwapChain final : public IDXGISwapChain4 {
       public:
-        explicit D3D12SwapChain(IDXGISwapChain3* p_Target);
+        explicit D3D12SwapChain(IDXGISwapChain4* p_Target);
         ~D3D12SwapChain();
 
         D3D12SwapChain(const D3D12SwapChain&) = delete;
         D3D12SwapChain& operator=(const D3D12SwapChain&) = delete;
 
-        IDXGISwapChain3* Target() const {
+        IDXGISwapChain4* Target() const {
             return m_Target;
         }
 
@@ -143,8 +143,13 @@ namespace knt::rendering {
             IUnknown* const* p_PresentQueue
         ) override;
 
+        // IDXGISwapChain4
+        HRESULT STDMETHODCALLTYPE SetHDRMetaData(DXGI_HDR_METADATA_TYPE p_Type, UINT p_Size, void* p_MetaData) override {
+            return m_Target->SetHDRMetaData(p_Type, p_Size, p_MetaData);
+        }
+
       private:
-        IDXGISwapChain3* m_Target;
+        IDXGISwapChain4* m_Target;
         std::atomic<ULONG> m_RefCount{0};
     };
 }

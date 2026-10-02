@@ -62,21 +62,21 @@ namespace knt::rendering {
     }
 
     void D3D12DXGIFactory::WrapAndPublishSwapChain(IUnknown* p_Device, IDXGISwapChain* p_RawSwapChain, IDXGISwapChain** p_OutSwapChain) {
-        ScopedD3DRef<IDXGISwapChain3> s_SwapChain3;
-        if (p_RawSwapChain->QueryInterface(REF_IID_PPV_ARGS(s_SwapChain3)) != S_OK) {
-            // Not a SwapChain3 (D3D11 or older). Hand the raw object back.
+        ScopedD3DRef<IDXGISwapChain4> s_SwapChain4;
+        if (p_RawSwapChain->QueryInterface(REF_IID_PPV_ARGS(s_SwapChain4)) != S_OK) {
+            // Return the raw swap chain if IDXGISwapChain4 isn't supported.
             *p_OutSwapChain = p_RawSwapChain;
             return;
         }
 
-        // The wrapper owns the QI'd IDXGISwapChain3 ref; drop the raw one.
+        // The wrapper owns the QI'd IDXGISwapChain4 ref; drop the raw one.
         p_RawSwapChain->Release();
 
-        auto* s_Wrapped = new D3D12SwapChain(s_SwapChain3.m_Ref);
+        auto* s_Wrapped = new D3D12SwapChain(s_SwapChain4.m_Ref);
         s_Wrapped->AddRef();
         *p_OutSwapChain = s_Wrapped;
 
-        RenderingHost::Instance().NotifyNewSwapChain(s_SwapChain3.m_Ref, p_Device);
+        RenderingHost::Instance().NotifyNewSwapChain(s_SwapChain4.m_Ref, p_Device);
     }
 
     HRESULT STDMETHODCALLTYPE D3D12DXGIFactory::CreateSwapChain(IUnknown* p_Device, DXGI_SWAP_CHAIN_DESC* p_Desc, IDXGISwapChain** p_OutSwapChain) {

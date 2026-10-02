@@ -4,7 +4,7 @@
 #include "WndProcSubclass.hpp"
 
 namespace knt::rendering {
-    D3D12SwapChain::D3D12SwapChain(IDXGISwapChain3* p_Target) : m_Target(p_Target) {
+    D3D12SwapChain::D3D12SwapChain(IDXGISwapChain4* p_Target) : m_Target(p_Target) {
         m_Target->AddRef();
     }
 
@@ -31,7 +31,7 @@ namespace knt::rendering {
         *p_OutObject = nullptr;
         if (p_Riid == IID_IUnknown || p_Riid == __uuidof(IDXGIObject) || p_Riid == __uuidof(IDXGIDeviceSubObject)
             || p_Riid == __uuidof(IDXGISwapChain) || p_Riid == __uuidof(IDXGISwapChain1) || p_Riid == __uuidof(IDXGISwapChain2)
-            || p_Riid == __uuidof(IDXGISwapChain3)) {
+            || p_Riid == __uuidof(IDXGISwapChain3) || p_Riid == __uuidof(IDXGISwapChain4)) {
             *p_OutObject = this;
             AddRef();
             return S_OK;

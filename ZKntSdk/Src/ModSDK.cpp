@@ -66,7 +66,7 @@ namespace zknt {
     }
 
     namespace {
-        void Cb_SetSwapChain(IDXGISwapChain3* p_SwapChain) {
+        void Cb_SetSwapChain(IDXGISwapChain4* p_SwapChain) {
             auto* s_Sdk = ModSDK::GetInstance();
 
             if (s_Sdk) {
@@ -94,7 +94,7 @@ namespace zknt {
             }
         }
 
-        void Cb_OnPresent(IDXGISwapChain3* p_SwapChain) {
+        void Cb_OnPresent(IDXGISwapChain4* p_SwapChain) {
             auto* s_Sdk = ModSDK::GetInstance();
 
             if (s_Sdk) {
@@ -108,7 +108,7 @@ namespace zknt {
             }
         }
 
-        void Cb_PostPresent(IDXGISwapChain3* p_SwapChain, HRESULT p_PresentResult) {
+        void Cb_PostPresent(IDXGISwapChain4* p_SwapChain, HRESULT p_PresentResult) {
             auto* s_Sdk = ModSDK::GetInstance();
 
             if (s_Sdk) {
@@ -122,7 +122,7 @@ namespace zknt {
             }
         }
 
-        void Cb_OnReset(IDXGISwapChain3* p_SwapChain) {
+        void Cb_OnReset(IDXGISwapChain4* p_SwapChain) {
             auto* s_Sdk = ModSDK::GetInstance();
 
             if (s_Sdk) {
@@ -136,7 +136,7 @@ namespace zknt {
             }
         }
 
-        void Cb_PostReset(IDXGISwapChain3* p_SwapChain) {
+        void Cb_PostReset(IDXGISwapChain4* p_SwapChain) {
             auto* s_Sdk = ModSDK::GetInstance();
 
             if (s_Sdk) {
