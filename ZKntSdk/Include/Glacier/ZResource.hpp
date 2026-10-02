@@ -200,8 +200,8 @@ class ZResourceManager : public IComponentInterface {
     virtual void ZResourceManager_unk21() = 0;
     virtual void ZResourceManager_unk22() = 0;
     virtual void ZResourceManager_unk23() = 0;
+    virtual void ZResourceManager_unk24() = 0;
     virtual void Update(bool bSendStatusChangedNotifications) = 0;
-    virtual void ZResourceManager_unk25() = 0;
     virtual void ZResourceManager_unk26() = 0;
     virtual void ZResourceManager_unk27() = 0;
     virtual void ZResourceManager_unk28() = 0;
@@ -226,6 +226,8 @@ class ZResourceManager : public IComponentInterface {
     virtual void ZResourceManager_unk47() = 0;
     virtual void ZResourceManager_unk48() = 0;
     virtual void ZResourceManager_unk49() = 0;
+    virtual void ZResourceManager_unk50() = 0;
+    virtual void ZResourceManager_unk51() = 0;
     virtual bool DoneLoading() = 0;
 
     PAD(0x68);                                                // 0x8

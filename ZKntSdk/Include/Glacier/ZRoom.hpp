@@ -114,9 +114,9 @@ class IRoomManagerRender {
 
 class ZRoomManagerRender : public IRoomManagerRender {
   public:
-    PAD(0x130);                               // 0x8
-    ZSparseBitArray m_RoomsVisible;           // 0x138
-    ZSparseBitArray m_GatesVisible;           // 0x158
-    PAD(0x268);                               // 0x178
-    TArray<SGateRenderData> m_GateRenderData; // 0x3E0
+    PAD(0x150);                               // 0x8
+    ZSparseBitArray m_RoomsVisible;           // 0x158
+    ZSparseBitArray m_GatesVisible;           // 0x178
+    PAD(0x268);                               // 0x198
+    TArray<SGateRenderData> m_GateRenderData; // 0x400
 };

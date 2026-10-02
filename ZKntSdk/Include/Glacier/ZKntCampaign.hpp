@@ -106,5 +106,5 @@ struct SKntMissionData {
     ZGuid m_Id;             // 0x00
     PAD(0x28);              // 0x10
     EKntMissionType m_Type; // 0x38
-    PAD(0x154);             // 0x3C
+    PAD(0x164);             // 0x3C
 };

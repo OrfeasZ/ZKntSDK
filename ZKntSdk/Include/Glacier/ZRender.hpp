@@ -289,12 +289,12 @@ class ZRenderManager : public IRenderManager, public ZSceneLifecycleListener {
     virtual ~ZRenderManager() = default;
 
   public:
-    PAD(0x17C80);                               // 0x10
-    ZRenderDevice* m_pRenderDevice;             // 0x17C90
-    PAD(0x8);                                   // 0x17C98
-    ZRenderSharedResources* m_pSharedResources; // 0x17CA0
-    PAD(0xA900);                                // 0x17CA8
-    ZRoomManagerRender* m_pRoomManagerRender;   // 0x225A8
+    PAD(0x17C90);                               // 0x10
+    ZRenderDevice* m_pRenderDevice;             // 0x17CA0
+    PAD(0x8);                                   // 0x17CA8
+    ZRenderSharedResources* m_pSharedResources; // 0x17CB0
+    PAD(0xA908);                                // 0x17CB8
+    ZRoomManagerRender* m_pRoomManagerRender;   // 0x225C0
 };
 
 class RenderReferencedCountedBaseStub {
@@ -471,10 +471,10 @@ class FrameGraphInternal {
     struct SPassNode : SEvent {
         virtual ~SPassNode() = default;
 
-        PAD(0x48);                               // 0x38
-        uint32_t m_RenderTargetCount;            // 0x80
-        ZRenderTargetView* m_RenderTargets[8];   // 0x88
-        ZRenderDepthStencilView* m_DepthStencil; // 0xC8
+        PAD(0x50);                               // 0x38
+        uint32_t m_RenderTargetCount;            // 0x88
+        ZRenderTargetView* m_RenderTargets[8];   // 0x90
+        ZRenderDepthStencilView* m_DepthStencil; // 0xD0
     };
 };
 
