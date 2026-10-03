@@ -1249,9 +1249,17 @@ void EditorServer::WritePropertyName(std::ostream& p_Stream, SPropertyData* p_Pr
 }
 
 void EditorServer::WriteProperty(std::ostream& p_Stream, ZEntityRef p_Entity, SPropertyData* p_Property) {
-    p_Stream << "{" << write_json("type") << ":";
-
     const auto* s_PropertyInfo = p_Property->GetPropertyInfo();
+
+    if (s_PropertyInfo->m_pszPropertyName && s_PropertyInfo->m_nPropertyID == p_Property->m_nPropertyID) {
+        const std::string s_PropertyName = std::string(s_PropertyInfo->m_pszPropertyName);
+
+        if (s_PropertyName.starts_with("SelfAs") && s_PropertyName.ends_with("Ref")) {
+            return;
+        }
+    }
+
+    p_Stream << "{" << write_json("type") << ":";
 
     if (!s_PropertyInfo || !s_PropertyInfo->m_propertyInfo.m_Type) {
         p_Stream << write_json("unknown") << ",";
