@@ -18,8 +18,8 @@ void Editor::DrawEntityAABB(zknt::IDirectXTKRenderer* p_Renderer) {
 
             float4 s_Min, s_Max;
 
-            // s_SpatialEntity->CalculateBounds(s_Min, s_Max);
-            SDK()->Functions()->ZSpatialEntity_CalculateBounds->Call(s_SpatialEntity, s_Min, s_Max);
+            s_SpatialEntity->CalculateBounds(s_Min, s_Max);
+            // SDK()->Functions()->ZSpatialEntity_CalculateBounds->Call(s_SpatialEntity, s_Min, s_Max);
 
             p_Renderer->SetFrustumCullingEnabled(false);
 
