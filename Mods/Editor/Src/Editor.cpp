@@ -544,7 +544,7 @@ void Editor::OnMouseDown(const SVector2& p_Position, bool p_IsFirstClick) {
                 }
             }
 
-            if (s_SelectedEntity.QueryInterface<ZHumanoidOutfitEntity>()) {
+            /*if (s_SelectedEntity.QueryInterface<ZHumanoidOutfitEntity>()) {
                 if (!SpawnEntities()) {
                     OnSelectEntity(s_SelectedEntity, true, std::nullopt);
                     return;
@@ -571,8 +571,9 @@ void Editor::OnMouseDown(const SVector2& p_Position, bool p_IsFirstClick) {
 
                     m_ScrollToHumanoid = true;
                 }
-            }
-            else if (auto s_LinkedEntity = s_SelectedEntity.QueryInterface<ZLinkedEntity>()) {
+            }*/
+
+            if (auto s_LinkedEntity = s_SelectedEntity.QueryInterface<ZLinkedEntity>()) {
                 ZEntityRef s_EntityRef;
                 s_LinkedEntity->GetID(s_EntityRef);
 
