@@ -951,6 +951,18 @@ bool Editor::DrawEntityPropertyValue(
     else if (p_TypeName.starts_with("TEntityRef")) {
         TEntityRefProperty(p_Id, p_Entity, p_Property, p_Data);
     }
+    else if (p_TypeName.starts_with("TInterfaceRef<Z")) {
+        auto* s_InterfaceRef = static_cast<TInterfaceRef<ZEntityImpl>*>(p_Data);
+        ZEntityRef s_EntityRef = s_InterfaceRef->ToEntityRef();
+
+        ZEntityRefProperty(p_Id, p_Entity, p_Property, &s_EntityRef);
+    }
+    else if (p_TypeName.starts_with("TInterfaceRef<I")) {
+        auto* s_InterfaceRef = static_cast<TInterfaceRef<void>*>(p_Data);
+        ZEntityRef s_EntityRef = s_InterfaceRef->ToEntityRef();
+
+        ZEntityRefProperty(p_Id, p_Entity, p_Property, &s_EntityRef);
+    }
     else if (p_TypeName == "ZRepositoryID") {
         ZRepositoryIDProperty(p_Id, p_Entity, p_Property, p_Data);
     }

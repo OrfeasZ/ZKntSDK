@@ -614,6 +614,31 @@ template<typename T> class TInterfaceRef {
         return {};
     }
 
+    ZEntityRef ToEntityRef() const {
+        if (!m_pInterfaceRef) {
+            return {};
+        }
+
+        ZEntityRef s_EntityRef;
+
+        if constexpr (std::derived_from<T, ZEntityImpl>) {
+            // The interface pointer points directly to the entity implementation.
+            reinterpret_cast<ZEntityImpl*>(m_pInterfaceRef)->GetID(s_EntityRef);
+        }
+        else {
+            // Secondary interfaces are located immediately after ZEntityImpl.
+            const auto s_EntityImpl = reinterpret_cast<ZEntityImpl*>(reinterpret_cast<uintptr_t>(m_pInterfaceRef) - sizeof(ZEntityImpl));
+
+            s_EntityImpl->GetID(s_EntityRef);
+        }
+
+        if (s_EntityRef.m_EntityIndex != m_EntityIndex || s_EntityRef.m_Validation != m_Validation) {
+            return {};
+        }
+
+        return s_EntityRef;
+    }
+
     operator bool() const {
         return m_pInterfaceRef != nullptr;
     }
