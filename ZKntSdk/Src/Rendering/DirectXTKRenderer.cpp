@@ -1385,9 +1385,7 @@ namespace zknt::rendering {
         }
     }
 
-    void DirectXTKRenderer::DrawMesh(
-        const std::vector<SVector3>& p_Vertices, const std::vector<unsigned short>& p_Indices, const SVector4& p_VertexColor
-    ) {
+    void DirectXTKRenderer::DrawMesh(const std::vector<SVector3>& p_Vertices, const std::vector<uint16_t>& p_Indices, const SVector4& p_VertexColor) {
         if (p_Vertices.empty() || p_Indices.empty()) {
             return;
         }
@@ -1430,11 +1428,11 @@ namespace zknt::rendering {
     }
 
     void DirectXTKRenderer::DrawMesh(
-        ZRenderPrimitiveResource* s_pRenderPrimitiveResource, ZRenderVertexBuffer** p_VertexBuffers, const uint32_t p_VertexBufferCount,
+        ZRenderPrimitiveResource* p_RenderPrimitiveResource, ZRenderVertexBuffer** p_VertexBuffers, const uint32_t p_VertexBufferCount,
         ZRenderIndexBuffer* p_IndexBuffer, const SMatrix& p_Transform, const float4& p_PositionScale, const float4& p_PositionBias,
         const float4& p_TextureScaleBias, const SVector4& p_MaterialColor
     ) {
-        if (!s_pRenderPrimitiveResource || !p_VertexBuffers || p_VertexBufferCount == 0 || !p_IndexBuffer) {
+        if (!p_RenderPrimitiveResource || !p_VertexBuffers || p_VertexBufferCount == 0 || !p_IndexBuffer) {
             return;
         }
 
@@ -1444,8 +1442,8 @@ namespace zknt::rendering {
             }
         }
 
-        const SVector3 s_RawCenter = (s_pRenderPrimitiveResource->m_vMin + s_pRenderPrimitiveResource->m_vMax) * 0.5f;
-        const SVector3 s_RawExtents = (s_pRenderPrimitiveResource->m_vMax - s_pRenderPrimitiveResource->m_vMin) * 0.5f;
+        const SVector3 s_RawCenter = (p_RenderPrimitiveResource->m_vMin + p_RenderPrimitiveResource->m_vMax) * 0.5f;
+        const SVector3 s_RawExtents = (p_RenderPrimitiveResource->m_vMax - p_RenderPrimitiveResource->m_vMin) * 0.5f;
 
         const SVector3 s_Center = s_RawCenter * SVector3(p_PositionScale) + SVector3(p_PositionBias);
         const SVector3 s_Extents = s_RawExtents * SVector3(p_PositionScale);

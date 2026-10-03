@@ -73,7 +73,7 @@ namespace zknt {
         DrawMesh(const std::vector<SVector3>& p_Vertices, const std::vector<unsigned short>& p_Indices, const SVector4& p_VertexColor) = 0;
 
         virtual void DrawMesh(
-            ZRenderPrimitiveResource* s_pRenderPrimitiveResource, ZRenderVertexBuffer** p_VertexBuffers, uint32_t p_VertexBufferCount,
+            ZRenderPrimitiveResource* p_RenderPrimitiveResource, ZRenderVertexBuffer** p_VertexBuffers, uint32_t p_VertexBufferCount,
             ZRenderIndexBuffer* p_IndexBuffer, const SMatrix& p_Transform, const float4& p_PositionScale, const float4& p_PositionBias,
             const float4& p_TextureScaleBias, const SVector4& p_MaterialColor
         ) = 0;

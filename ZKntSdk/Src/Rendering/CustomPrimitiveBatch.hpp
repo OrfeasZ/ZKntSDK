@@ -159,24 +159,21 @@ namespace zknt::rendering {
         void
         DrawIndexed(D3D_PRIMITIVE_TOPOLOGY p_Topology, uint16_t const* indices, size_t p_IndexCount, TVertex const* vertices, size_t p_VertexCount) {
             void* s_MappedVertices;
-
             Draw(p_Topology, true, indices, p_IndexCount, p_VertexCount, &s_MappedVertices);
 
             memcpy(s_MappedVertices, vertices, p_VertexCount * sizeof(TVertex));
         }
 
-        void DrawLine(TVertex const& v1, TVertex const& v2) {
+        void DrawLine(const TVertex& p_V1, const TVertex& p_V2) {
             TVertex* s_MappedVertices;
-
             Draw(D3D_PRIMITIVE_TOPOLOGY_LINELIST, false, nullptr, 0, 2, reinterpret_cast<void**>(&s_MappedVertices));
 
-            s_MappedVertices[0] = v1;
-            s_MappedVertices[1] = v2;
+            s_MappedVertices[0] = p_V1;
+            s_MappedVertices[1] = p_V2;
         }
 
-        void DrawTriangle(TVertex const& p_V1, TVertex const& p_V2, TVertex const& p_V3) {
+        void DrawTriangle(const TVertex& p_V1, const TVertex& p_V2, const TVertex& p_V3) {
             TVertex* s_MappedVertices;
-
             Draw(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, false, nullptr, 0, 3, reinterpret_cast<void**>(&s_MappedVertices));
 
             s_MappedVertices[0] = p_V1;
@@ -184,10 +181,9 @@ namespace zknt::rendering {
             s_MappedVertices[2] = p_V3;
         }
 
-        void DrawQuad(TVertex const& p_V1, TVertex const& p_V2, TVertex const& p_V3, TVertex const& p_V4) {
+        void DrawQuad(const TVertex& p_V1, const TVertex& p_V2, const TVertex& p_V3, const TVertex& p_V4) {
             static const uint16_t s_QuadIndices[] = {0, 1, 2, 0, 2, 3};
             TVertex* s_MappedVertices;
-
             Draw(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, true, s_QuadIndices, 6, 4, reinterpret_cast<void**>(&s_MappedVertices));
 
             s_MappedVertices[0] = p_V1;
