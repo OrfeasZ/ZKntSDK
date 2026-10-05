@@ -102,8 +102,8 @@ class Cheats : public zknt::IPluginInterface {
     TEntityRef<ZCLGetMaximumPlayerResource> m_MaximumChemicalGetter;
     TEntityRef<ZCLGiveResourceToPlayer> m_ElectricityGiver;
     TEntityRef<ZCLGiveResourceToPlayer> m_ChemicalGiver;
-    TEntityRef<ZCLValueFloatEntity> s_ElectricityAmountFloatValue;
-    TEntityRef<ZCLValueFloatEntity> s_ChemicalAmountFloatValue;
+    TEntityRef<ZCLValueFloatEntity> m_ElectricityAmountFloatValue;
+    TEntityRef<ZCLValueFloatEntity> m_ChemicalAmountFloatValue;
     TEntityRef<ZDynamicGameplaySpawnerEntity> m_GadgetSpawner;
     TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity> m_GadgetSpawnerItemEntry;
     TEntityRef<ZCLAttachItemToHumanoid> m_GadgetAttacher;

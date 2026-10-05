@@ -56,8 +56,8 @@ void Cheats::CleanupSpawnedEntities() {
     s_DeleteEntity(&m_MaximumChemicalGetter);
     s_DeleteEntity(&m_ElectricityGiver);
     s_DeleteEntity(&m_ChemicalGiver);
-    s_DeleteEntity(&s_ElectricityAmountFloatValue);
-    s_DeleteEntity(&s_ChemicalAmountFloatValue);
+    s_DeleteEntity(&m_ElectricityAmountFloatValue);
+    s_DeleteEntity(&m_ChemicalAmountFloatValue);
     s_DeleteEntity(&m_GadgetSpawner);
     s_DeleteEntity(&m_GadgetSpawnerItemEntry);
     s_DeleteEntity(&m_GadgetAttacher);
@@ -444,14 +444,14 @@ void Cheats::OnFrameUpdate(const SGameUpdateEvent& p_UpdateEvent) {
 
     if (m_InfiniteElectricity && m_CurrentElectricityGetter && m_MaximumElectricityGetter) {
         if (m_CurrentElectricityGetter.m_pInterfaceRef->GetValue() < m_MaximumElectricityGetter.m_pInterfaceRef->GetValue()) {
-            s_ElectricityAmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", m_MaximumElectricityGetter.m_pInterfaceRef->GetValue());
+            m_ElectricityAmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", m_MaximumElectricityGetter.m_pInterfaceRef->GetValue());
             m_ElectricityGiver.m_entityRef.SignalInputPin("Do");
         }
     }
 
     if (m_InfiniteChecmical && m_CurrentChemicalGetter && m_MaximumChemicalGetter) {
         if (m_CurrentChemicalGetter.m_pInterfaceRef->GetValue() < m_MaximumChemicalGetter.m_pInterfaceRef->GetValue()) {
-            s_ChemicalAmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", m_MaximumElectricityGetter.m_pInterfaceRef->GetValue());
+            m_ChemicalAmountFloatValue.m_entityRef.SetProperty<float32>("m_nValue", m_MaximumChemicalGetter.m_pInterfaceRef->GetValue());
             m_ChemicalGiver.m_entityRef.SignalInputPin("Do");
         }
     }
@@ -546,8 +546,8 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_MaximumChemicalGetter = TEntityRef<ZCLGetMaximumPlayerResource>::SpawnEntity(ResId<"[modules:/zclgetmaximumplayerresource.class].entitytype">);
     m_ElectricityGiver = TEntityRef<ZCLGiveResourceToPlayer>::SpawnEntity(ResId<"[modules:/zclgiveresourcetoplayer.class].entitytype">);
     m_ChemicalGiver = TEntityRef<ZCLGiveResourceToPlayer>::SpawnEntity(ResId<"[modules:/zclgiveresourcetoplayer.class].entitytype">);
-    s_ElectricityAmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
-    s_ChemicalAmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
+    m_ElectricityAmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
+    m_ChemicalAmountFloatValue = TEntityRef<ZCLValueFloatEntity>::SpawnEntity(ResId<"[modules:/zclvaluefloatentity.class].entitytype">);
     m_GadgetSpawner = TEntityRef<ZDynamicGameplaySpawnerEntity>::SpawnEntity(ResId<"[modules:/zdynamicgameplayspawnerentity.class].entitytype">);
     m_GadgetSpawnerItemEntry =
         TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity>::SpawnEntity(ResId<"[modules:/zdynamicgameplayspawneritementryentity.class].entitytype">);
@@ -576,8 +576,8 @@ bool Cheats::EnsureEntitiesSpawned() {
     if (!m_HumanoidTeleporter || !m_TeleportTarget || !m_LocalPlayerHumanoidGetter || !m_CollisionModifier || !m_ImmuneModifier
         || !m_UnkillableModifier || !m_InfiniteAmmoModifier || !m_InvisibleModifier || !m_LocalPlayerIDGetter || !m_SetHumanoidOutfit
         || !m_ImmuneBoolValue || !m_UnkillableBoolValue || !m_InvisibleBoolValue || !m_CurrentElectricityGetter || !m_CurrentChemicalGetter
-        || !m_MaximumElectricityGetter || !m_MaximumChemicalGetter || !m_ElectricityGiver || !m_ChemicalGiver || !s_ElectricityAmountFloatValue
-        || !s_ChemicalAmountFloatValue || !m_GadgetSpawner || !m_GadgetSpawnerItemEntry || !m_GadgetAttacher || !m_GadgetSlotAssigner
+        || !m_MaximumElectricityGetter || !m_MaximumChemicalGetter || !m_ElectricityGiver || !m_ChemicalGiver || !m_ElectricityAmountFloatValue
+        || !m_ChemicalAmountFloatValue || !m_GadgetSpawner || !m_GadgetSpawnerItemEntry || !m_GadgetAttacher || !m_GadgetSlotAssigner
         || !m_FirearmSpawner || !m_FirearmSpawnerItemEntry || !m_EquippedItemSetter || !s_AreAmmunitionGettersSpawned
         || !s_AreAmmunitionSettersSpawned) {
         Logger::Error(
@@ -593,7 +593,7 @@ bool Cheats::EnsureEntitiesSpawned() {
             static_cast<bool>(m_SetHumanoidOutfit), static_cast<bool>(m_ImmuneBoolValue), static_cast<bool>(m_UnkillableBoolValue),
             static_cast<bool>(m_InvisibleBoolValue), static_cast<bool>(m_CurrentElectricityGetter), static_cast<bool>(m_CurrentChemicalGetter),
             static_cast<bool>(m_MaximumElectricityGetter), static_cast<bool>(m_MaximumChemicalGetter), static_cast<bool>(m_ElectricityGiver),
-            static_cast<bool>(m_ChemicalGiver), static_cast<bool>(s_ElectricityAmountFloatValue), static_cast<bool>(s_ChemicalAmountFloatValue),
+            static_cast<bool>(m_ChemicalGiver), static_cast<bool>(m_ElectricityAmountFloatValue), static_cast<bool>(m_ChemicalAmountFloatValue),
             static_cast<bool>(m_GadgetSpawner), static_cast<bool>(m_GadgetSpawnerItemEntry), static_cast<bool>(m_GadgetAttacher),
             static_cast<bool>(m_GadgetSlotAssigner), static_cast<bool>(m_FirearmSpawner), static_cast<bool>(m_FirearmSpawnerItemEntry),
             static_cast<bool>(m_EquippedItemSetter), s_AreAmmunitionGettersSpawned, s_AreAmmunitionSettersSpawned
@@ -673,8 +673,8 @@ bool Cheats::EnsureEntitiesSpawned() {
     m_ElectricityGiver.m_entityRef.SetProperty("m_resourceDefinition", s_ElectricResourceDefinitionPtr);
     m_ChemicalGiver.m_entityRef.SetProperty("m_resourceDefinition", s_ChemicalResourceDefinitionPtr);
 
-    const auto s_ElectricityAmountFloatRef = TInterfaceRef<IFloatValue>::FromEntityRef(s_ElectricityAmountFloatValue.m_entityRef);
-    const auto s_ChemicalAmountFloatRef = TInterfaceRef<IFloatValue>::FromEntityRef(s_ChemicalAmountFloatValue.m_entityRef);
+    const auto s_ElectricityAmountFloatRef = TInterfaceRef<IFloatValue>::FromEntityRef(m_ElectricityAmountFloatValue.m_entityRef);
+    const auto s_ChemicalAmountFloatRef = TInterfaceRef<IFloatValue>::FromEntityRef(m_ChemicalAmountFloatValue.m_entityRef);
 
     if (!s_ElectricityAmountFloatRef || !s_ChemicalAmountFloatRef) {
         Logger::Error("[Cheats] Failed to get IFloatValue ref for electricity and chemical resource amounts.");
