@@ -961,41 +961,50 @@ void Cheats::LoadFirearms() {
         }
 
         ZRuntimeResourceID s_ItemResource;
+        ZRuntimeResourceID s_ItemBlueprintResource;
         bool s_HasMultipleFirearmReferences = false;
 
         for (size_t i = 0; i < s_ResourceInfo.numReferences; ++i) {
             const uint32_t s_ReferenceIndex = (*SDK()->Globals()->ResourceContainer)->m_references[s_ResourceInfo.firstReferenceIndex + i].index;
+
             const ZResourceContainer::SResourceInfo& s_ReferenceInfo = (*SDK()->Globals()->ResourceContainer)->m_resources[s_ReferenceIndex];
 
-            if (s_ReferenceInfo.resourceType == 'TEMP') {
-                if (s_ReferenceInfo.rid
-                    == ResId<"[assembly:/_knt/items/templates/firearms/firearms.template?/firearm_instance_base.entitytemplate].entitytype">) {
-                    s_ItemResource = s_ResourceInfo.rid;
-                }
-                else {
-                    for (size_t j = 0; j < s_ReferenceInfo.numReferences; ++j) {
-                        const uint32_t s_ReferenceIndex2 =
-                            (*SDK()->Globals()->ResourceContainer)->m_references[s_ReferenceInfo.firstReferenceIndex + j].index;
-                        const ZResourceContainer::SResourceInfo& s_ReferenceInfo2 =
-                            (*SDK()->Globals()->ResourceContainer)->m_resources[s_ReferenceIndex2];
+            if (s_ReferenceInfo.resourceType == 'TBLU') {
+                s_ItemBlueprintResource = s_ReferenceInfo.rid;
+                continue;
+            }
 
-                        if (s_ReferenceInfo2.resourceType == 'TEMP'
-                            && s_ReferenceInfo2.rid
-                                   == ResId<"[assembly:/_knt/items/templates/firearms/firearms.template?/"
-                                            "firearm_instance_base.entitytemplate].entitytype">) {
-                            s_HasMultipleFirearmReferences = true;
-                            break;
-                        }
-                    }
+            if (s_ReferenceInfo.resourceType != 'TEMP') {
+                continue;
+            }
 
-                    if (s_HasMultipleFirearmReferences) {
-                        break;
-                    }
+            if (s_ReferenceInfo.rid
+                == ResId<"[assembly:/_knt/items/templates/firearms/firearms.template?/firearm_instance_base.entitytemplate].entitytype">) {
+                s_ItemResource = s_ResourceInfo.rid;
+                continue;
+            }
+
+            for (size_t j = 0; j < s_ReferenceInfo.numReferences; ++j) {
+                const uint32_t s_ReferenceIndex2 =
+                    (*SDK()->Globals()->ResourceContainer)->m_references[s_ReferenceInfo.firstReferenceIndex + j].index;
+
+                const ZResourceContainer::SResourceInfo& s_ReferenceInfo2 = (*SDK()->Globals()->ResourceContainer)->m_resources[s_ReferenceIndex2];
+
+                if (s_ReferenceInfo2.resourceType == 'TEMP'
+                    && s_ReferenceInfo2.rid
+                           == ResId<"[assembly:/_knt/items/templates/firearms/firearms.template?/"
+                                    "firearm_instance_base.entitytemplate].entitytype">) {
+                    s_HasMultipleFirearmReferences = true;
+                    break;
                 }
+            }
+
+            if (s_HasMultipleFirearmReferences) {
+                break;
             }
         }
 
-        if (s_HasMultipleFirearmReferences || !s_ItemResource.IsValid()) {
+        if (s_HasMultipleFirearmReferences || !s_ItemResource.IsValid() || !s_ItemBlueprintResource.IsValid()) {
             continue;
         }
 
@@ -1049,11 +1058,10 @@ void Cheats::LoadFirearms() {
 
                 const std::string s_Category = FirearmClassToString(s_FirearmDefinition->m_firearmClass);
 
-                TResourcePtr<IEntityFactory> s_FirearmResourcePtr;
-                SDK()->Globals()->ResourceManager->LoadResource(s_FirearmResourcePtr, s_ItemResource);
+                TResourcePtr<ZTemplateEntityBlueprintFactory> s_BlueprintResourcePtr;
+                SDK()->Globals()->ResourceManager->LoadResource(s_BlueprintResourcePtr, s_ItemBlueprintResource);
 
-                ZTemplateEntityBlueprintFactory* s_TemplateEntityBlueprintFactory =
-                    static_cast<ZTemplateEntityBlueprintFactory*>(s_FirearmResourcePtr.GetResource()->GetBlueprint());
+                ZTemplateEntityBlueprintFactory* s_TemplateEntityBlueprintFactory = s_BlueprintResourcePtr.GetResource();
 
                 if (!s_TemplateEntityBlueprintFactory->m_pTemplateEntityBlueprint) {
                     Logger::Error(
