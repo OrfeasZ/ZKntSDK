@@ -169,8 +169,13 @@ void Cheats::DrawGeneralTab() {
     m_StateDirty |= ImGui::Checkbox("Buddha mode (unkillable)", &m_Unkillable);
     m_StateDirty |= ImGui::Checkbox("Infinite ammo", &m_InfiniteAmmo);
     m_StateDirty |= ImGui::Checkbox("Invisible", &m_Invisible);
+
     ImGui::Checkbox("Q-Lens: Infinite electricity", &m_InfiniteElectricity);
     ImGui::Checkbox("Q-Lens: Infinite chemical", &m_InfiniteChecmical);
+
+    if (ImGui::Checkbox("License to kill", &m_LicenseToKill)) {
+        SetLicenseToKillEnabled(m_LicenseToKill);
+    }
 }
 
 void Cheats::DrawOutfitsTab() {
@@ -1136,6 +1141,56 @@ const char* Cheats::FirearmClassToString(EFirearmClass p_FirearmClass) {
         return "Heavy handgun";
     default:
         return "";
+    }
+}
+
+void Cheats::SetLicenseToKillEnabled(bool p_Enabled) {
+    if (p_Enabled) {
+        if (m_PlayerGameplayArea) {
+            return;
+        }
+
+        m_PlayerGameplayArea = TEntityRef<ZPlayerGameplayAreaEntity>::SpawnEntity(ResId<"[modules:/zplayergameplayareaentity.class].entitytype">);
+        m_GameplayAreaVolume = TEntityRef<ZBoxVolumeEntity>::SpawnEntity(ResId<"[modules:/zboxvolumeentity.class].entitytype">);
+        m_EnabledCondition = TEntityRef<ZCLValueBoolEntity>::SpawnEntity(ResId<"[modules:/zclvalueboolentity.class].entitytype">);
+
+        if (!m_PlayerGameplayArea || !m_GameplayAreaVolume || !m_EnabledCondition) {
+            Logger::Error("[Cheats] Failed to create license-to-kill gameplay area.");
+            SetLicenseToKillEnabled(false);
+            return;
+        }
+
+        m_EnabledCondition.m_entityRef.SetProperty("m_bValue", true);
+
+        const auto s_EnabledCondition = TInterfaceRef<IBoolValue>::FromEntityRef(m_EnabledCondition.m_entityRef);
+
+        if (!s_EnabledCondition) {
+            Logger::Error("[Cheats] Failed to get IBoolValue ref for enabled condition.");
+            SetLicenseToKillEnabled(false);
+            return;
+        }
+
+        m_GameplayAreaVolume.m_entityRef.SetProperty("m_vGlobalSize", SVector3{50000.f, 50000.f, 50000.f});
+
+        TArray<TInterfaceRef<ITriggerVolume>> s_TriggerVolumes;
+        s_TriggerVolumes.push_back(TInterfaceRef<ITriggerVolume>::FromEntityRef(m_GameplayAreaVolume.m_entityRef));
+
+        m_PlayerGameplayArea.m_entityRef.SetProperty("m_enabledCondition", s_EnabledCondition);
+        m_PlayerGameplayArea.m_entityRef.SetProperty("m_triggerVolumes", s_TriggerVolumes);
+        m_PlayerGameplayArea.m_entityRef.SetProperty("m_gameplayAreaType", Gameplay::EGameplayAreaType::LicenseToKill);
+        m_PlayerGameplayArea.m_entityRef.SetProperty("m_gameplayAreaLocomotionContext", Gameplay::EGameplayAreaLocomotionContext::Combat);
+    }
+    else {
+        const auto s_DeleteEntity = [](auto* p_Ref) {
+            if (*p_Ref) {
+                SDK()->Functions()->ZEntityManager_DeleteEntity->Call(SDK()->Globals()->EntityManager, p_Ref->m_entityRef);
+            }
+            *p_Ref = {};
+        };
+
+        s_DeleteEntity(&m_PlayerGameplayArea);
+        s_DeleteEntity(&m_GameplayAreaVolume);
+        s_DeleteEntity(&m_EnabledCondition);
     }
 }
 

@@ -19,6 +19,9 @@ class ZCLAssignGadgetToSlot;
 class ZItemCharacterEntityBase;
 class ZCLGiveHumanoidPlayerAmmunition;
 class ZCLSetPlayerEquippedItem;
+class ZPlayerGameplayAreaEntity;
+class ZBoxVolumeEntity;
+class ITriggerVolume;
 
 class Cheats : public zknt::IPluginInterface {
   public:
@@ -72,6 +75,8 @@ class Cheats : public zknt::IPluginInterface {
     void SpawnFirearm(const ZRuntimeResourceID& p_ItemResource);
     static const char* FirearmClassToString(EFirearmClass p_FirearmClass);
 
+    void SetLicenseToKillEnabled(bool p_Enabled);
+
     DECLARE_PLUGIN_DETOUR(
         Cheats, ZKntLoadoutCollectionEntity*, ZKntLoadoutCollectionEntity_ZKntLoadoutCollectionEntity, ZKntLoadoutCollectionEntity* th,
         const ZComponentCreateInfo& Info
@@ -111,6 +116,9 @@ class Cheats : public zknt::IPluginInterface {
     TEntityRef<ZDynamicGameplaySpawnerEntity> m_FirearmSpawner;
     TEntityRef<ZDynamicGameplaySpawnerItemEntryEntity> m_FirearmSpawnerItemEntry;
     TEntityRef<ZCLSetPlayerEquippedItem> m_EquippedItemSetter;
+    TEntityRef<ZPlayerGameplayAreaEntity> m_PlayerGameplayArea;
+    TEntityRef<ZBoxVolumeEntity> m_GameplayAreaVolume;
+    TEntityRef<ZCLValueBoolEntity> m_EnabledCondition;
     std::array<TEntityRef<ZCLGetPlayerInventoryAmmunition>, 8> m_AmmunitionGetters;
     std::array<TEntityRef<ZCLGiveHumanoidPlayerAmmunition>, 8> m_AmmunitionSetters;
 
@@ -122,6 +130,7 @@ class Cheats : public zknt::IPluginInterface {
     bool m_Invisible = false;
     bool m_InfiniteElectricity = false;
     bool m_InfiniteChecmical = false;
+    bool m_LicenseToKill = false;
     bool m_StateDirty = false;
 
     ZInputAction m_ToggleNoclipAction;
