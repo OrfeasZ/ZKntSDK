@@ -602,6 +602,12 @@ template<typename T> class TEntityRef {
     T* m_pInterfaceRef = nullptr;
 };
 
+struct RTTICompleteObjectLocator {
+    uint32_t signature;
+    uint32_t offset;
+    uint32_t cdOffset;
+};
+
 template<typename T> class TInterfaceRef {
   public:
     static TInterfaceRef FromEntityRef(ZEntityRef p_EntityRef) {
@@ -614,23 +620,34 @@ template<typename T> class TInterfaceRef {
         return {};
     }
 
+    static ZEntityImpl* GetEntityImplFromInterface(void* p_Interface) {
+        if (!p_Interface) {
+            return nullptr;
+        }
+
+        const auto s_VTable = *reinterpret_cast<uintptr_t**>(p_Interface);
+
+        const auto s_CompleteObjectLocator = reinterpret_cast<const RTTICompleteObjectLocator*>(s_VTable[-1]);
+
+        return reinterpret_cast<ZEntityImpl*>(reinterpret_cast<uintptr_t>(p_Interface) - s_CompleteObjectLocator->offset);
+    }
+
     ZEntityRef ToEntityRef() const {
         if (!m_pInterfaceRef) {
             return {};
         }
 
-        ZEntityRef s_EntityRef;
+        ZEntityImpl* s_EntityImpl;
 
         if constexpr (std::derived_from<T, ZEntityImpl>) {
-            // The interface pointer points directly to the entity implementation.
-            reinterpret_cast<ZEntityImpl*>(m_pInterfaceRef)->GetID(s_EntityRef);
+            s_EntityImpl = reinterpret_cast<ZEntityImpl*>(m_pInterfaceRef);
         }
         else {
-            // Secondary interfaces are located immediately after ZEntityImpl.
-            const auto s_EntityImpl = reinterpret_cast<ZEntityImpl*>(reinterpret_cast<uintptr_t>(m_pInterfaceRef) - sizeof(ZEntityImpl));
-
-            s_EntityImpl->GetID(s_EntityRef);
+            s_EntityImpl = GetEntityImplFromInterface(m_pInterfaceRef);
         }
+
+        ZEntityRef s_EntityRef;
+        s_EntityImpl->GetID(s_EntityRef);
 
         if (s_EntityRef.m_EntityIndex != m_EntityIndex || s_EntityRef.m_Validation != m_Validation) {
             return {};
