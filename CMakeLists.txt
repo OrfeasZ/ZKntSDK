@@ -27,7 +27,7 @@ find_package(directxtex CONFIG REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(libuv CONFIG REQUIRED)
 
-CPMAddPackage("gh:OrfeasZ/ZHMTools@4.1.0")
+CPMAddPackage("gh:OrfeasZ/ZHMTools@4.2.2")
 
 add_subdirectory(DirectInputProxy)
 add_subdirectory(ZKntSdk)
